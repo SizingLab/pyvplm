@@ -96,7 +96,7 @@ The packages uses different additional libraries to the two named before (numpy,
 To install pyVPLM, follow those three steps:
 
 1. Download pyVPLM source code folder `pyvplm-master`:
-	- Go to [GitHub](https://github.com/SizingLab/methods_and_tools/tree/master/pyvplm-master), download the repository in any directory. 
+	- Go to [GitHub](https://github.com/SizingLab/pyvplm), download the repository in any directory. 
 2. Add path to Anaconda:
 	- Open an Anaconda terminal and navigate to the master directory just copied (use `cd` command to change directory).
 	- Add path using command `pip install -e ./` (be sure to pip from conda: `conda install pip`).
