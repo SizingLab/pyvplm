@@ -15,7 +15,6 @@ import logging
 import pandas
 import copy
 import scipy
-from scipy.optimize import minimize
 import warnings
 from sklearn.preprocessing import PolynomialFeatures
 from fractions import Fraction
@@ -28,7 +27,6 @@ import matplotlib.ticker as ticker
 from IPython.display import Latex, display, clear_output
 from sympy.interactive import printing
 from ipywidgets import widgets, VBox
-from pyDOE2 import lhs
 from pyvplm.core.definition import PositiveParameter, PositiveParameterSet, ConstraintSet
 printing.init_printing(use_latex='png')
 pandas.options.mode.chained_assignment = None
@@ -212,7 +210,7 @@ def buckingham_theorem(parameter_set, track=False):
         
         Example
         -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+        define a positive set first, see: :func:`~sizinglab.addon.variablepowerlaw.write_dimensional_matrix`
         
         orient repetitive set (using if possible d and l):
             >>> In [7]: parameter_set.first('d', 'l')
@@ -323,7 +321,7 @@ def automatic_buckingham(parameter_set, track=False):
         
         Example
         -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+        define a positive set first, see: :func:`~sizinglab.addon.variablepowerlaw.write_dimensional_matrix`
         
         search corresponding pi_set:
             >>> In [7]: combinatory_pi_set = automatic_buckingham(parameter_set, True)
@@ -491,7 +489,7 @@ def force_buckingham(parameter_set, *pi_list):
         
         Example
         -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+        define a positive set first, see: :func:`~sizinglab.addon.variablepowerlaw.write_dimensional_matrix`
         
         force pi set:
             >>> In [7]: pi_set = force_buckingham(parameter_set, 'l/u', 'e/f*u^2', 'd/u')
@@ -692,11 +690,7 @@ def force_buckingham(parameter_set, *pi_list):
             #Compute PI name
             pi_name = 'pi' + str(pi_number + 1)
             #Save parameter and expression list
-            if bounds_list[pi_number, 0] == bounds_list[pi_number, 1]:
-                pi_name = pi_name.upper()
-                exec(pi_name + ' = PositiveParameter(\'' + pi_name + '\',[bounds_list[{},0]],\'\',\''.format(pi_number) + pi_list[pi_number] + '\')')
-            else:
-                exec(pi_name + ' = PositiveParameter(\'' + pi_name + '\',bounds_list[{},:].tolist(),\'\',\''.format(pi_number) + pi_list[pi_number] + '\')')
+            exec(pi_name + ' = PositiveParameter(\'' + pi_name + '\',bounds_list[{},:].tolist(),\'\',\''.format(pi_number) + pi_list[pi_number] + '\')')
             pi_set[pi_name]=eval(pi_name)
         return pi_set
     else:
@@ -725,7 +719,7 @@ def declare_func_x_to_pi(parameters_set, pi_set):
         
         Example
         -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+        define a positive set first, see: :func:`~sizinglab.addon.variablepowerlaw.write_dimensional_matrix`
         
         define pi set using buckingham:
             >>> In [7]: pi_set, _ = buckingham_theorem(parameter_set, False)
@@ -886,7 +880,7 @@ def regression_models(doe, elected_pi0, order, **kwargs):
         
         Example
         -------
-        to define the parameter and pi sets and generate DOE: to define the parameter and pi sets refer to: :func:`~pyvplm.addon.variablepowerlaw.reduce_parameter_set`
+        to define the parameter and pi sets and generate DOE: to define the parameter and pi sets refer to: :func:`~sizinglab.addon.variablepowerlaw.reduce_parameter_set`
         
         generate mathematic relation between Pi parameters knowing pi1=l/u and following formulas:  
             >>> In [14]: PI2 = doeX['e']*(1/doeX['f'])* doeX['u']**2
@@ -1118,43 +1112,42 @@ def regression_models(doe, elected_pi0, order, **kwargs):
             plot.rc('text', usetex=True)
             plot.rc('font', family='serif')
         # Start to plot the graph with indicators
-        if not(test_mode):
-            x = numpy.array(range(len(models.keys()))).astype(int) + 1
-            fig, axs = plot.subplots(4, sharex=True, gridspec_kw={'hspace':0.05}, figsize=(8, 10))
-            # Plot maximum absolute relative error
-            axs[0].plot(x, numpy.array(abs_error_max_train), 'k-*', label='Fitting set')
-            axs[0].plot(x, numpy.array(abs_error_max_test), 'r-*', label='Validation set')
-            y_max = min(ymax_axis, max(max(abs_error_max_train), max(abs_error_max_test)))
-            axs[0].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[0].set_ylabel(r'(1): $\max \mid \epsilon \mid$',fontsize=18)
-            axs[0].grid(True)
-            axs[0].legend(fontsize=16)
-            # Plot average |relative error| 
-            axs[1].plot(x, numpy.array(abs_error_average_train), 'k-*', label='Fitting set')
-            axs[1].plot(x, numpy.array(abs_error_average_test), 'r-*', label='Validation set')
-            y_max = min(ymax_axis, max(max(abs_error_average_train), max(abs_error_average_test)))
-            axs[1].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[1].set_ylabel(r'(2): $\frac{1}{n} \cdot \sum_{i=1}^n \mid \epsilon \mid$',fontsize=18)
-            axs[1].grid(True)
-            # Plot the |average relative error|
-            axs[2].plot(x, numpy.absolute(error_average_train), 'k-*', label='Fitting set')
-            axs[2].plot(x, numpy.absolute(error_average_test), 'r-*', label='Validation set')
-            y_max = min(ymax_axis, max(max(map(abs, error_average_train)), max(map(abs, error_average_test))))
-            axs[2].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[2].set_ylabel(r'(3): $\mid \overline{\epsilon} \mid = \mid \mu \mid$',fontsize=18)
-            axs[2].grid(True)
-            # Plot the standard deviation
-            axs[3].plot(x, numpy.absolute(error_sigma_train), 'k-*', label='Fitting set')
-            axs[3].plot(x, numpy.absolute(error_sigma_test), 'r-*', label='Validation set')
-            y_max = min(ymax_axis, max(max(map(abs, error_sigma_train)), max(map(abs, error_sigma_test))))
-            axs[3].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[3].set_ylabel(r'(4): $\mid \sigma_{\epsilon} \mid$',fontsize=18)
-            axs[3].set_xlabel('Model terms number',fontsize=16)
-            axs[3].grid(True)
-            majors = range(len(x)+1)
-            majors = ['$n^o' + str(majors[i]) +'$' for i in range(len(majors))]
-            axs[3].xaxis.set_major_locator(ticker.MultipleLocator(1))
-            axs[3].xaxis.set_major_formatter(ticker.FixedFormatter(majors))
+        x = numpy.array(range(len(models.keys()))).astype(int) + 1
+        fig, axs = plot.subplots(4, sharex=True, gridspec_kw={'hspace':0.05}, figsize=(8, 10))
+        # Plot maximum absolute relative error
+        axs[0].plot(x, numpy.array(abs_error_max_train), 'k-*', label='Fitting set')
+        axs[0].plot(x, numpy.array(abs_error_max_test), 'r-*', label='Validation set')
+        y_max = min(ymax_axis, max(max(abs_error_max_train), max(abs_error_max_test)))
+        axs[0].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
+        axs[0].set_ylabel(r'(1): $\max \mid \epsilon \mid$',fontsize=18)
+        axs[0].grid(True)
+        axs[0].legend(fontsize=16)
+        # Plot average |relative error| 
+        axs[1].plot(x, numpy.array(abs_error_average_train), 'k-*', label='Fitting set')
+        axs[1].plot(x, numpy.array(abs_error_average_test), 'r-*', label='Validation set')
+        y_max = min(ymax_axis, max(max(abs_error_average_train), max(abs_error_average_test)))
+        axs[1].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
+        axs[1].set_ylabel(r'(2): $\frac{1}{n} \cdot \sum_{i=1}^n \mid \epsilon \mid$',fontsize=18)
+        axs[1].grid(True)
+        # Plot the |average relative error|
+        axs[2].plot(x, numpy.absolute(error_average_train), 'k-*', label='Fitting set')
+        axs[2].plot(x, numpy.absolute(error_average_test), 'r-*', label='Validation set')
+        y_max = min(ymax_axis, max(max(map(abs, error_average_train)), max(map(abs, error_average_test))))
+        axs[2].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
+        axs[2].set_ylabel(r'(3): $\mid \overline{\epsilon} \mid = \mid \mu \mid$',fontsize=18)
+        axs[2].grid(True)
+        # Plot the standard deviation
+        axs[3].plot(x, numpy.absolute(error_sigma_train), 'k-*', label='Fitting set')
+        axs[3].plot(x, numpy.absolute(error_sigma_test), 'r-*', label='Validation set')
+        y_max = min(ymax_axis, max(max(map(abs, error_sigma_train)), max(map(abs, error_sigma_test))))
+        axs[3].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
+        axs[3].set_ylabel(r'(4): $\mid \sigma_{\epsilon} \mid$',fontsize=18)
+        axs[3].set_xlabel('Model terms number',fontsize=16)
+        axs[3].grid(True)
+        majors = range(len(x)+1)
+        majors = ['$n^o' + str(majors[i]) +'$' for i in range(len(majors))]
+        axs[3].xaxis.set_major_locator(ticker.MultipleLocator(1))
+        axs[3].xaxis.set_major_formatter(ticker.FixedFormatter(majors))
         try:
             plot.savefig(temp_path + 'regression_models_fig1.pdf', dpi=1200, format='pdf')
         except:
@@ -1314,7 +1307,7 @@ def adapt_parameter_set(parameter_set, pi_set, doeX, replaced_parameter, new_par
         
         Example
         -------
-        to define the parameter, pi sets and calculate DOE refer to: :func:`~pyvplm.addon.variablepowerlaw.regression_models`
+        to define the parameter, pi sets and calculate DOE refer to: :func:`~sizinglab.addon.variablepowerlaw.regression_models`
         
         save DOE into dataframe:
             >>> In [9]: labels = list(parameter_set.dictionary.keys())
@@ -1463,7 +1456,7 @@ def reduce_parameter_set(parameter_set, pi_set, elected_output):
         
         Example
         -------
-        to define the parameter and pi sets refer to: :func:`~pyvplm.addon.variablepowerlaw.buckingham_theorem`
+        to define the parameter and pi sets refer to: :func:`~sizinglab.addon.variablepowerlaw.buckingham_theorem`
         
         reduce sets considering 'u' is the output:
             >>> In [9]: reduced_parameter_set, reduced_pi_set = reduce_parameter_set(parameter_set, pi_set, 'u')
@@ -1647,7 +1640,7 @@ def perform_regression(doePI, models, choosen_model, **kwargs):
                DOE of the pi_set
         
         models: specific 
-                Output of :func:`~pyvplm.addon.variablepowerlaw`.
+                Output of :func:`~sizinglab.addon.variablepowerlaw`.
         
         choosen_model: int
                        The elected regression model number
@@ -1658,7 +1651,7 @@ def perform_regression(doePI, models, choosen_model, **kwargs):
         
         Example
         -------
-        to define regression models refer to: :func:`~pyvplm.addon.variablepowerlaw.regression_models`
+        to define regression models refer to: :func:`~sizinglab.addon.variablepowerlaw.regression_models`
         
         then perform regression on model n°8 to show detailed results on model fit and error:
                 >>> In[24]: perform_regression(doePI, models, choosen_model=8)
@@ -1854,10 +1847,6 @@ def pi_sensitivity(pi_set, doePI, useWidgets, **kwargs):
         Note
         ----
         Within Jupyter Notebook, rendering will be slightly different with compressed size in X-axis to be printed within one page width and labels adapted consequently.
-        The graph indices are: 
-            * MCC: Maximum Correlation Coefficient is the maximum value between Spearman and Pearson coefficients
-            * alpha: variability coefficient is the ratio between parameter standard deviation and average value
-            * IF: Impact Factor is the product of both previous coefficients
         
     """ 
     if isinstance(useWidgets,bool):
@@ -1944,7 +1933,7 @@ def pi_sensitivity(pi_set, doePI, useWidgets, **kwargs):
         raise TypeError('useWidgets should be a boolean')
     
 def pi_sensitivity_sub(pi_set, doePI, **kwargs):
-    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`
+    """Sub-function of :func:`~sizinglab.addon.variablepowerlaw.pi_sensitivity`
     """
     if isinstance(pi_set, PositiveParameterSet) and isinstance(doePI, numpy.ndarray):
         # Check data and define default when widgets option chosen
@@ -2028,8 +2017,6 @@ def pi_sensitivity_sub(pi_set, doePI, **kwargs):
                 spearman_correl_matrix[y_i, x_i] = scipy.stats.spearmanr(doePI[:, y_index[y_i]], doePI[:, x_index[x_i]])[0]
                 max_correl_coeff = numpy.array([pearson_correl_matrix[y_i, x_i], spearman_correl_matrix[y_i, x_i]])
                 max_correl_coeff = max_correl_coeff[numpy.argmax(numpy.absolute(max_correl_coeff))]
-                if numpy.isnan(max_correl_coeff):
-                    max_correl_coeff = 0
                 impact_matrix[y_i, x_i] = max_correl_coeff * alpha[x_i]
         # Construct labels and pi_axis limits
         latex_pi_list, problem = latex_pi_expression(pi_set, [])
@@ -2069,10 +2056,7 @@ def pi_sensitivity_sub(pi_set, doePI, **kwargs):
                     axes[axis_name].set_xlabel(expression, fontsize=xlabel_size)
                 else:
                     axes[axis_name].set_xticklabels([])
-                if (impact_matrix[y_i, x_i] == 0) and (alpha[x_i] == 0):
-                    axes[axis_name].annotate('MCC={:.2f}'.format(0), (0.8, 0.8), xycoords='axes fraction', ha='center', va='center')
-                else:
-                    axes[axis_name].annotate('MCC={:.2f}'.format(impact_matrix[y_i, x_i]/alpha[x_i]), (0.8, 0.8), xycoords='axes fraction', ha='center', va='center')
+                axes[axis_name].annotate('MCC={:.2f}'.format(impact_matrix[y_i, x_i]/alpha[x_i]), (0.8, 0.8), xycoords='axes fraction', ha='center', va='center')
                 axes[axis_name].annotate('$\\alpha$={:.2f}'.format(alpha[x_i]), (0.8, 0.7), xycoords='axes fraction', ha='center', va='center')
                 if latex:
                     axes[axis_name].annotate('IF={:.0f}\%'.format(impact_matrix[y_i, x_i]*100), (0.8, 0.6), xycoords='axes fraction', ha='center', va='center')
@@ -2104,7 +2088,7 @@ def pi_sensitivity_sub(pi_set, doePI, **kwargs):
  
 #-------[Define function to return PI expression in latex format]--------------           
 def latex_pi_expression(pi_set, parameter_set):
-    """Function to write pi description in latex form: ***internal*** to :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity` and :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`
+    """Function to write pi description in latex form: ***internal*** to :func:`~sizinglab.addon.variablepowerlaw.pi_sensitivity` and :func:`~sizinglab.addon.variablepowerlaw.pi_dependency`
     """
     greek_list = ['alpha','beta','gamma','delta','epsilon','varepsilon','zeta','eta','theta','vartheta','gamma','kappa','lambda',\
                       'mu','nu','xi','pi','varpi','rho','varrho','sigma','varsigma','tau','upsilon','phi','varphi','chi','psi','omega']
@@ -2216,7 +2200,7 @@ def pi_dependency(pi_set, doePI, useWidgets, **kwargs):
                   
         Example
         -------
-        to load a doe example: see :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`
+        to load a doe example: see :func:`~sizinglab.addon.variablepowerlaw.pi_sensitivity`
         
         then perform dependency analysis:
                 >>> In [11]: pi_dependency(pi_set, doePI, useWidgets=False)
@@ -2303,7 +2287,7 @@ def pi_dependency(pi_set, doePI, useWidgets, **kwargs):
         raise TypeError('useWidgets should be a boolean')
     
 def pi_dependency_sub(pi_set, doePI, **kwargs):
-    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`
+    """Sub-function of :func:`~sizinglab.addon.variablepowerlaw.pi_dependency`
     """
     if isinstance(pi_set, PositiveParameterSet) and isinstance(doePI, numpy.ndarray):
         # Check data and define default when widgets option chosen
@@ -2330,7 +2314,7 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
                            raise KeyError('defined list key {} not in pi_set'.format(pi_name))
                    x_list = list(set(value))
                 else:
-                    raise TypeError('x_list should be a list of string')
+                    raise TypeError('pi_list should be a list of string')
             elif key == 'y_list':
                 if isinstance(value, list):
                    for pi_name in value:
@@ -2338,7 +2322,7 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
                            raise KeyError('defined list key {} not in pi_set'.format(pi_name))
                    y_list = list(set(value))
                 else:
-                    raise TypeError('y_list should be a list of string')
+                    raise TypeError('pi_list should be a list of string')
             elif key == 'order':
                 if isinstance(value, int):
                     if (value <=0) or (value >= numpy.shape(doePI)[0]):
@@ -2383,13 +2367,13 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
         # Write pi_list and x-y index
         xaxis_index = []
         latex_pi_list, problem = latex_pi_expression(pi_set, [])
-        for idx in range(len(x_list)):
-            xaxis_index.append(pi_list.index(x_list[idx]))
-        yaxis_index = []
-        for idx in range(len(y_list)):
-            yaxis_index.append(pi_list.index(y_list[idx]))
         for idx in range(len(pi_list)):
             pi_list[idx] = pi_list[idx].replace('pi','$\\pi_{') + '}$'
+        for idx in range(len(x_list)):
+            xaxis_index.append(int(x_list[idx].replace('pi','')) - 1)
+        yaxis_index = []
+        for idx in range(len(y_list)):
+            yaxis_index.append(int(y_list[idx].replace('pi','')) - 1)
         for yaxis_i in range(len(yaxis_index)):
             for xaxis_i in range(len(xaxis_index)):
                 xaxis_value = xaxis_index[xaxis_i]
@@ -2405,10 +2389,7 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
                 coeff, _, _, _ = scipy.linalg.lstsq(X, y_log)
                 coeff_matrix[yaxis_i, xaxis_i] = tuple(coeff)
                 y_pred = 10**numpy.dot(X, coeff)
-                if numpy.sum((y-numpy.mean(y))**2) == 0:
-                    r2_log = 0
-                else:
-                    r2_log = 1 - numpy.sum((y-y_pred)**2) / numpy.sum((y-numpy.mean(y))**2)
+                r2_log = 1 - numpy.sum((y-y_pred)**2) / numpy.sum((y-numpy.mean(y))**2)
                 x_pred = numpy.linspace(numpy.amin(doePI[:, xaxis_value]), numpy.amax(doePI[:, xaxis_value]), 20)
                 y_pred = 10**numpy.dot(poly_feature.fit_transform(numpy.log10(x_pred).reshape(-1, 1)), coeff)
                 # Construct relation expression y/10^a0 = x^(a1+a2*log(x)+a3*log(x)^2+.....)
@@ -2443,10 +2424,7 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
                 poly_feature = PolynomialFeatures(degree=order, include_bias = True)
                 X = poly_feature.fit_transform(x.reshape(-1, 1))
                 coeff, _, _, _ = scipy.linalg.lstsq(X, y)
-                if numpy.sum((y-numpy.mean(y))**2) == 0:
-                    r2_lin = 0
-                else:
-                    r2_lin = 1 - numpy.sum((y-numpy.dot(X, coeff))**2) / numpy.sum((y-numpy.mean(y))**2)
+                r2_lin = 1 - numpy.sum((y-numpy.dot(X, coeff))**2) / numpy.sum((y-numpy.mean(y))**2)
                 if r2_lin > r2_log:
                     regType_matrix[yaxis_i, xaxis_i] = 'lin'
                     r2_matrix[yaxis_i, xaxis_i] = r2_lin
@@ -2528,242 +2506,3 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
         raise TypeError('doePI should be numpy array')
     else:
         raise TypeError('pi_set should be a PositiveParameterSet')
-        
-def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
-    """Functions that try to adapt defined pi parameters to a non-linear form (1+(pi/beta)^alpha).
-        The starting points are defined.
-        For more information on regression see Scipy linalg method :func:`~scipy.linalg.lstsq`
-        
-        Parameters
-        ----------
-        pi_set: PositiveParameterSet 
-                Set of dimensionless parameters
-        
-        doe: [m*k] numpy.array of float or int
-             Represents the elected feasible constrained sets of m experiments values expressed over the k dimensionless parameters
-        
-        elected_pi0: str
-                     Selected pi for regression: syntax is 'pin' with n>=1 and n<=k
-                     
-        non_linear_pi_list: list(str)
-                            List of the supposed non-linear pi expressions: syntax is 'pin' with n>=1 and n<=k
-        
-        order: int
-               * Model order >=1: as an example, order 2 in log_space=True is :
-                   log(pi0) = log(cst) + a1*log(pi1) + a11*log(pi1)**2 + a12*log(pi1)*log(pi2) + a2*log(pi2) + a22*log(pi2)**2
-               * Model order >=1: as an example, order 2 in log_space=False is :
-                   pi0 = cst + a1*pi1 + a11*pi1**2 + a12*pi1*pi2 + a2*pi2 + a22*pi2
-        
-        **kwargs: additional arguments (pass :func:`~pyvplm.addon.variablepowerlaw.model_regression` arguments and additionals for optimizer) 
-                  * **ymax_axis** (*float*): set y-axis maximum value representing relative error, 100=100% (default value)
-                  * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space (True) or linear (False)
-                  * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some issues if used
-                  * **starting_points** (*int*): set the number of starting points choosen for optimisation (default is 10**(2*len(non_linear_pi_list)))
-                  * **max_iter** (*int*): set the number of optimisation maximum iterations for each starting point (default is 10**len(non_linear_pi_list))
-                  * **beta_bounds** (*list(float)*): the boundaries for beta coefficient (default is [0.001, 1000.0])
-                  * **alpha_bounds** (*list(float)*): the boundaries for alpha coefficient (default is [0.0, 10.0])
-        
-        Returns
-        -------
-        result: object from optimizer (see :func:`~scipy.optimize.minimize`)
-                Additional attributes:
-                    * x0: ndarray of the selected starting point
-                    * x_bounds: numpy.array of associated boundaries
-  
-    """
-    if isinstance(doe, numpy.ndarray) and isinstance(elected_pi0, str) and isinstance(non_linear_pi_list, list) and isinstance(order, int):
-        # Check values
-        if elected_pi0[0:2] != 'pi':
-            raise SyntaxError('elected_pi0 should be of the form pik with k an int.')
-        if (int(elected_pi0[2:len(elected_pi0)]) < 1) or (int(elected_pi0[2:len(elected_pi0)]) > len(doe)):
-            raise ValueError('elected_pi0 should be >=1 and <={}.'.format(len(doe)))
-        for pi_name in non_linear_pi_list:
-            if not(isinstance(pi_name, str)):
-                raise TypeError('all pi in non_linear_pi_list should be string.')
-            if pi_name[0:2] != 'pi':
-                raise SyntaxError('{} in non_linear_pi_list should be of the form pik with k an int.'.format(pi_name))
-            pi_name = int(pi_name[2:len(pi_name)])
-            if (pi_name < 1) or (pi_name > len(doe)):
-                raise ValueError('all pi in non_linear_pi_list should have indices in [1;{}].'.format(len(doe)))
-        if order < 1:
-            raise ValueError('order should be >=1.')
-        if not(numpy.issubdtype(doe.dtype, numpy.integer) or numpy.issubdtype(doe.dtype, numpy.float64)):
-            raise TypeError('doe type in index should be integer or float.')
-        # Get specific arguments
-        starting_points = 10**(2*len(non_linear_pi_list))
-        beta_bounds = numpy.array([0.001, 1000.0])
-        alpha_bounds = numpy.array([0.0, 10.0])
-        max_iter = 10**len(non_linear_pi_list)
-        for key, value in kwargs.items():
-            if key == 'max_iter':
-                if isinstance(value, int):
-                    if (value <=10):
-                        ValueError('max_iter should be >10')
-                    else:
-                        max_iter = value
-                else:
-                    raise TypeError('max_iter should be an integer')
-            if key == 'starting_points':
-                if isinstance(value, int):
-                    if (value <=0):
-                        ValueError('starting_points should be >0')
-                    else:
-                        starting_points = value
-                else:
-                    raise TypeError('starting_points should be a positive integer')
-            elif key == 'beta_bounds':
-                if isinstance(value, list):
-                    if len(value)==2:
-                        if isinstance(value[0], float) and isinstance(value[1], float):
-                            if value[0] < value[1]:
-                                if not(value[0] <= 0):
-                                    beta_bounds = numpy.array(value)
-                                else:
-                                    raise ValueError('beta_bounds should not intersect 0 value')
-                            else:
-                                TypeError('beta_bounds should be [min_value, max_value] with min_value<max_value')
-                        else:
-                            TypeError('beta_bounds should be [float, float]')
-                    else:
-                        TypeError('beta_bounds should be [float, float]')
-                else:
-                    raise ValueError('beta_bounds should be [float, float]')
-            elif key == 'alpha_bounds':
-                if isinstance(value, list):
-                    if len(value)==2:
-                        if isinstance(value[0], float) and isinstance(value[1], float):
-                            if value[0] < value[1]:
-                                alpha_bounds = numpy.array(value)
-                            else:
-                                TypeError('alpha_bounds should be [min_value, max_value] with min_value<max_value')
-                        else:
-                            TypeError('alpha_bounds should be [float, float]')
-                    else:
-                        TypeError('alpha_bounds should be [float, float]')
-                else:
-                    raise ValueError('alpha_bounds should be [float, float]')
-        try:
-            del kwargs['starting_points']
-        except:
-            pass
-        try:
-            del kwargs['max_iter']
-        except:
-            pass
-        try:
-            del kwargs['beta_bounds']
-        except:
-            pass
-        try:
-            del kwargs['alpha_bounds']
-        except:
-            pass
-        # Define the objective function
-        def objective(x, info):
-            # Transform doe
-            doe_transformed = copy.deepcopy(doe)
-            for idx in range(len(non_linear_pi_list)):
-                pi_name = non_linear_pi_list[idx]
-                doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1] = 1 + (doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1]/x[2*idx])**x[2*idx+1]
-            # Perform regression in silent mode and get final result on choosen criteria
-            models = regression_models(doe_transformed, elected_pi0=elected_pi0, order=order, test_mode=True)
-            abs_error_average_test = models['ave. |e|'][1]
-            res = min(abs_error_average_test)
-            # Display information at each iteration
-            if not(info['Silent']):
-                message = 'print(\'{0:4d}'
-                for idx in range(len(x) + 1):
-                    message += ' {' + str(idx +1) + ': 3.6f}'
-                message += '\'.format(info[\'Nfeval\']'
-                for idx in range(len(x)):
-                    message += ', x[' + str(idx) + ']'
-                message += ', res))'
-                eval(message)
-            info['Nfeval'] += 1
-            return res
-        # Calculate with no transformation objective function
-        models = regression_models(doe, elected_pi0=elected_pi0, order=order, test_mode=True)
-        abs_error_average_test = models['ave. |e|'][1]
-        objective_to_optimize = min(abs_error_average_test)
-        # Print iteration title
-        message = 'print(\'{0:4s}'
-        for idx in range(2*len(non_linear_pi_list) + 1):
-            message += ' {' + str(idx +1) + ':9s}'
-        message += '\'.format(\'Eval\''
-        for idx in range(len(non_linear_pi_list)):
-            message += ', \'beta' + str(idx) + '\', \'alpha' + str(idx) + '\''
-        message += ', \'f(x)\'))'
-        # Define multistart DOE
-        beta_bounds.shape = (1,2)
-        alpha_bounds.shape = (1,2)
-        bounds = []
-        for idx in range(len(non_linear_pi_list)):
-            pi_name = non_linear_pi_list[idx]
-            if len(bounds)==0:
-#                bounds = numpy.r_[beta_bounds*numpy.average(doe[:, int(pi_name[2:len(pi_name)]) - 1]), alpha_bounds]
-                bounds = numpy.r_[beta_bounds, alpha_bounds]
-            else:
-#                bounds = numpy.c_[bounds, numpy.r_[beta_bounds*numpy.average(doe[:, int(pi_name[2:len(pi_name)]) - 1]), alpha_bounds]]
-                bounds = numpy.r_[bounds, numpy.r_[beta_bounds, alpha_bounds]]
-        x0_levels = lhs(2*len(non_linear_pi_list), samples=starting_points, criterion='centermaximin')
-        x0 = bounds[:,0] + x0_levels * (bounds[:, 1] - bounds[:, 0])
-        # Launch optimization process with multi-starts
-        result = []
-        best_result = float('inf')
-        for idx in range(numpy.shape(x0)[0]):
-            print('\nStarting point {}/{} x0={}\n'.format(idx+1, numpy.shape(x0)[0], x0[idx,:]))
-            eval(message)
-            local_result = minimize(objective, x0[idx,:], args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=bounds, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':0.00001, 'disp':False})
-            # Save of best result
-            if local_result.success:
-                if local_result.fun < best_result:
-                    local_result.x0 = x0[idx,:]
-                    local_result.x_bounds = numpy.transpose(bounds)
-                    best_result = local_result.fun
-                    result = local_result
-        # Callback the optimizer for best starting point solution
-        print('\nCallback for best starting point solution\n')
-        x0 = result.x
-        result = minimize(objective, x0, args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=None, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':0.00001, 'disp':True})
-        result.x0 = x0
-        result.x_bounds = numpy.transpose(bounds)
-        # Analyse results and plot graph
-        if result.success:
-            if result.fun < objective_to_optimize:
-                print('\nModel quality has been improved C2:{}%->{}% considering following modifications:'.format(objective_to_optimize,result.fun))
-                for idx in range(len(non_linear_pi_list)):
-                    print(non_linear_pi_list[idx] + '= 1 + (' + non_linear_pi_list[idx] + '/' + str(result.x[2*idx]) + ')**' + str(result.x[2*idx+1]))
-                doe_transformed = copy.deepcopy(doe)
-                for idx in range(len(non_linear_pi_list)):
-                    pi_name = non_linear_pi_list[idx]
-                    doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1] = 1 + (doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1]/result.x[2*idx])**result.x[2*idx+1]
-                return result
-            else:
-                print('\nWARNING: non-linear formulation does not improve model quality C2:{}%->{}%!'.format(objective_to_optimize,result.fun))
-        else:
-            print('\nERROR: optimization not successfull!')
-        return []
-    else:
-        if not(isinstance(doe, numpy.ndarray)):
-            raise TypeError('doe should be numpy array.')
-        elif not(isinstance(elected_pi0, str)):
-            raise TypeError('elected_pi0 should be a string.')
-        elif not(isinstance(non_linear_pi_list, list)):
-            raise TypeError('non_linear_pi_list should be a list of strings (can be of size 1).')
-        else:
-            raise TypeError('order should be an integer.')
-            
-if __name__ == '__main__':
-    doe = pandas.read_excel('Linear_motor_ironcore.xlsx')
-    doePI = doe[['F_L/(J*B_r*L_PM**2)', 'P_J/(rho_f*J**2*L_PM**3)', 'r_th*lamba_air*W', 'L_T/L_PM','H_W/L_PM','H_PM/L_PM','H_AG/L_PM','H_C/L_PM', 'J*L_PM*u0/B_s']].values
-    pi0_f = PositiveParameter('pi0_f',[0.1,1],'','F_L*J**-1*B_r**-1*L_PM**-2')
-    pi0_p = PositiveParameter('pi0_p',[0.1,1],'','P_J*rho_fer**-1*J**-2*L_PM**-3')
-    pi0_r = PositiveParameter('pi0_r',[0.1,1],'','r_th*W*lambda_air')
-    pi1 = PositiveParameter('pi1',[0.1,1],'','L_T*L_PM**-1')
-    pi2 = PositiveParameter('pi2',[0.1,1],'','H_W*L_PM**-1')
-    pi3 = PositiveParameter('pi3',[0.1,1],'','H_PM*L_PM**-1')
-    pi4 = PositiveParameter('pi4',[0.1,1],'','H_AG*L_PM**-1')
-    pi5 = PositiveParameter('pi5',[0.1,1],'','H_C*L_PM**-1')
-    pi6 = PositiveParameter('pi6',[0.1,1],'','J*L_PM*mu_0*B_s**-1')
-    pi_set = PositiveParameterSet(pi0_f, pi0_p, pi0_r, pi1, pi2, pi3, pi4, pi5, pi6)
-    pi_dependency(pi_set, doePI, False, x_list=['pi2', 'pi3', 'pi4', 'pi6'], y_list=['pi2', 'pi3', 'pi4', 'pi6'])
