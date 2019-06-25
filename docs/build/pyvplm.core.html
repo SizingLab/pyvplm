@@ -1,0 +1,633 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pyvplm.core package &mdash; pyVPLM 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyvplm.addon package" href="pyvplm.addon.html" />
+    <link rel="prev" title="About" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pyVPLM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyvplm.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.core.definition">pyvplm.core.definition module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyvplm.addon.html">pyvplm.addon package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyVPLM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>pyvplm.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pyvplm.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pyvplm-core-package">
+<h1>pyvplm.core package<a class="headerlink" href="#pyvplm-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyvplm.core.definition">
+<span id="pyvplm-core-definition-module"></span><h2>pyvplm.core.definition module<a class="headerlink" href="#module-pyvplm.core.definition" title="Permalink to this headline">¶</a></h2>
+<p>Core module defining elementary class and methods for SizingLab</p>
+<dl class="class">
+<dt id="pyvplm.core.definition.Constraint">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">Constraint</code><span class="sig-paren">(</span><em>expression</em>, <em>desc=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class defining a Constraint.</p>
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Constraint.description">
+<code class="descname">description</code><a class="headerlink" href="#pyvplm.core.definition.Constraint.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>additional text to describe equation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Constraint.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#pyvplm.core.definition.Constraint.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of all the parmaters names</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Constraint.function">
+<code class="descname">function</code><a class="headerlink" href="#pyvplm.core.definition.Constraint.function" title="Permalink to this definition">¶</a></dt>
+<dd><p>is the computational expression of the constraint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>func</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Constraint.function_expr">
+<code class="descname">function_expr</code><a class="headerlink" href="#pyvplm.core.definition.Constraint.function_expr" title="Permalink to this definition">¶</a></dt>
+<dd><p>is the literal expression of the constraint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<dl class="method">
+<dt id="pyvplm.core.definition.Constraint.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><em>parameters_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Constraint.compute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvplm.core.definition.ConstraintSet">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">ConstraintSet</code><span class="sig-paren">(</span><em>*constraints</em>, <em>desc=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ConstraintSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class defining a ConstraintSet.</p>
+<dl class="attribute">
+<dt id="pyvplm.core.definition.ConstraintSet.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#pyvplm.core.definition.ConstraintSet.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of all the parmaters names from all constraints</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.ConstraintSet.constraints_list">
+<code class="descname">constraints_list</code><a class="headerlink" href="#pyvplm.core.definition.ConstraintSet.constraints_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>is the list of Constraint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a>(<a class="reference internal" href="#pyvplm.core.definition.Constraint" title="pyvplm.core.definition.Constraint">Constraint</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<dl class="method">
+<dt id="pyvplm.core.definition.ConstraintSet.declare_doe_constraint">
+<code class="descname">declare_doe_constraint</code><span class="sig-paren">(</span><em>parameter_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ConstraintSet.declare_doe_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specific method to generate constraint function for pyvplm pixdoe use.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvplm.core.definition.Parameter">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>name: str</em>, <em>defined_bounds: list</em>, <em>defined_units: str</em>, <em>description: str</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class defining one physical parameter.</p>
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter.name">
+<code class="descname">name</code><a class="headerlink" href="#pyvplm.core.definition.Parameter.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>the parameter name as a convention will be converted to upper char(s) for constant and lower char(s) for variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter.defined_bounds">
+<code class="descname">defined_bounds</code><a class="headerlink" href="#pyvplm.core.definition.Parameter.defined_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>converted to floats and checked that defined_bounds[0]&lt;defined_bounds[1], set to [] for constant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[1*2] list of int or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter.value">
+<code class="descname">value</code><a class="headerlink" href="#pyvplm.core.definition.Parameter.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>converted to float, set to [] for variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)">int</a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter.defined_units">
+<code class="descname">defined_units</code><a class="headerlink" href="#pyvplm.core.definition.Parameter.defined_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>the parameters defined units (expression checked using PINT package)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter.description">
+<code class="descname">description</code><a class="headerlink" href="#pyvplm.core.definition.Parameter.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>some description on the parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter._SI_bounds">
+<code class="descname">_SI_bounds</code><span class="sig-paren">(</span><em>private</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter._SI_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>the parameter bounds expressed into SI units automatically derived from  defined bounds using PINT package</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[1*2] list of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter._SI_units">
+<code class="descname">_SI_units</code><span class="sig-paren">(</span><em>private</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter._SI_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>SI units are automatically derived from defined units using PINT package</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyvplm.core.definition.Parameter._dimensionality">
+<code class="descname">_dimensionality</code><span class="sig-paren">(</span><em>private</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter._dimensionality" title="Permalink to this definition">¶</a></dt>
+<dd><p>the parameter dimensions derived from units using PINT package (ex: meter-&gt;[length])</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<dl>
+<dt>save a parameter:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">m</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="s1">&#39;kg&#39;</span><span class="p">,</span> <span class="s1">&#39;mass&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>save a constant:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">k</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;oversizing coefficient&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>get k parameter value in equation:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
+</dd>
+<dt>print parameters’attributes:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="go">m.name=m</span>
+<span class="go">m.defined_bounds=[50.0, 100.0]</span>
+<span class="gp">...</span>
+<span class="go">m._dimensionality=[mass]</span>
+</pre></div>
+</div>
+</dd>
+<dt>change parameter’s attribute values:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">m</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;body mass&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.__float__">
+<code class="descname">__float__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.__float__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return parameter value with syntax <strong>float(parameter_name)</strong>.
+If value is empty (i.e. parameter is a variable), returns NaN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.__getattribute__">
+<code class="descname">__getattribute__</code><span class="sig-paren">(</span><em>attribute_name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.__getattribute__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to access parameter attribute value (for private attributes, warning is displayed).
+Access is granted using command: <strong>parameter_name.attribute_name</strong>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to represent parameter definition when entering only parameter_name command.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.__setattr__">
+<code class="descname">__setattr__</code><span class="sig-paren">(</span><em>attribute_name</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.__setattr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to write parameter attribute value, <strong>parameter_name.attribute_name=value</strong> (private attribute writing access denied).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to print parameter, called with <strong>print(parameter_name)</strong> function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.check_bounds">
+<code class="descname">check_bounds</code><span class="sig-paren">(</span><em>defined_bounds</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.check_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method (<em>internal</em>) to check bounds syntax and value(s).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.Parameter.check_units">
+<code class="descname">check_units</code><span class="sig-paren">(</span><em>defined_units</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.Parameter.check_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method (<em>internal</em>) to check units value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvplm.core.definition.ParameterSet">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">ParameterSet</code><span class="sig-paren">(</span><em>*parameters_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class defining a set of different Parameter(s).</p>
+<dl class="attribute">
+<dt id="pyvplm.core.definition.ParameterSet.dictionary">
+<code class="descname">dictionary</code><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Parameter are registered in oredered dictionary at key [Parameter.name]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>OrderedDict of Parameter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<dl>
+<dt>save parameters m and k:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">m</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;mass&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">K1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s1">&#39;K1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;oversizing coefficient&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">parameter_set</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">K1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>add a parameter afterwards:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">K2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="s1">&#39;K2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.5</span><span class="p">],</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;oversizing coefficient&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">parameter_set</span><span class="p">[</span><span class="s1">&#39;K2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K2</span>
+</pre></div>
+</div>
+</dd>
+<dt>get K1 parameter value:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">[</span><span class="s1">&#39;K1&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+<dt>change parameters order:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">parameter_set</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="s1">&#39;K2&#39;</span><span class="p">,</span> <span class="s1">&#39;K1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="nb">print</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">)</span>
+<span class="go">K2: K2=1.5, oversizing coefficient</span>
+<span class="go">K1: K1=2gram, oversizing coefficient</span>
+<span class="go">m: m in [50.0,100.0]gram, mass</span>
+</pre></div>
+</div>
+</dd>
+<dt>delete K2 parameter:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="k">del</span> <span class="n">parameter_set</span><span class="p">[</span><span class="s1">&#39;K2&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While using print function, display differs between variable and constraint.</p>
+</div>
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__delitem__">
+<code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete a parameter in a parameter set: <strong>del parameter_set[parameter.name]</strong>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return a parameter from a parameter set using its name as key: <strong>parameter=parameter_set[parameter.name]</strong>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to save parameter set using pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to replace parameter in a parameter set or expend dictionary if new key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__setstate__">
+<code class="descname">__setstate__</code><span class="sig-paren">(</span><em>dict</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__setstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to read parameter set using picklerLload().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to print parameters in the set with funciton: <strong>print(parameter_set)</strong>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.check_parameters">
+<code class="descname">check_parameters</code><span class="sig-paren">(</span><em>parameters_list: tuple</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.check_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method (<em>internal</em>) to check parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.first">
+<code class="descname">first</code><span class="sig-paren">(</span><em>*parameters_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run trough parameters_list tuple order to move dictionary key to its position in the list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.ParameterSet.latex_render">
+<code class="descname">latex_render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.ParameterSet.latex_render" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to print parameters in latex form: <strong>latex_render(parameter_set)</strong>
+When parameter name is of the form name_indice this will lead to $name_{indice}$ latex form, number is automatically rendered as indice.
+Greek letters will also be escaped automatically lambda_wind will lead to $lambda_{wind}$.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvplm.core.definition.PositiveParameter">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">PositiveParameter</code><span class="sig-paren">(</span><em>name: str</em>, <em>defined_bounds: list</em>, <em>defined_units: str</em>, <em>description: str</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.PositiveParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvplm.core.definition.Parameter" title="pyvplm.core.definition.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvplm.core.definition.Parameter</span></code></a></p>
+<p>Sub-class of the class Parameter.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class has identical methods and parameters as the Parameter class
+except for internal check_bounds method, therefore Parameter should be
+defined with strictly positive bounds: 0&lt;defined_bounds[0]&lt;defined_bounds[1]</p>
+<p>For more details see <code class="xref py py-func docutils literal notranslate"><span class="pre">Parameter()</span></code></p>
+</div>
+<dl class="method">
+<dt id="pyvplm.core.definition.PositiveParameter.check_bounds">
+<code class="descname">check_bounds</code><span class="sig-paren">(</span><em>defined_bounds</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.PositiveParameter.check_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method (<em>internal</em>) to check bounds syntax and value(s).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyvplm.core.definition.PositiveParameterSet">
+<em class="property">class </em><code class="descclassname">pyvplm.core.definition.</code><code class="descname">PositiveParameterSet</code><span class="sig-paren">(</span><em>*parameters_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.PositiveParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyvplm.core.definition.ParameterSet" title="pyvplm.core.definition.ParameterSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyvplm.core.definition.ParameterSet</span></code></a></p>
+<p>Sub-class of the class Parameter.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class has identical methods and parameters as the Parameter class
+except for internal check_parameters method, therefore parameters_list should
+be a tuple of PositiveParameter or a single PositiveParameter</p>
+<p>For more details see <code class="xref py py-func docutils literal notranslate"><span class="pre">ParameterSet()</span></code></p>
+</div>
+<dl class="method">
+<dt id="pyvplm.core.definition.PositiveParameterSet.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.PositiveParameterSet.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to replace parameter in a parameter set or expend dictionary if new key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyvplm.core.definition.PositiveParameterSet.check_parameters">
+<code class="descname">check_parameters</code><span class="sig-paren">(</span><em>parameters_list: tuple</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.core.definition.PositiveParameterSet.check_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method (<em>internal</em>) to check parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyvplm.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyvplm.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pyvplm.addon.html" class="btn btn-neutral float-right" title="pyvplm.addon package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="About" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, A.REYSSET, S.DELBECQ, M.BUDINGER
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

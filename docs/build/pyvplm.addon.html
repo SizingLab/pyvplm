@@ -1,0 +1,1138 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pyvplm.addon package &mdash; pyVPLM 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pyvplm.core package" href="pyvplm.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pyVPLM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pyvplm.core.html">pyvplm.core package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyvplm.addon package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.addon.comsoladdon">pyvplm.addon.comsoladdon module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.addon.pixdoe">pyvplm.addon.pixdoe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.addon.variablepowerlaw">pyvplm.addon.variablepowerlaw module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyvplm.addon">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyVPLM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>pyvplm.addon package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pyvplm.addon.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pyvplm-addon-package">
+<h1>pyvplm.addon package<a class="headerlink" href="#pyvplm-addon-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyvplm.addon.comsoladdon">
+<span id="pyvplm-addon-comsoladdon-module"></span><h2>pyvplm.addon.comsoladdon module<a class="headerlink" href="#module-pyvplm.addon.comsoladdon" title="Permalink to this headline">¶</a></h2>
+<p>Specific module to interface variablepowerlaw module with comsol FEM software</p>
+<dl class="function">
+<dt id="pyvplm.addon.comsoladdon.import_file">
+<code class="descclassname">pyvplm.addon.comsoladdon.</code><code class="descname">import_file</code><span class="sig-paren">(</span><em>file_name</em>, <em>parameter_set</em>, <em>units</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.comsoladdon.import_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to import .txt file generated by COMSOL (output format).
+Values can be either expressed within SI units, user defined units or specified units in the parameter name : ‘parameter_name (units)’.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul>
+<li><p><strong>file_name</strong> (<em>str</em>) – Name of the saved file with path (example: file_name = ‘./subfolder/name’)</p></li>
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Define what units should be considered for parameters from set
+* ‘SI’: means parameter is expressed within SI units, no adaptation needed and ‘(units)’ in column name is ignored.
+* ‘defined’: means parameter is expressed within defined units written in parameter and ‘(units)’ in column name is ignored, adaptation may be performed.
+* ‘from_file’: means parameter is expressed with file units and adaptation may be performed.</p>
+<p>If units are unreadable and <strong>from_file</strong> option is choosen, it is considered to be expressed in SI units.
+For parameters not in the defined set, if units are unreadable, there are no units or <strong>SI</strong> option is choosen, it is considered to be SI otherwise adaptation is performed.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.comsoladdon.save_file">
+<code class="descclassname">pyvplm.addon.comsoladdon.</code><code class="descname">save_file</code><span class="sig-paren">(</span><em>doeX</em>, <em>file_name</em>, <em>parameter_set</em>, <em>is_SI</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.comsoladdon.save_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to save .txt file within COMSOL input format.
+Values can be either expressed with SI units or user defined units (is_SI, True by default).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doeX</strong> (<em>numpy.array</em>) – DOE of the parameter_set either in defined_units or SI units</p></li>
+<li><p><strong>file_name</strong> (<em>str</em>) – Name of the saved file with path (example: file_name = ‘./subfolder/name’)</p></li>
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>is_SI</strong> (<em>bool</em>) – Define if parameters values are expressed in SI units or units defined by user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyvplm.addon.pixdoe">
+<span id="pyvplm-addon-pixdoe-module"></span><h2>pyvplm.addon.pixdoe module<a class="headerlink" href="#module-pyvplm.addon.pixdoe" title="Permalink to this headline">¶</a></h2>
+<p>Addon module generating constrained fullfactorial DOE on 2-spaces (pi/x) problems</p>
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.apply_constraints">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">apply_constraints</code><span class="sig-paren">(</span><em>X</em>, <em>Constraints=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.apply_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to test declared constraint and return true vector if an error occurs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>[m*n] numpy.array of float or int</em>) – Defines the m DOE points values over the n physical parameters</p></li>
+<li><p><strong>Constraints</strong> (<em>function</em>) – Should return a [1*m] numpy.array of bool, that validates the m points constraint</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Constraints(X)</strong> – If dimension mismatch or constraint can’t be applyed returns True values (no constraint applied)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[1*m] numpy.array of bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.create_const_doe">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">create_const_doe</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>pi_set</em>, <em>func_x_to_pi</em>, <em>whished_size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.create_const_doe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate a constrained feasible set DOE with repartition on PI not far from nominal fullfact DOE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Defines the k (k&lt;n) dimensionless parameters of the problem (WARNING: no cross-validation with parameter_set, uses func_x_to_pi for translation)</p></li>
+<li><p><strong>func_x_to_pi</strong> (<em>function</em>) – Translates X physical values into Pi dimensionless values (space transformation matrix)</p></li>
+<li><p><strong>whished_size</strong> (<em>int</em>) – Is the whished size of the final elected X-DOE that represents a constrained fullfact Pi-DOE</p></li>
+<li><p><strong>**kwargs</strong> (<em>additional argumens</em>) –</p>
+<ul>
+<li><p><strong>level_repartition</strong> (<em>numpy.array</em> of <em>int</em>): defines the parameters levels relative repartition, default is equaly shared (same number of levels)</p></li>
+<li><p><strong>parameters_constraints</strong> (<em>function</em>): returns numpy.array of bool to validate each point in X-DOE, default is []</p></li>
+<li><p><strong>pi_constraints</strong> (<em>function</em>): returns numpy.array of bool to validate each point in Pi-DOE, default is []</p></li>
+<li><p><strong>choice_nb</strong> (<em>int</em>): number of returned nearest point from DOE for each nominal DOE point,default is 3</p></li>
+<li><p><strong>spacing_division_criteria</strong> (<em>int</em>): (&gt;=2) defines the subdivision admitted error in Pi nominal space for feasible point, default is 5</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>): defines if fullfact has to be in log space or when false, linear (default is log - True)</p></li>
+<li><p><strong>track</strong> (<em>bool</em>): defines if the different process steps information have to be displayed (default is False)</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>doeXc</strong> (<em>[j*n] numpy.array of float</em>) – Represents the elected feasible constrained sets of physical parameters matching spacing criteria with j &gt;= whished_size</p></li>
+<li><p><strong>doePIc</strong> (<em>[j*n] numpy.array of float</em>) – Represents the elected feasible constrained sets of dimensionless parameters matching spacing criteria with j &gt;= whished_size</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define properly the parameter, pi set and transformation function:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">definition</span> <span class="k">import</span> <span class="n">PositiveParameter</span><span class="p">,</span> <span class="n">PositiveParameterSet</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">variablepowerlaw</span> <span class="k">import</span> <span class="n">buckingham_theorem</span><span class="p">,</span> <span class="n">declare_func_x_to_pi</span><span class="p">,</span> <span class="n">reduce_parameter_set</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">u</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1e-9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">],</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;Deflection&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">f</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">150</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;Load applied&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">l</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;Cantilever length&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">e</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">60e9</span><span class="p">,</span> <span class="mf">80e9</span><span class="p">],</span> <span class="s1">&#39;Pa&#39;</span><span class="p">,</span> <span class="s1">&#39;Young Modulus&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">d</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">60</span><span class="p">],</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="s1">&#39;Diameter of cross-section&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">parameter_set</span> <span class="o">=</span> <span class="n">PositiveParameterSet</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">parameter_set</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">pi_set</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">buckingham_theorem</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span> <span class="o">=</span> <span class="n">reduce_parameter_set</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="n">pi_set</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">func_x_to_pi</span> <span class="o">=</span> <span class="n">declare_func_x_to_pi</span><span class="p">(</span><span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>then create a complete DOE:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">doeXc</span><span class="p">,</span> <span class="n">doePIc</span> <span class="o">=</span> <span class="n">create_const_doe</span><span class="p">(</span><span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span><span class="p">,</span> <span class="n">func_x_to_pi</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">track</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/pixdoe_create_const_doe1.png" src="_images/pixdoe_create_const_doe1.png" />
+<img alt="_images/pixdoe_create_const_doe2.png" src="_images/pixdoe_create_const_doe2.png" />
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.create_doe">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">create_doe</code><span class="sig-paren">(</span><em>bounds</em>, <em>parameters_level</em>, <em>log_space=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.create_doe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functions that generates a fullfact DOE mesh using bounds and levels number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Bounds</strong> (<em>[n*2] numpy.array of floats</em>) – Defines the n parameters [lower, upper] bounds</p></li>
+<li><p><strong>parameters_level</strong> (<em>[1*n] numpy.array of int</em>) – Defines the parameters levels</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>) – Defines if fullfact has to be in log space or when false, linear (default is True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>doe_values</strong> (<em>[m*n] numpy.array of float</em>) – A fullfact DOE, with n the number of parameters and m the number of experiments (linked to level repartition)</p></li>
+<li><p><strong>spacing</strong> (<em>[1*n] numpy.array</em>) – Represents the DOE’s points spacing on each paramater axis in the space</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define bounds and parameters’ levels:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]],</span> <span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">parameters_level</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>generate doe in log space:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">doe_values</span><span class="p">,</span> <span class="n">spacing</span> <span class="o">=</span> <span class="n">create_doe</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">parameters_level</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>returns:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">doe_values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mf">316.228</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mf">316.228</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">spacing</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.declare_does">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">declare_does</code><span class="sig-paren">(</span><em>x_Bounds</em>, <em>x_levels</em>, <em>parameters_constraints</em>, <em>pi_constraints</em>, <em>func_x_to_pi</em>, <em>log_space=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.declare_does" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate X and Pi DOE with constraints (called as sub-function script).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_Bounds</strong> (<em>[n*2] numpy.array of floats</em>) – Defines the n parameters [lower, upper] bounds</p></li>
+<li><p><strong>x_levels</strong> (<em>[1*n] numpy.array of int</em>) – Defines the parameters levels</p></li>
+<li><p><strong>parameters_constraints, pi_constraints</strong> (<em>function</em>) – Defines parameter and Pi constraints</p></li>
+<li><p><strong>func_x_to_pi</strong> (<em>function</em>) – Translates X physical values into Pi dimensionless values (space transformation matrix)</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>) – Defines if fullfact has to be in log space or when false, linear (default is True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>doeX</strong> (<em>[m*n] numpy.array of float</em>) – A fullfact DOE, with n the number of parameters and m the number of experiments (linked to levels)</p></li>
+<li><p><strong>doePI</strong> (<em>[k*n] numpy.array of float</em>) – Represents the Pi DOE’s points computed from doeX and applying both X and Pi constraints (k&lt;=m)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.elect_nearest">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">elect_nearest</code><span class="sig-paren">(</span><em>doe</em>, <em>nominal_doe</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.elect_nearest" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Function that tries to assign for each point in nominal DOE, one point in feasible DOE elected from its ‘choice_nb’ found indices.</dt><dd><p>The assignments are done point-to-point electing each time the one maximizing minimum relative distance with current elected set.
+If from available indices they all are already in the set, point is deleted and thus: j&lt;=k (not likely to happen).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doe</strong> (<em>[m*n] numpy.array of int or float</em>) – DOE representing m feasible experiments expressed with n parameters with non-optimal spacing</p></li>
+<li><p><strong>nominal_doe</strong> (<em>[k*n] numpy.array of int or float</em>) – Fullfact DOE with k wished experiment (k&lt;&lt;m) expressed with the same n parameters</p></li>
+<li><p><strong>index</strong> (<em>[k*nb_choice] numpy.array of int</em>) – Gathers the corresponding ‘choice_nb’ nearest DOE points indices (computed with :~pixdoe.find_nearest)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>doe_elected</strong> (<em>[j*n] numpy.array of int or float</em>) – Returned DOE with feasible points assigned to reduced nominal DOE (deleted points with no assignment, i.e. all indices already assigned)</p></li>
+<li><p><strong>reduced_nominal_doe</strong> (<em>[j*n] numpy.array of int or float</em>) – Reduced nominal DOE (j&lt;=k), all point are covered with feasible point</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define DOEs and find nearest points, see <code class="xref py py-func docutils literal notranslate"><span class="pre">surroundings()</span></code></p>
+<dl>
+<dt>then elect one point for each nominal point:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">doe_elected</span><span class="p">,</span> <span class="n">reduced_nominal_doe</span><span class="p">,</span> <span class="n">max_error</span> <span class="o">=</span> <span class="n">elect_nearest</span><span class="p">(</span><span class="n">doe</span><span class="p">,</span> <span class="n">nominal_doe</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">doe_elected</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">[[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">251.18864315095797</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">251.18864315095797</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">reduced_nominal_doe</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="p">[[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">316.22776601683796</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">316.22776601683796</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">max_error</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.10000000000000009</span><span class="p">,</span> <span class="mf">0.10000000000000009</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.find_nearest">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">find_nearest</code><span class="sig-paren">(</span><em>doe</em>, <em>nominal_doe</em>, <em>choice_nb</em>, <em>proper_spacing</em>, <em>log_space=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.find_nearest" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Function that returns for each point in nominal DOE point, the indices and max relative error for choice_nb nearest points in feasible DOE.</dt><dd><p>As a distance has to be computed to select nearest in further functions, it is the max value of the relative errors (compared to bounds)
+that is returned (this avoid infinite relative error for [0, 0] origin point).</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doe</strong> (<em>[m*n] numpy.array of int or float</em>) – DOE representing m feasible experiments expressed with n parameters with non-optimal spacing</p></li>
+<li><p><strong>nominal_doe</strong> (<em>[k*n] numpy.array of int or float</em>) – Fullfact DOE with k wished experiment (k&lt;&lt;m) expressed with the same n parameters</p></li>
+<li><p><strong>choice_nb</strong> (<em>int</em>) – Number of returned nearest point from DOE for each nominal DOE point, criteria is max relative distance error max(x-x_n/(max(x_n)-min(x_n)))</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>) – Defines if fullfact has to be in log space or when false, linear (default is True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>nearest_index_in_doe</strong> – Gathers the corresponding ‘choice_nb’ nearest DOE points indices</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[k*choice_nb] numpy.array of int</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define DOEs, see <code class="xref py py-func docutils literal notranslate"><span class="pre">surroundings()</span></code></p>
+<dl>
+<dt>then extract the 2 nearest feasible points for each nominal point:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">index</span><span class="p">,</span> <span class="n">max_rel_distance</span> <span class="o">=</span> <span class="n">find_nearest</span><span class="p">(</span><span class="n">doe</span><span class="p">,</span> <span class="n">nominal_doe</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">proper_spacing</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">23</span><span class="p">,</span> <span class="mi">19</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">max_rel_distance</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.20000000000000018</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.20000000000000018</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.10000000000000009</span><span class="p">,</span> <span class="mf">0.10000000000000009</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.10000000000000009</span><span class="p">,</span> <span class="mf">0.10000000000000009</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.20000000000000018</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.20000000000000018</span><span class="p">]]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.pixdoe.surroundings">
+<code class="descclassname">pyvplm.addon.pixdoe.</code><code class="descname">surroundings</code><span class="sig-paren">(</span><em>doe</em>, <em>nominal_doe</em>, <em>proper_spacing</em>, <em>LogLin=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.pixdoe.surroundings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to reduce a given nominal DOE on a max distance criteria with points from feasible DOE (‘reachable’ points).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doe</strong> (<em>[m*n] numpy.array of int or float</em>) – DOE representing m feasible experiments expressed with n parameters with non-optimal spacing</p></li>
+<li><p><strong>nominal_doe</strong> (<em>[k*n] numpy.array of int or float</em>) – Fullfact DOE with k wished experiment (k&lt;&lt;m) expressed with the same n parameters</p></li>
+<li><p><strong>proper_spacing</strong> (<em>[n*1] numpy.array of float</em>) – Represents max distance criteria on each DOE axis (i.e. parameter scale)</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>) – Defines if fullfact has to be in log space or when false, linear (default is True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>reduced_nominal_doe</strong> (<em>[l*n] numpy.array</em>) – A reduced set of nominal_doe (l&lt;=k) validating proper_spacing criteria with feasible points from doe</p></li>
+<li><p><strong>to_be_removed</strong> (<em>numpy.array of bool</em>) – Returns the corresponding indices that does not validate proper_spacing criteria</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define bounds and parameters’ levels:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]],</span> <span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">parameters_level_nominal</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">parameters_level_feasible</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>generate doe(s) in log space:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">doe</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_doe</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">parameters_level_feasible</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">nominal_doe</span><span class="p">,</span> <span class="n">proper_spacing</span> <span class="o">=</span> <span class="n">create_doe</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">parameters_level_nominal</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>search surrounding points:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">reduced_nominal_doe</span><span class="p">,</span> <span class="n">to_be_removed</span> <span class="o">=</span> <span class="n">surroundings</span><span class="p">(</span><span class="n">doe</span><span class="p">,</span> <span class="n">nominal_doe</span><span class="p">,</span> <span class="n">proper_spacing</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">reduced_nominal_doe</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="p">[[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">316.22776601683796</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">316.22776601683796</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">to_be_removed</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyvplm.addon.variablepowerlaw">
+<span id="pyvplm-addon-variablepowerlaw-module"></span><h2>pyvplm.addon.variablepowerlaw module<a class="headerlink" href="#module-pyvplm.addon.variablepowerlaw" title="Permalink to this headline">¶</a></h2>
+<p>Addon module fitting variable power law response surface on dimensionless parameter computed with FEM</p>
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.adapt_parameter_set">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">adapt_parameter_set</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>pi_set</em>, <em>doeX</em>, <em>replaced_parameter</em>, <em>new_parameter</em>, <em>expression</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.adapt_parameter_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that transform physical parameters problem (and corresponding DOE) after FEM calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Defines the k (k&lt;n) dimensionless parameters of the problem</p></li>
+<li><p><strong>doeX</strong> (<em>pandas.DataFrame</em>) – DOE of the parameter_set in SI units (column names should be of the form ‘parameter_i’)</p></li>
+<li><p><strong>replaced_parameter</strong> (<em>str</em>) – Name of the replaced parameter (should not be a repetitive term, i.e. present in only one PI (PI0) term to ensure proper PI spacing)</p></li>
+<li><p><strong>new_parameter</strong> (<em>str</em>) – Name of new parameter (units has to be identical to replaced parameter)</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – Relation between old and new parameter if x_new = 2*x_old+3*other_parameter, write ‘2*x_old+3*other_parameter’</p></li>
+<li><p><strong>description</strong> (<em>str</em>) – Saved description for new parameter</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>new_parameter_set</strong> (<em>PositiveParamaterSet</em>) – Represents the new physical problem</p></li>
+<li><p><strong>new_pi_set</strong> (<em>PositiveParameterSet</em>) – Dimensionless parameters set derived from pi_set replacing parameter</p></li>
+<li><p><strong>new_doeX</strong> (<em>pandas.DataFrame</em>) – Computed DOE from doeX using expression (relation between parameters)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define the parameter, pi sets and calculate DOE refer to: <code class="xref py py-func docutils literal notranslate"><span class="pre">regression_models()</span></code></p>
+<dl>
+<dt>save DOE into dataframe:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_set</span><span class="o">.</span><span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">doeX</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">doeX</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>then imagine you want to replace one parameter (after FEM simulation):</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">new_parameter_set</span><span class="p">,</span> <span class="n">new_pi_set</span><span class="p">,</span> <span class="n">new_doeX</span> <span class="o">=</span> <span class="n">adapt_parameter_set</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="n">pi_set</span><span class="p">,</span> <span class="n">doeX</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;d_out&#39;</span><span class="p">,</span> <span class="s1">&#39;d+2*e&#39;</span><span class="p">,</span> <span class="s1">&#39;outer diameter&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>you are able to perform new regression calculation!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.automatic_buckingham">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">automatic_buckingham</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>track=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.automatic_buckingham" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns all possible pi_set (with lower exponent) from a set of physical parameters.
+Based on buckingham_theorem function call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>track</strong> (<em>bool</em>) – Activates information display (default is False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>combinatory_pi_set</strong> (<em>dict of [1*2] tuples</em>) – Stores pi_set at [0] tuple index and Pi expression (str) list at [1] tuple index</p></li>
+<li><p><strong>alternative_set_dict</strong> (<em>dict of str</em>) – Stores the alternate expressions for widgets display</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>define a positive set first, see: <code class="xref py py-func docutils literal notranslate"><span class="pre">write_dimensional_matrix()</span></code></p>
+<dl>
+<dt>search corresponding pi_set:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">combinatory_pi_set</span> <span class="o">=</span> <span class="n">automatic_buckingham</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="go">    [AUTO. BUCKINGHAM] Testing repetitive set 1/120: total alternative pi set size is 1</span>
+<span class="go">    [AUTO. BUCKINGHAM] Testing repetitive set 2/120: total alternative pi set size is 1</span>
+<span class="go">    [AUTO. BUCKINGHAM] Testing repetitive set 3/120: total alternative pi set size is 1</span>
+<span class="go">    ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="nb">print</span><span class="p">(</span><span class="n">combinatory_pi_set</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">    pi1: pi1 in [1000000.0,2999999999.9999995], l**1.0*u**-1.0</span>
+<span class="go">    pi2: pi2 in [1.2e-10,0.0005333333333333334], e**1.0*f**-1.0*u**2.0</span>
+<span class="go">    pi3: pi3 in [10000.0,59999999.99999999], d**1.0*u**-1.0</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.buckingham_theorem">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">buckingham_theorem</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>track=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.buckingham_theorem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns pi_set dimensionless parameters from a set of physical parameters.
+The Pi expression is lower integer exponent i.e. Pi1 = x1**2*x2**-1 and not x1**1*x2**-0.5 or x1**4*x2**-2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>track</strong> (<em>bool</em>) – Activates information display (default is False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Defines the k (k&lt;n) dimensionless parameters of the problem</p></li>
+<li><p><strong>pi_list</strong> (<em>[1*k] list of str</em>) – The dimensionless parameters’ expression</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>define a positive set first, see: <code class="xref py py-func docutils literal notranslate"><span class="pre">write_dimensional_matrix()</span></code></p>
+<dl>
+<dt>orient repetitive set (using if possible d and l):</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">parameter_set</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>search corresponding pi_set:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">pi_set</span> <span class="o">=</span> <span class="n">buckingham_theorem</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="go">    Chosen repetitive set is: {d, l}</span>
+<span class="go">    pi1: pi1 in [1.666666666666667e-08,9.999999999999999e-05], d**-1.0*u**1.0</span>
+<span class="go">    pi2: pi2 in [16.666666666666668,300.0], d**-1.0*l**1.0</span>
+<span class="go">    pi3: pi3 in [12000.0,1920000.0000000002], d**2.0*e**1.0*f**-1.0</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Repetitive parameters are elected as first pivot point in the order of arrival in
+parameter set dictionary keys, therefore user can orient repetitive set applying
+the ‘first’ method on the parameter set (see example)</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.compute_echelon_form">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">compute_echelon_form</code><span class="sig-paren">(</span><em>in_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.compute_echelon_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that computes a matrix into its echelon form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>in_matrix</strong> (<em>[m*n] numpy.array of float or int</em>)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>out_matrix</strong> (<em>[m*n] list of float or int</em>) – Matrix with echelon form derived from in_matrix</p></li>
+<li><p><strong>pivot</strong> (<em>[m*m] list of fraction</em>) – Pivot matrix to link out_matrix to in_matrix</p></li>
+<li><p><strong>pivot_points</strong> (<em>[1*k] numpy.array of int</em>) – Index of pivot points k = rank(in_matrix)&lt;= min(m, n)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define dimensional matrix:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">in_matrix</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>perform echelon function:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">out_matrix</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">pivot_points</span> <span class="o">=</span> <span class="n">compute_echelon_form</span><span class="p">(</span><span class="n">in_matrix</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="nb">print</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">out_matrix</span><span class="p">[</span><span class="n">nr</span><span class="p">][</span><span class="n">nc</span><span class="p">])</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">out_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span> <span class="k">for</span> <span class="n">nr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">out_matrix</span><span class="p">))])</span>
+<span class="go">    [[1.0, 0.0, -2.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="nb">print</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">pivot</span><span class="p">[</span><span class="n">nr</span><span class="p">][</span><span class="n">nc</span><span class="p">])</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span> <span class="k">for</span> <span class="n">nr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pivot</span><span class="p">))])</span>
+<span class="go">    [[-1.0, 1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0, 0.0], [-1.0, 0.0, 1.0, 0.0, 0.0], [2.0, -1.0, 0.0, 1.0, 0.0], [-1.0, 0.0, 0.0, 0.0, 1.0]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="nb">print</span><span class="p">(</span><span class="n">pivot_points</span><span class="p">)</span>
+<span class="go">    [1, 0]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.concatenate_expression">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">concatenate_expression</code><span class="sig-paren">(</span><em>expression</em>, <em>pi_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.concatenate_expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that transform regression model expression into latex form with concatenation (only for power-laws).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expression</strong> (<em>Str</em>) – Expression of the regression model</p></li>
+<li><p><strong>pi_list</strong> (<em>List of str</em>) – Defines the pi expressions (default is pi1, pi2…)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>new_expression</strong> – Represents the new model formula in latex form</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Str</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define expression and list:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">expression</span> <span class="o">=</span> <span class="s1">&#39;log(pi1) = 2.33011+1.35000*log(pi2)-0.25004*log(pi3)+0.04200*log(pi2)*log(pi3)+0.17000*log(pi2)**2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">pi_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;\pi_1&#39;</span><span class="p">,</span><span class="s1">&#39;\pi_2&#39;</span><span class="p">,</span><span class="s1">&#39;\pi_3&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+<dt>adapt expression:</dt><dd><p>concatenate_expression(expression, pi_list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.declare_constraints">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">declare_constraints</code><span class="sig-paren">(</span><em>parameters_set</em>, <em>constraint_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.declare_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functions that declare constraint=f(X_doe)/f(PI_doe) to return validity of a DoE set .</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameters_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical/dimensionless parameters (be carefull to share set with pixdoe.create_const_doe)</p></li>
+<li><p><strong>constraint_set</strong> (<em>ConstraintSet</em>) – Defines the constraints that applies on the parameters from parameters_set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>f</strong> – a function of X, <strong>X</strong> being a [m*k] (k&lt;=n) numpy.array of float representing parameters values
+which returns a [m*1] numpy.array of bool corresponding to the DoE validity</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.declare_func_x_to_pi">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">declare_func_x_to_pi</code><span class="sig-paren">(</span><em>parameters_set</em>, <em>pi_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.declare_func_x_to_pi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functions that declare pi=f(x) to transform parameters set values into pi set values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Defines the k (k&lt;n) dimensionless parameters of the problem</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>f</strong> – a function of X, <strong>X</strong> being a [m*n] numpy.array of float representing physical parameters values
+which returns a [m*k] numpy.array of float corresponding to the dimensionless parameters values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>function</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>define a positive set first, see: <code class="xref py py-func docutils literal notranslate"><span class="pre">write_dimensional_matrix()</span></code></p>
+<dl>
+<dt>define pi set using buckingham:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">pi_set</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">buckingham_theorem</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>set x values:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">x</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+</pre></div>
+</div>
+</dd>
+<dt>declare function and compute y values:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">func_x_to_pi</span> <span class="o">=</span> <span class="n">declare_func_x_to_pi</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="n">pi_set</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">func_x_to_pi</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">    array([[ 2.  ,  2.  ,  5.  ],</span>
+<span class="go">           [10.  ,  0.01, 10.  ],</span>
+<span class="go">           [ 1.5 ,  6.  ,  1.  ]])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.force_buckingham">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">force_buckingham</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>*pi_list</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.force_buckingham" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function used to define manually a dimensionless set of parameters.
+Parameters availability, pi expression and dimension or even pi matrix rank are checked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>*pi_list</strong> (<em>tuple of str</em>) – Defines the Pi dimensionless parameters expression of the problem</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>pi_set</strong> – Defines the k (k&lt;n) dimensionless parameters of the problem</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="pyvplm.core.html#pyvplm.core.definition.PositiveParameterSet" title="pyvplm.core.definition.PositiveParameterSet">PositiveParameterSet</a></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>define a positive set first, see: <code class="xref py py-func docutils literal notranslate"><span class="pre">write_dimensional_matrix()</span></code></p>
+<dl>
+<dt>force pi set:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">pi_set</span> <span class="o">=</span> <span class="n">force_buckingham</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="s1">&#39;l/u&#39;</span><span class="p">,</span> <span class="s1">&#39;e/f*u^2&#39;</span><span class="p">,</span> <span class="s1">&#39;d/u&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="nb">print</span><span class="p">(</span><span class="n">pi_set</span><span class="p">)</span>
+<span class="go">    pi1: pi1 in [1000000.0,2999999999.9999995], u**-1.0*l**1.0</span>
+<span class="go">    pi2: pi2 in [1.2e-10,0.0005333333333333334], u**2.0*f**-1.0*e**1.0</span>
+<span class="go">    pi3: pi3 in [10000.0,59999999.99999999], u**-1.0*d**1.0</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The analysis is conducted on Pi dimension, rank of Pi-parameter exponents,
+global expression and number of Pi compared to dimensional matrix rank and
+parameters number.
+The ‘understood expression’ is visible by printing pi_set.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.import_csv">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">import_csv</code><span class="sig-paren">(</span><em>file_name</em>, <em>parameter_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.import_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to import .CSV with column label syntax as ‘param_name’ or ‘param_name [units]’.
+Auto-adaptation to SI-units is performed and parameters out of set are ignored/deleted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – Name of the saved file with path (example: file_name = ‘./subfolder/name’)</p></li>
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.latex_pi_expression">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">latex_pi_expression</code><span class="sig-paren">(</span><em>pi_set</em>, <em>parameter_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.latex_pi_expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to write pi description in latex form: <strong>*internal*</strong> to <code class="xref py py-func docutils literal notranslate"><span class="pre">pi_sensitivity()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">pi_dependency()</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.perform_regression">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">perform_regression</code><span class="sig-paren">(</span><em>doePI</em>, <em>models</em>, <em>choosen_model</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.perform_regression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to perform regresion using models expression form (with replaced coefficients).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doePI</strong> (<em>numpy.array</em>) – DOE of the pi_set</p></li>
+<li><p><strong>models</strong> (<em>specific</em>) – Output of <code class="xref py py-func docutils literal notranslate"><span class="pre">variablepowerlaw()</span></code>.</p></li>
+<li><p><strong>choosen_model</strong> (<em>int</em>) – The elected regression model number</p></li>
+<li><p><strong>**kwargs</strong> (<em>additional argumens</em>) –</p>
+<ul>
+<li><p><strong>pi_list</strong> (<em>list</em> of <em>str</em>): the name/expression of pi (default is pi1, pi2, pi3…)</p></li>
+<li><p><strong>latex</strong> (<em>bool</em>): define if graph legend font should be latex (default is False) - may cause some issues if used</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define regression models refer to: <code class="xref py py-func docutils literal notranslate"><span class="pre">regression_models()</span></code></p>
+<dl>
+<dt>then perform regression on model n°8 to show detailed results on model fit and error:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span><span class="p">[</span><span class="mi">24</span><span class="p">]:</span> <span class="n">perform_regression</span><span class="p">(</span><span class="n">doePI</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">choosen_model</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/variablepowerlaw_perform_regression1.png" src="_images/variablepowerlaw_perform_regression1.png" />
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.pi_dependency">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">pi_dependency</code><span class="sig-paren">(</span><em>pi_set</em>, <em>doePI</em>, <em>useWidgets</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.pi_dependency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to perform dependency analysis on dimensionless parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Set of dimensionless parameters</p></li>
+<li><p><strong>doePI</strong> (<em>numpy.array</em>) – DOE of the complete pi_set (except pi0)</p></li>
+<li><p><strong>useWidgets</strong> (<em>bool</em>) – Boolean to choose if widgets displayed (set to True within Jupyther Notebook)</p></li>
+<li><p><strong>**kwargs</strong> (<em>additional argumens</em>) –</p>
+<ul>
+<li><p><strong>x_list</strong> (<em>list</em> of <em>str</em>): name of the different pi1, pi2,… to be defined as x-axis (default is all)</p></li>
+<li><p><strong>y_list</strong> (<em>list</em> of <em>str</em>): name of the different pi1, pi2,… to be defined as y-axis (default is all)</p></li>
+<li><p><strong>order</strong> (<em>int</em>): the order choosen for power-law or polynomial regression model (default is 2)</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>): in ]0,1[ the lower limit to consider regression for plot  (default is 0.9)</p></li>
+<li><p><strong>figwidth</strong> (<em>int</em>): change figure width (default is 16 in widgets mode)</p></li>
+<li><p><strong>xlabel_size</strong> (<em>int</em>): set x-axis label font size (default is 16)</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to load a doe example: see <code class="xref py py-func docutils literal notranslate"><span class="pre">pi_sensitivity()</span></code></p>
+<dl>
+<dt>then perform dependency analysis:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">pi_dependency</span><span class="p">(</span><span class="n">pi_set</span><span class="p">,</span> <span class="n">doePI</span><span class="p">,</span> <span class="n">useWidgets</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/variablepowerlaw_pi_dependency.png" src="_images/variablepowerlaw_pi_dependency.png" />
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.pi_dependency_sub">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">pi_dependency_sub</code><span class="sig-paren">(</span><em>pi_set</em>, <em>doePI</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.pi_dependency_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-function of <code class="xref py py-func docutils literal notranslate"><span class="pre">pi_dependency()</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.pi_sensitivity">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">pi_sensitivity</code><span class="sig-paren">(</span><em>pi_set</em>, <em>doePI</em>, <em>useWidgets</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.pi_sensitivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to perform sensitivity analysis on dimensionless parameters according to specific performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Set of dimensionless parameters</p></li>
+<li><p><strong>doePI</strong> (<em>numpy.array</em>) – DOE of the complete pi_set (except pi0)</p></li>
+<li><p><strong>useWidgets</strong> (<em>bool</em>) – Boolean to choose if widgets displayed (set to True within Jupyther Notebook)</p></li>
+<li><p><strong>**kwargs</strong> (<em>additional argumens</em>) –</p>
+<ul>
+<li><p><strong>pi0</strong> (<em>list</em> of <em>str</em>): name of the different pi0 = f(pi…) considered as design drivers</p></li>
+<li><p><strong>piN</strong> (<em>list</em> of <em>str</em>): name of the f(pi1, pi2, …, piN) considered as secondary parameters</p></li>
+<li><p><strong>latex</strong> (<em>bool</em>): display in latex format</p></li>
+<li><p><strong>figwidth</strong> (<em>int</em>): change figure width (default is 16 in widgets mode)</p></li>
+<li><p><strong>zero_ymin</strong> (<em>bool</em>): set y-axis minimum value to 0 (default is False)</p></li>
+<li><p><strong>xlabel_size</strong> (<em>int</em>): set x-axis label font size (default is 18)</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>to load a doe example:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">doePI</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s1">&#39;./pi_analysis_example.xls&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">doePI</span> <span class="o">=</span> <span class="n">doe</span><span class="p">[[</span><span class="s1">&#39;pj&#39;</span><span class="p">,</span><span class="s1">&#39;pfe&#39;</span><span class="p">,</span><span class="s1">&#39;pi2&#39;</span><span class="p">,</span><span class="s1">&#39;pi3&#39;</span><span class="p">,</span><span class="s1">&#39;pi4&#39;</span><span class="p">,</span><span class="s1">&#39;pi5&#39;</span><span class="p">,</span><span class="s1">&#39;pi6&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">pi1</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi1&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;p_j&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">pi2</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi2&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;p_fe&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">pi3</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi3&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;d_i*d_e**-1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">pi4</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi4&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;e_tooth*d_e**-1*n&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">pi5</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi5&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;e_yoke*d_e**-1*n&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">pi6</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi6&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;w_pm*d_e**-1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">pi7</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;pi7&#39;</span><span class="p">,[</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;r_i*d_e**-1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">pi_set</span> <span class="o">=</span> <span class="n">PositiveParameterSet</span><span class="p">(</span><span class="n">pi1</span><span class="p">,</span> <span class="n">pi2</span><span class="p">,</span> <span class="n">pi3</span><span class="p">,</span> <span class="n">pi4</span><span class="p">,</span> <span class="n">pi5</span><span class="p">,</span> <span class="n">pi6</span><span class="p">,</span> <span class="n">pi7</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>then perform sensitivity analysis:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">pi_sensitivity</span><span class="p">(</span><span class="n">pi_set</span><span class="p">,</span> <span class="n">doePI</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">pi0</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pi1&#39;</span><span class="p">,</span> <span class="s1">&#39;pi2&#39;</span><span class="p">],</span> <span class="n">piN</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pi3&#39;</span><span class="p">,</span> <span class="s1">&#39;pi4&#39;</span><span class="p">,</span> <span class="s1">&#39;pi5&#39;</span><span class="p">,</span> <span class="s1">&#39;pi6&#39;</span><span class="p">,</span> <span class="s1">&#39;pi7&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="_images/variablepowerlaw_pi_sensitivity.png" src="_images/variablepowerlaw_pi_sensitivity.png" />
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Within Jupyter Notebook, rendering will be slightly different with compressed size in X-axis to be printed within one page width and labels adapted consequently.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.pi_sensitivity_sub">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">pi_sensitivity_sub</code><span class="sig-paren">(</span><em>pi_set</em>, <em>doePI</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.pi_sensitivity_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-function of <code class="xref py py-func docutils literal notranslate"><span class="pre">pi_sensitivity()</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.reduce_parameter_set">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">reduce_parameter_set</code><span class="sig-paren">(</span><em>parameter_set</em>, <em>pi_set</em>, <em>elected_output</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.reduce_parameter_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that reduce physical parameters and Pi set extracting output physical parameter and Pi0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>pi_set</strong> (<em>PositiveParameterSet</em>) – Defines the k (k&lt;n) dimensionless parameters of the problem</p></li>
+<li><p><strong>elected_output</strong> (<em>str</em>) – Parameter that represents FEM output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>reduced_parameter_set</strong> (<em>PositiveParamaterSet</em>) – Parameter set reduced by elected_output</p></li>
+<li><p><strong>reduced_pi_set</strong> (<em>PositiveParameterSet</em>) – Pi set reduced by Pi0 (dimensionless parameter countaining output parameter)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define the parameter and pi sets refer to: <code class="xref py py-func docutils literal notranslate"><span class="pre">buckingham_theorem()</span></code></p>
+<dl>
+<dt>reduce sets considering ‘u’ is the output:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span> <span class="o">=</span> <span class="n">reduce_parameter_set</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="n">pi_set</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>then declare transformation function and create DOE:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">func_x_to_pi</span> <span class="o">=</span> <span class="n">declare_func_x_to_pi</span><span class="p">(</span><span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">pyvplm.addon.pixdoe</span> <span class="k">import</span> <span class="n">create_const_doe</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">doeX</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_const_doe</span><span class="p">(</span><span class="n">reduced_parameter_set</span><span class="p">,</span> <span class="n">reduced_pi_set</span><span class="p">,</span> <span class="n">func_x_to_pi</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">doeX</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">doeX</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">reduced_parameter_set</span><span class="o">.</span><span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.regression_models">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">regression_models</code><span class="sig-paren">(</span><em>doe</em>, <em>elected_pi0</em>, <em>order</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.regression_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functions that calculate the regression model coefficient with increasing model complexity.
+The added terms for complexity increase are sorted depending on their regression coefficient value on standardized pi.
+For more information on regression see Scipy linalg method <code class="xref py py-func docutils literal notranslate"><span class="pre">lstsq()</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doe</strong> (<em>[m*k] numpy.array of float or int</em>) – Represents the elected feasible constrained sets of m experiments values expressed over the k dimensionless parameters</p></li>
+<li><p><strong>elected_pi0</strong> (<em>str</em>) – Selected pi for regression: syntax is ‘pin’ with n&gt;=1 and n&lt;=k</p></li>
+<li><p><strong>order</strong> (<em>int</em>) –</p>
+<ul>
+<li><dl class="simple">
+<dt>Model order &gt;=1: as an example, order 2 in log_space=True is :</dt><dd><p>log(pi0) = log(cst) + a1*log(pi1) + a11*log(pi1)**2 + a12*log(pi1)*log(pi2) + a2*log(pi2) + a22*log(pi2)**2</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Model order &gt;=1: as an example, order 2 in log_space=False is :</dt><dd><p>pi0 = cst + a1*pi1 + a11*pi1**2 + a12*pi1*pi2 + a2*pi2 + a22*pi2</p>
+</dd>
+</dl>
+</li>
+</ul>
+</li>
+<li><p><strong>**kwargs</strong> (<em>additional argumens</em>) –</p>
+<ul>
+<li><p><strong>ymax_axis</strong> (<em>float</em>): set y-axis maximum value representing relative error, 100=100% (default value)</p></li>
+<li><p><strong>log_space</strong> (<em>bool</em>): define if polynomial regression should be performed within logarithmic space (True) or linear (False)</p></li>
+<li><p><strong>latex</strong> (<em>bool</em>): define if graph legend font should be latex (default is False) - may cause some issues if used</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p><strong>models</strong> –</p>
+<dl>
+<dt>Stores the different models regression information as for model ‘i’:</dt><dd><ul class="simple">
+<li><p>dict[i][0]: str of the model expression</p></li>
+<li><p>dict[i][1]: numpy.array of the regression coefficients</p></li>
+<li><p>dict[i][2]: pandas.DataFrame of the trained set (<strong>max abs(e)</strong>, <strong>average abs(e)</strong>, <strong>average e</strong> and <strong>sigma e</strong>)</p></li>
+<li><p>dict[i][3]: pandas.DataFrame of the tested set (<strong>max abs(e)</strong>, <strong>average abs(e)</strong>, <strong>average e</strong> and <strong>sigma e</strong>)</p></li>
+</ul>
+<p>Where <strong>e</strong> represents the relative error on elected_pi0&gt;0 in %</p>
+</dd>
+<dt>Additional data is saved in:</dt><dd><ul class="simple">
+<li><p>dict[‘max abs(e)’]: (1*2) tuple containing trained and test sets max absolute relative error on the k-models</p></li>
+<li><p>dict[‘ave. abs(e)’]: (1*2) tuple containing trained and test sets average absolute relative error on the k-models</p></li>
+<li><p>dict[‘ave. e’]: (1*2) tuple containing trained and test sets average relative error on the k-models</p></li>
+<li><p>dict[‘sigma e’]: (1*2) tuple containing trained and test sets standard deviation on relative error on the k-models</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict of [1*4] <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>to define the parameter and pi sets and generate DOE: to define the parameter and pi sets refer to: <code class="xref py py-func docutils literal notranslate"><span class="pre">reduce_parameter_set()</span></code></p>
+<dl>
+<dt>generate mathematic relation between Pi parameters knowing pi1=l/u and following formulas:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">PI2</span> <span class="o">=</span> <span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;e&#39;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">])</span><span class="o">*</span> <span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="n">PI3</span> <span class="o">=</span> <span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">PI1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">PI2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">17</span><span class="p">]:</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">PI1</span><span class="p">)):</span>
+<span class="go">        ...:         PI1[idx] = (10**2.33)*(PI2[idx]**(1.35+0.17*numpy.log10(PI2[idx])+0.042*numpy.log10(PI3[idx])))*(PI3[idx]**-0.25) + (random.random()-0.5)/1000000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">18</span><span class="p">]:</span> <span class="n">l_values</span> <span class="o">=</span> <span class="n">PI1</span> <span class="o">*</span> <span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">19</span><span class="p">]:</span> <span class="n">doeX</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">l_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">20</span><span class="p">]:</span> <span class="n">doeX</span> <span class="o">=</span> <span class="n">doeX</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">parameter_set</span><span class="o">.</span><span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">21</span><span class="p">]:</span> <span class="n">func_x_to_pi</span> <span class="o">=</span> <span class="n">declare_func_x_to_pi</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">,</span> <span class="n">pi_set</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">22</span><span class="p">]:</span> <span class="n">doePI</span> <span class="o">=</span> <span class="n">func_x_to_pi</span><span class="p">(</span><span class="n">doeX</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">23</span><span class="p">]:</span> <span class="n">models</span> <span class="o">=</span> <span class="n">regression_models</span><span class="p">(</span><span class="n">doePI</span><span class="p">,</span> <span class="s1">&#39;pi1&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/variablepowerlaw_regression_models1.png" src="_images/variablepowerlaw_regression_models1.png" />
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.save_csv">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">save_csv</code><span class="sig-paren">(</span><em>doeX</em>, <em>file_name</em>, <em>parameter_set</em>, <em>is_SI</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.save_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to save .CSV with column label syntax as ‘param_name [units]’.
+With units either defined by user or SI (is_SI, True by default).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doeX</strong> (<em>numpy.array</em>) – DOE of the parameter_set either in defined_units or SI units</p></li>
+<li><p><strong>file_name</strong> (<em>str</em>) – Name of the saved file with path (example: file_name = ‘./subfolder/name’)</p></li>
+<li><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p></li>
+<li><p><strong>is_SI</strong> (<em>bool</em>) – Define if parameters values are expressed in SI units or units defined by user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyvplm.addon.variablepowerlaw.write_dimensional_matrix">
+<code class="descclassname">pyvplm.addon.variablepowerlaw.</code><code class="descname">write_dimensional_matrix</code><span class="sig-paren">(</span><em>parameter_set</em><span class="sig-paren">)</span><a class="headerlink" href="#pyvplm.addon.variablepowerlaw.write_dimensional_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to extract dimensional matrix from a PositiveParameterSet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parameter_set</strong> (<em>PositiveParameterSet</em>) – Defines the n physical parameters for the studied problem</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dimensional_matrix</strong> – Column labels refers to the parameters names and rows to the dimensions</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<dl>
+<dt>define a positive set first:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">u</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1e-9</span><span class="p">,</span><span class="mf">1e-6</span><span class="p">],</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;Deflection&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">f</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">150</span><span class="p">,</span><span class="mi">500</span><span class="p">],</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;Load applied&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">l</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;Cantilever length&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">e</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">60e9</span><span class="p">,</span><span class="mf">80e9</span><span class="p">],</span> <span class="s1">&#39;Pa&#39;</span><span class="p">,</span> <span class="s1">&#39;Young Modulus&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">d</span> <span class="o">=</span> <span class="n">PositiveParameter</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">60</span><span class="p">],</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="s1">&#39;Diameter of cross-section&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">parameter_set</span> <span class="o">=</span> <span class="n">PositiveParameterSet</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>apply function:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">dimensional_matrix</span> <span class="o">=</span> <span class="n">write_dimensional_matrix</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">dimensional_matrix</span><span class="o">.</span><span class="n">values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyvplm.addon">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyvplm.addon" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="pyvplm.core.html" class="btn btn-neutral float-left" title="pyvplm.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, A.REYSSET, S.DELBECQ, M.BUDINGER
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

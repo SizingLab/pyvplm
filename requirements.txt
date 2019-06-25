@@ -1,0 +1,10 @@
+matplotlib
+numpy
+pandas
+pint>=0.7.2
+pydoe2==1.1.2
+scipy>=1
+scikit-learn
+sympy
+ipywidgets>=7.4
+ipython>=7.2
