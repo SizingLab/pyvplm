@@ -8,3 +8,4 @@ scikit-learn
 sympy
 ipywidgets>=7.4
 ipython>=7.2
+m2r
