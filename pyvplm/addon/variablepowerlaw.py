@@ -2556,10 +2556,11 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
         
         **kwargs: additional arguments (pass :func:`~pyvplm.addon.variablepowerlaw.model_regression` arguments and additionals for optimizer) 
                   * **ymax_axis** (*float*): set y-axis maximum value representing relative error, 100=100% (default value)
-                  * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space (True) or linear (False)
+                  * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space (True) or linear (False) default is logarithmic
                   * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some issues if used
                   * **starting_points** (*int*): set the number of starting points choosen for optimisation (default is 10**(2*len(non_linear_pi_list)))
                   * **max_iter** (*int*): set the number of optimisation maximum iterations for each starting point (default is 10**len(non_linear_pi_list))
+                  * **f_tol** (*float*): set the function tolerance stopping criteria as a percentage of x0 value (default value is 0.1%)
                   * **beta_bounds** (*list(float)*): the boundaries for beta coefficient (default is [0.001, 1000.0])
                   * **alpha_bounds** (*list(float)*): the boundaries for alpha coefficient (default is [0.0, 10.0])
         
@@ -2594,7 +2595,17 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
         beta_bounds = numpy.array([0.001, 1000.0])
         alpha_bounds = numpy.array([0.0, 10.0])
         max_iter = 10**len(non_linear_pi_list)
+        log_space = True
+        f_tol = 0.1/100
         for key, value in kwargs.items():
+            if key == 'f_tol':
+                if isinstance(value, float):
+                    if (value <=0):
+                        ValueError('f_tol should be a positive float')
+                    else:
+                        f_tol = value/100
+                else:
+                    raise TypeError('f_tol should be a float')
             if key == 'max_iter':
                 if isinstance(value, int):
                     if (value <=10):
@@ -2642,6 +2653,11 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
                         TypeError('alpha_bounds should be [float, float]')
                 else:
                     raise ValueError('alpha_bounds should be [float, float]')
+            elif key == 'log_space':
+                if isinstance(value, bool):
+                    log_space = value
+                else:
+                    raise ValueError('log_space should be boolean')
         try:
             del kwargs['starting_points']
         except:
@@ -2666,14 +2682,14 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
                 pi_name = non_linear_pi_list[idx]
                 doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1] = 1 + (doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1]/x[2*idx])**x[2*idx+1]
             # Perform regression in silent mode and get final result on choosen criteria
-            models = regression_models(doe_transformed, elected_pi0=elected_pi0, order=order, test_mode=True)
+            models = regression_models(doe_transformed, elected_pi0=elected_pi0, order=order, test_mode=True, log_space=log_space)
             abs_error_average_test = models['ave. |e|'][1]
             res = min(abs_error_average_test)
             # Display information at each iteration
             if not(info['Silent']):
                 message = 'print(\'{0:4d}'
                 for idx in range(len(x) + 1):
-                    message += ' {' + str(idx +1) + ': 3.6f}'
+                    message += ' {' + str(idx +1) + ':.2E}'
                 message += '\'.format(info[\'Nfeval\']'
                 for idx in range(len(x)):
                     message += ', x[' + str(idx) + ']'
@@ -2682,9 +2698,10 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
             info['Nfeval'] += 1
             return res
         # Calculate with no transformation objective function
-        models = regression_models(doe, elected_pi0=elected_pi0, order=order, test_mode=True)
+        models = regression_models(doe, elected_pi0=elected_pi0, order=order, test_mode=True, log_space=log_space)
         abs_error_average_test = models['ave. |e|'][1]
         objective_to_optimize = min(abs_error_average_test)
+        print('\nObjective to minimize (average of the absolute relative error - C2): f(x)={:.2E} %\n'.format(objective_to_optimize))
         # Print iteration title
         message = 'print(\'{0:4s}'
         for idx in range(2*len(non_linear_pi_list) + 1):
@@ -2707,13 +2724,16 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
                 bounds = numpy.r_[bounds, numpy.r_[beta_bounds, alpha_bounds]]
         x0_levels = lhs(2*len(non_linear_pi_list), samples=starting_points, criterion='centermaximin')
         x0 = bounds[:,0] + x0_levels * (bounds[:, 1] - bounds[:, 0])
+        # Evaluate tolerance 
+        f_tol = f_tol * abs(objective(x0[0,:],{'Nfeval':0, 'Silent':True}))
+        print('Calculation tolerance is set to: {:.2E}.\n'.format(f_tol))
         # Launch optimization process with multi-starts
         result = []
         best_result = float('inf')
         for idx in range(numpy.shape(x0)[0]):
             print('\nStarting point {}/{} x0={}\n'.format(idx+1, numpy.shape(x0)[0], x0[idx,:]))
             eval(message)
-            local_result = minimize(objective, x0[idx,:], args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=bounds, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':0.00001, 'disp':False})
+            local_result = minimize(objective, x0[idx,:], args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=bounds, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':f_tol, 'disp':False})
             # Save of best result
             if local_result.success:
                 if local_result.fun < best_result:
@@ -2724,25 +2744,24 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
         # Callback the optimizer for best starting point solution
         print('\nCallback for best starting point solution\n')
         x0 = result.x
-        result = minimize(objective, x0, args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=None, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':0.00001, 'disp':True})
-        result.x0 = x0
-        result.x_bounds = numpy.transpose(bounds)
+        local_result = minimize(objective, x0, args=({'Nfeval':0,'Silent':False},), method='L-BFGS-B', jac=None, bounds=bounds, constraints=(), tol=None, callback=None, options={'maxiter':max_iter, 'ftol':f_tol, 'disp':True})
+        local_result.x0 = x0
+        local_result.x_bounds = numpy.transpose(bounds)
         # Analyse results and plot graph
         if result.success:
-            if result.fun < objective_to_optimize:
-                print('\nModel quality has been improved C2:{}%->{}% considering following modifications:'.format(objective_to_optimize,result.fun))
+            if local_result.fun < objective_to_optimize:
+                result = local_result
+                print('\nModel quality has been improved C2:{:.2E} %->{:.2E} % considering following modifications:'.format(objective_to_optimize,result.fun))
                 for idx in range(len(non_linear_pi_list)):
                     print(non_linear_pi_list[idx] + '= 1 + (' + non_linear_pi_list[idx] + '/' + str(result.x[2*idx]) + ')**' + str(result.x[2*idx+1]))
-                doe_transformed = copy.deepcopy(doe)
-                for idx in range(len(non_linear_pi_list)):
-                    pi_name = non_linear_pi_list[idx]
-                    doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1] = 1 + (doe_transformed[:, int(pi_name[2:len(pi_name)]) - 1]/result.x[2*idx])**result.x[2*idx+1]
                 return result
             else:
                 print('\nWARNING: non-linear formulation does not improve model quality C2:{}%->{}%!'.format(objective_to_optimize,result.fun))
         else:
-            print('\nERROR: optimization not successfull!')
-        return []
+            print('\nModel quality has been improved C2:{:.2E} %->{:.2E} % considering following modifications:'.format(objective_to_optimize,result.fun))
+            for idx in range(len(non_linear_pi_list)):
+                print(non_linear_pi_list[idx] + '= 1 + (' + non_linear_pi_list[idx] + '/' + str(result.x[2*idx]) + ')**' + str(result.x[2*idx+1]))
+            return result
     else:
         if not(isinstance(doe, numpy.ndarray)):
             raise TypeError('doe should be numpy array.')
@@ -2753,17 +2772,3 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
         else:
             raise TypeError('order should be an integer.')
             
-if __name__ == '__main__':
-    doe = pandas.read_excel('Linear_motor_ironcore.xlsx')
-    doePI = doe[['F_L/(J*B_r*L_PM**2)', 'P_J/(rho_f*J**2*L_PM**3)', 'r_th*lamba_air*W', 'L_T/L_PM','H_W/L_PM','H_PM/L_PM','H_AG/L_PM','H_C/L_PM', 'J*L_PM*u0/B_s']].values
-    pi0_f = PositiveParameter('pi0_f',[0.1,1],'','F_L*J**-1*B_r**-1*L_PM**-2')
-    pi0_p = PositiveParameter('pi0_p',[0.1,1],'','P_J*rho_fer**-1*J**-2*L_PM**-3')
-    pi0_r = PositiveParameter('pi0_r',[0.1,1],'','r_th*W*lambda_air')
-    pi1 = PositiveParameter('pi1',[0.1,1],'','L_T*L_PM**-1')
-    pi2 = PositiveParameter('pi2',[0.1,1],'','H_W*L_PM**-1')
-    pi3 = PositiveParameter('pi3',[0.1,1],'','H_PM*L_PM**-1')
-    pi4 = PositiveParameter('pi4',[0.1,1],'','H_AG*L_PM**-1')
-    pi5 = PositiveParameter('pi5',[0.1,1],'','H_C*L_PM**-1')
-    pi6 = PositiveParameter('pi6',[0.1,1],'','J*L_PM*mu_0*B_s**-1')
-    pi_set = PositiveParameterSet(pi0_f, pi0_p, pi0_r, pi1, pi2, pi3, pi4, pi5, pi6)
-    pi_dependency(pi_set, doePI, False, x_list=['pi2', 'pi3', 'pi4', 'pi6'], y_list=['pi2', 'pi3', 'pi4', 'pi6'])
