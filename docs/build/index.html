@@ -153,10 +153,10 @@
 <p>pyVPLM is a package that is developed to help scientist, engineer, etc., to construct power-law and/or polynomial regression models on different type of data such as finite-element simulation results, manufacturer data-sheets…</p>
 <p>It integrates various functionalities such as :</p>
 <ul class="simple">
-<li><p>Model parameters reduction based on Buckingham Theorem dimensional analysis and <a class="reference external" href="https://pint.readthedocs.io/en/0.9/">Pint</a> package with derived functions.</p></li>
-<li><p>Sensitivity and dependency analysis on dimensionless parameter and limited experiments to simplify further model expressions.</p></li>
-<li><p>Construction of optimized experimental design on feasible-physical variables leading to full-factorial design within dimensionless space. Those DOE are the inputs of parametrized finite-element models.</p></li>
-<li><p>Regression models construction with increasing  complexity (terms sorted based on their impact) and validation based on relative error repartition analysis.</p></li>
+<li>Model parameters reduction based on Buckingham Theorem dimensional analysis and <a class="reference external" href="https://pint.readthedocs.io/en/0.9/">Pint</a> package with derived functions.</li>
+<li>Sensitivity and dependency analysis on dimensionless parameter and limited experiments to simplify further model expressions.</li>
+<li>Construction of optimized experimental design on feasible-physical variables leading to full-factorial design within dimensionless space. Those DOE are the inputs of parametrized finite-element models.</li>
+<li>Regression models construction with increasing  complexity (terms sorted based on their impact) and validation based on relative error repartition analysis.</li>
 </ul>
 </div>
 <div class="section" id="capabilities">
@@ -200,10 +200,10 @@
 <a class="reference external image-reference" href="../source/_static/Pictures/variablepowerlaw_regression_models1.png"><img alt="" src="_images/variablepowerlaw_regression_models1.png" /></a>
 <p><span class="raw-html-m2r"><u>The four criteria to evaluate model fidelity with leave-one-out cross-validation are:</u></span></p>
 <ol class="arabic simple">
-<li><p>Maximal relative error magnitude</p></li>
-<li><p>Average value of the magnitude of relative error which is a good indicator of both average and standard deviation</p></li>
-<li><p>Average value of the relative error</p></li>
-<li><p>Standard deviation of the relative error</p></li>
+<li>Maximal relative error magnitude</li>
+<li>Average value of the magnitude of relative error which is a good indicator of both average and standard deviation</li>
+<li>Average value of the relative error</li>
+<li>Standard deviation of the relative error</li>
 </ol>
 <p>On this example with 2 dimensionless parameters and order 3 polynomial expression, a 5-terms model seems to have good representation capabilities.</p>
 <hr class="docutils" />
@@ -224,26 +224,22 @@
 <h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
 <p>To install pyVPLM, follow those three steps:</p>
 <ol class="arabic simple">
-<li><p>Download pyVPLM source code folder <code class="docutils literal notranslate"><span class="pre">pyvplm-master</span></code>:</p>
-<ul class="simple">
-<li><p>Go to <a class="reference external" href="https://github.com/SizingLab/methods_and_tools/tree/master/pyvplm-master">GitHub</a>, download the repository in any directory.</p></li>
+<li>Download pyVPLM source code folder <code class="docutils literal notranslate"><span class="pre">pyvplm-master</span></code>:<ul>
+<li>Go to <a class="reference external" href="https://github.com/SizingLab/methods_and_tools/tree/master/pyvplm-master">GitHub</a>, download the repository in any directory.</li>
 </ul>
 </li>
-<li><p>Add path to Anaconda:</p>
-<ul class="simple">
-<li><p>Open an Anaconda terminal and navigate to the master directory just copied (use <code class="docutils literal notranslate"><span class="pre">cd</span></code> command to change directory).</p></li>
-<li><p>Add path using command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">./</span></code>.</p></li>
+<li>Add path to Anaconda:<ul>
+<li>Open an Anaconda terminal and navigate to the master directory just copied (use <code class="docutils literal notranslate"><span class="pre">cd</span></code> command to change directory).</li>
+<li>Add path using command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">./</span></code>.</li>
 </ul>
 </li>
-<li><p>Or add library permanently to Anaconda:</p>
-<ul class="simple">
-<li><p>Open an Anaconda terminal and navigate to the master/dist directory just copied (use <code class="docutils literal notranslate"><span class="pre">cd</span></code> command to change directory).</p></li>
-<li><p>Install library using wheel with command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyVPLM-version-py3-none-any.whl</span></code>.</p></li>
+<li>Or add library permanently to Anaconda:<ul>
+<li>Open an Anaconda terminal and navigate to the master/dist directory just copied (use <code class="docutils literal notranslate"><span class="pre">cd</span></code> command to change directory).</li>
+<li>Install library using wheel with command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyVPLM-version-py3-none-any.whl</span></code>.</li>
 </ul>
 </li>
-<li><p>Launch unittest to check the installation:</p>
-<ul class="simple">
-<li><p>Change directory to <code class="docutils literal notranslate"><span class="pre">./pyvplm/tests</span></code> within terminal and launch command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">unittest</span></code>.</p></li>
+<li>Launch unittest to check the installation:<ul>
+<li>Change directory to <code class="docutils literal notranslate"><span class="pre">./pyvplm/tests</span></code> within terminal and launch command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">unittest</span></code>.</li>
 </ul>
 </li>
 </ol>
@@ -256,8 +252,8 @@
 <h1>Credit<a class="headerlink" href="#credit" title="Permalink to this headline">¶</a></h1>
 <p>pyVPLM is an adaptation of the work performed by MS2M team at <a class="reference external" href="http://institut-clement-ader.org/">ICA Laboratory</a> - France and covers the work done during different doctorate thesis:</p>
 <ul class="simple">
-<li><p>Copyright (C) 2014 - 2017 - Florian Sanchez</p></li>
-<li><p>Copyright (C) 2017 - 2019 - Francesco De Giorgi</p></li>
+<li>Copyright (C) 2014 - 2017 - Florian Sanchez</li>
+<li>Copyright (C) 2017 - 2019 - Francesco De Giorgi</li>
 </ul>
 </div>
 <div class="section" id="author">
@@ -267,12 +263,12 @@
 <div class="section" id="references">
 <h1>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><ol class="upperalpha simple" start="6">
-<li><p>Sanchez, M. Budinger, I. Hazyuk, “<em>Dimensional analysis and surrogate models for thermal modeling of power electronic components</em>”, Electrimacs conference (2017), Toulouse</p></li>
+<li><ol class="first upperalpha" start="6">
+<li>Sanchez, M. Budinger, I. Hazyuk, “<em>Dimensional analysis and surrogate models for thermal modeling of power electronic components</em>”, Electrimacs conference (2017), Toulouse</li>
 </ol>
 </li>
-<li><ol class="upperalpha simple" start="6">
-<li><p>Sanchez, M. Budinger, I. Hazyuk, “<em>Dimensional analysis and surrogate models for the thermal modeling of Multiphysics systems</em>”,  <a class="reference external" href="https://www.researchgate.net/journal/1359-4311_Applied_Thermal_Engineering">Applied Thermal Engineering</a> 110 (August 2016)</p></li>
+<li><ol class="first upperalpha" start="6">
+<li>Sanchez, M. Budinger, I. Hazyuk, “<em>Dimensional analysis and surrogate models for the thermal modeling of Multiphysics systems</em>”,  <a class="reference external" href="https://www.researchgate.net/journal/1359-4311_Applied_Thermal_Engineering">Applied Thermal Engineering</a> 110 (August 2016)</li>
 </ol>
 </li>
 </ul>
@@ -301,9 +297,9 @@
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables:<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
 </ul>
 </div>
 
