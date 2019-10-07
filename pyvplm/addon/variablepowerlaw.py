@@ -836,7 +836,8 @@ def declare_constraints(parameters_set, constraint_set):
                     parameter_idx = global_list.index(parameter)
                     expression = expression.replace(parameter, 'X[:,' + str(parameter_idx) + ']')
                 # Calculate constraint over DoE
-                Y += eval(expression)
+                y = eval(expression)
+                Y += y.astype('int32')
             # Return boolean
             Y = (Y == len(constraint_set.constraints_list))
             return Y
@@ -2771,4 +2772,5 @@ def pi_nonlinear(pi_set, doe, elected_pi0, non_linear_pi_list, order, **kwargs):
             raise TypeError('non_linear_pi_list should be a list of strings (can be of size 1).')
         else:
             raise TypeError('order should be an integer.')
-            
+           
+    

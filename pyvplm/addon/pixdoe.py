@@ -382,9 +382,11 @@ def declare_does(x_Bounds, x_levels, parameters_constraints, pi_constraints, fun
     """
     doeX, _ = create_doe(x_Bounds, x_levels, log_space)
     doeX = doeX[apply_constraints(doeX, parameters_constraints) == True]
-    doePI = func_x_to_pi(doeX.tolist())
-    doeX = doeX[apply_constraints(doePI, pi_constraints) == True]
-    doePI = doePI[apply_constraints(doePI, pi_constraints) == True]
+    if len(doeX) == 0 :
+        doePI = []
+    else:
+        doePI = func_x_to_pi(doeX.tolist())
+        doePI = doePI[apply_constraints(doePI, pi_constraints) == True,:]
     return doeX, doePI
  
 #-------[Main function: create physical points matching nominal Pi DOE]--------       
@@ -798,6 +800,8 @@ def apply_constraints(X, Constraints=[]):
             Y = Constraints(X)
             if len(Y)==len(X):
                 return Constraints(X)
+            else:
+                print('Error applying constraints: constraints not applied!')
         except:
             print('Error applying constraints: constraints not applied!')
     return numpy.ones(len(X), dtype=bool)

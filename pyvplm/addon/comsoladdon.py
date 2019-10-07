@@ -206,9 +206,9 @@ def import_file(file_name, parameter_set, units):
                         file_units = file_units.replace(' ','')
                         value = Q_(1, file_units)
                         SI_value = value.to_base_units()
-                        if (value.magnitude != SI_value.magnitude) and parameter in list(parameter_set.dictionary.keys()):
+                        if (value.magnitude == SI_value.magnitude) and (parameter in list(parameter_set.dictionary.keys())):
                             labels[idx] = parameter
-                        elif (value.magnitude != SI_value.magnitude) and parameter in list(parameter_set.dictionary.keys()):
+                        elif (value.magnitude != SI_value.magnitude) and (parameter in list(parameter_set.dictionary.keys())):
                             labels[idx] = parameter
                             for nr in range(len(doeX[:,idx])):
                                 value = Q_(doeX[nr, idx], file_units).to_base_units()
@@ -221,6 +221,18 @@ def import_file(file_name, parameter_set, units):
                         else:
                             labels[idx] = parameter + ' ['+ file_units + ']'
                 doeX = pandas.DataFrame(doeX, columns=labels)
+                # Adapt column order considering parameter_set order (add unknown parameter at the end)
+                new_labels = []
+                parameters_list = list(parameter_set.dictionary.keys())
+                for parameter in parameters_list:
+                    if parameter in labels:
+                        new_labels.extend([parameter])
+                    else:
+                        warnings.warn('parameter {} not found in imported file!'.format(parameter))
+                for label in labels:
+                    if not(label in new_labels):
+                        new_labels.extend([label])
+                doeX = doeX[new_labels]
             file.close()
             return doeX
         except SyntaxError:
