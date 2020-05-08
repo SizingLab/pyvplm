@@ -53,12 +53,13 @@ The non-constrained nor reduced experimental set are defined using [pyDOE2](http
 #### Regression models construction
 
 The `regression_models` function interpolate results to fit a given order polynomial model within linear or logarithmic space. Within log space, the model obtained can be transformed into variable power-law model, indeed:
-:math:`log(\pi_0) = a_0+a_1 \cdot log(\pi_1) + a_{11} \cdot log(\pi_1)^2+a_{12} \cdot log(\pi_1) \cdot log(\pi_2) + a_2 \cdot log(\pi_2) +...`
-
+$$
+log(\pi_0) = a_0+a_1 \cdot log(\pi_1) + a_{11} \cdot log(\pi_1)^2+a_{12} \cdot log(\pi_1) \cdot log(\pi_2) + a_2 \cdot log(\pi_2) +...
+$$
 Can be expressed in the following form:
-
-:math:`\pi_0 = 10^{a_0} \cdot \pi_1 ^{a_1 + a_{11} \cdot log(\pi_1)+a_{12} \cdot log(\pi_2)+...} \cdot  \pi_2^{a_2+...} \cdot...`
-
+$$
+\pi_0 = 10^{a_0} \cdot \pi_1 ^{a_1 + a_{11} \cdot log(\pi_1)+a_{12} \cdot log(\pi_2)+...} \cdot  \pi_2^{a_2+...} \cdot ...
+$$
 This is the origin of package name since variable power-law model is one of the current research subject of MS2M team in [ICA](http://institut-clement-ader.org/home/) Laboratory (Toulouse-France). 
 
 Regression coefficients are sorted with increasing magnitude while considering standardized values regression (first order terms are selected at the beginning to avoid singularity issues):
@@ -95,13 +96,16 @@ The packages uses different additional libraries to the two named before (numpy,
 To install pyVPLM, follow those three steps:
 
 1. Download pyVPLM source code folder `pyvplm-master`:
-	- Go to [GitHub](https://github.com/SizingLab/methods_and_tools/tree/master/pyvplm-master), download the repository in any directory. 
+	- Go to [GitHub](https://github.com/SizingLab/pyvplm), download the repository in any directory.
+ 
 2. Add path to Anaconda:
 	- Open an Anaconda terminal and navigate to the master directory just copied (use `cd` command to change directory).
-	- Add path using command `pip install -e ./`.
+	- Add path using command `pip install -e ./` (be sure to pip from conda: `conda install pip`).
+
 2. Or add library permanently to Anaconda:
 	- Open an Anaconda terminal and navigate to the master/dist directory just copied (use `cd` command to change directory).
-	- Install library using wheel with command `pip install pyVPLM-version-py3-none-any.whl`.
+	- Install library using wheel with command `pip install pyVPLM-version-py3-none-any.whl` (be sure to pip from conda: `conda install pip`).
+
 3. Launch unittest to check the installation:
    - Change directory to `./pyvplm/tests` within terminal and launch command `python -m unittest`. 
 
@@ -124,4 +128,3 @@ pyVPLM is an adaptation of the work performed by MS2M team at [ICA Laboratory](h
 
 - F. Sanchez, M. Budinger, I. Hazyuk, "*Dimensional analysis and surrogate models for thermal modeling of power electronic components*", Electrimacs conference (2017), Toulouse
 - F. Sanchez, M. Budinger, I. Hazyuk, "*Dimensional analysis and surrogate models for the thermal modeling of Multiphysics systems*",  [Applied Thermal Engineering](https://www.researchgate.net/journal/1359-4311_Applied_Thermal_Engineering) 110 (August 2016)
-
