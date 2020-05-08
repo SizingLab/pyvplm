@@ -3,7 +3,7 @@
 Core module defining elementary class and methods for SizingLab
 """
 
-#-------[Import necessary packages]--------------------------------------------
+# -------[Import necessary packages]--------------------------------------------
 import sys
 import pint
 import warnings
@@ -13,7 +13,7 @@ import numpy
 from collections import OrderedDict
 from IPython.display import display, Math
 
-#-------[Parameter Class Definition]-------------------------------------------
+# -------[Parameter Class Definition]-------------------------------------------
 class Parameter:
     """Class defining one physical parameter.
     
@@ -66,76 +66,87 @@ class Parameter:
         >>> In [5]: m.description = 'body mass'
         
     """
-    def __init__(self, name:str, defined_bounds:list, defined_units:str, description:str):
+
+    def __init__(self, name: str, defined_bounds: list, defined_units: str, description: str):
         """Method to create initial parameter object using syntax expressed in example.
         
         """
         # Check input types
-        if not(isinstance(name, str) and isinstance(defined_bounds, list) and isinstance(defined_units, str)\
-            and isinstance(description, str)):
-            raise TypeError('attributes type mismatch class definition')
+        if not (
+            isinstance(name, str)
+            and isinstance(defined_bounds, list)
+            and isinstance(defined_units, str)
+            and isinstance(description, str)
+        ):
+            raise TypeError("attributes type mismatch class definition")
         # Check units syntax
         proper_syntax, formated_units, dimensionality = self.check_units(defined_units)
         # Check bounds syntax and values
-        proper_syntax = (proper_syntax and self.check_bounds(defined_bounds))
+        proper_syntax = proper_syntax and self.check_bounds(defined_bounds)
         # Save parameter attributes' values
         if proper_syntax:
             if len(defined_bounds) == 2:
                 self.name = name.lower()
             else:
                 self.name = name.upper()
-            if len(defined_bounds)==2:
+            if len(defined_bounds) == 2:
                 lower_bound = float(defined_bounds[0])
                 upper_bound = float(defined_bounds[1])
-                object.__setattr__(self, 'defined_bounds', [lower_bound, upper_bound])
+                object.__setattr__(self, "defined_bounds", [lower_bound, upper_bound])
                 self.value = []
             else:
-                object.__setattr__(self, 'defined_bounds', [])
+                object.__setattr__(self, "defined_bounds", [])
                 self.value = defined_bounds
-            object.__setattr__(self, 'defined_units', formated_units)
+            object.__setattr__(self, "defined_units", formated_units)
             self.description = description
             ureg = pint.UnitRegistry()
-            ureg.default_system = 'mks'
+            ureg.default_system = "mks"
             Q_ = ureg.Quantity
             if len(defined_bounds) == 2:
                 SI_lower_bound = Q_(lower_bound, formated_units).to_base_units()
                 SI_upper_bound = Q_(upper_bound, formated_units).to_base_units()
-                object.__setattr__(self, '_SI_bounds', [SI_lower_bound.magnitude, SI_upper_bound.magnitude])
+                object.__setattr__(
+                    self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
+                )
             else:
                 SI_lower_bound = Q_(defined_bounds[0], formated_units).to_base_units()
-                object.__setattr__(self, '_SI_bounds',[SI_lower_bound.magnitude, SI_lower_bound.magnitude])
-            object.__setattr__(self, '_SI_units', str(SI_lower_bound.units))
-            object.__setattr__(self, '_dimensionality', dimensionality)
-    
+                object.__setattr__(
+                    self, "_SI_bounds", [SI_lower_bound.magnitude, SI_lower_bound.magnitude]
+                )
+            object.__setattr__(self, "_SI_units", str(SI_lower_bound.units))
+            object.__setattr__(self, "_dimensionality", dimensionality)
+
     def __getattribute__(self, attribute_name):
         """Method to access parameter attribute value (for private attributes, warning is displayed).
             Access is granted using command: **parameter_name.attribute_name**.
         
         """
-        if attribute_name in ['_SI_units', '_SI_bounds', '_dimensionality']:
-            warnings.warn('accessing private attribute value')
+        if attribute_name in ["_SI_units", "_SI_bounds", "_dimensionality"]:
+            warnings.warn("accessing private attribute value")
         return super(Parameter, self).__getattribute__(attribute_name)
-                
+
     def __setattr__(self, attribute_name, value):
         """Method to write parameter attribute value, **parameter_name.attribute_name=value** (private attribute writing access denied).
         
-        """         
+        """
         if attribute_name == "defined_units":
             # Check units syntax
             proper_syntax, formated_units, dimensionality = self.check_units(value)
             if proper_syntax:
                 ureg = pint.UnitRegistry()
-                ureg.default_system = 'mks'
+                ureg.default_system = "mks"
                 Q_ = ureg.Quantity
-                object.__setattr__(self, '_dimensionality', dimensionality)
-                object.__setattr__(self, 'defined_units', formated_units)
+                object.__setattr__(self, "_dimensionality", dimensionality)
+                object.__setattr__(self, "defined_units", formated_units)
                 if len(self.value) == 0:
                     SI_lower_bound = Q_(self.defined_bounds[0], formated_units).to_base_units()
                     SI_upper_bound = Q_(self.defined_bounds[1], formated_units).to_base_units()
                 else:
                     SI_lower_bound = Q_(self.value, formated_units).to_base_units()
                     SI_upper_bound = SI_lower_bound
-                object.__setattr__(self, '_SI_bounds', [SI_lower_bound.magnitude, SI_upper_bound.magnitude])
+                object.__setattr__(
+                    self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
+                )
         elif attribute_name == "defined_bounds":
             defined_bounds = value
             # Check bounds syntax and values
@@ -144,39 +155,50 @@ class Parameter:
             formated_units = self.defined_units
             # Save parameter bounds values
             if proper_syntax:
-                if len(defined_bounds)==2:
-                    object.__setattr__(self, 'name', self.name.lower())
+                if len(defined_bounds) == 2:
+                    object.__setattr__(self, "name", self.name.lower())
                     lower_bound = float(defined_bounds[0])
                     upper_bound = float(defined_bounds[1])
-                    object.__setattr__(self, 'defined_bounds', [lower_bound, upper_bound])
-                    object.__setattr__(self, 'value', [])
+                    object.__setattr__(self, "defined_bounds", [lower_bound, upper_bound])
+                    object.__setattr__(self, "value", [])
                 else:
-                    object.__setattr__(self, 'name', self.name.upper())
-                    object.__setattr__(self, 'defined_bounds', [])
-                    object.__setattr__(self, 'value', defined_bounds)
+                    object.__setattr__(self, "name", self.name.upper())
+                    object.__setattr__(self, "defined_bounds", [])
+                    object.__setattr__(self, "value", defined_bounds)
                 ureg = pint.UnitRegistry()
-                ureg.default_system = 'mks'
+                ureg.default_system = "mks"
                 formated_units
                 Q_ = ureg.Quantity
                 if len(defined_bounds) == 2:
                     SI_lower_bound = Q_(lower_bound, formated_units).to_base_units()
                     SI_upper_bound = Q_(upper_bound, formated_units).to_base_units()
-                    object.__setattr__(self, '_SI_bounds', [SI_lower_bound.magnitude, SI_upper_bound.magnitude])
+                    object.__setattr__(
+                        self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
+                    )
                 else:
                     SI_lower_bound = Q_(defined_bounds[0], formated_units).to_base_units()
-                    object.__setattr__(self, '_SI_bounds', [SI_lower_bound.magnitude, SI_lower_bound.magnitude]) 
-        elif attribute_name in ['name', 'value', 'description', '_SI_units', '_SI_bounds', '_dimensionality']:
+                    object.__setattr__(
+                        self, "_SI_bounds", [SI_lower_bound.magnitude, SI_lower_bound.magnitude]
+                    )
+        elif attribute_name in [
+            "name",
+            "value",
+            "description",
+            "_SI_units",
+            "_SI_bounds",
+            "_dimensionality",
+        ]:
             object.__setattr__(self, attribute_name, value)
         else:
-            raise AttributeError('inexistent attribute or private (write access denied)')
-    
+            raise AttributeError("inexistent attribute or private (write access denied)")
+
     def __float__(self):
         """Method to return parameter value with syntax **float(parameter_name)**.
             If value is empty (i.e. parameter is a variable), returns NaN.
         
-        """  
-        if len(self.value) == 0: 
-            return float('nan')
+        """
+        if len(self.value) == 0:
+            return float("nan")
         else:
             return float(self.value[0])
 
@@ -184,27 +206,33 @@ class Parameter:
         """Method used to print parameter, called with **print(parameter_name)** function.
         
         """
-        statement = ''
+        statement = ""
         for key in self.__dict__.keys():
-            if key[0:1] == '_':
-                statement += self.name + '.' + key + '(private) = ' + str(self.__dict__[key]) + '\n'
+            if key[0:1] == "_":
+                statement += self.name + "." + key + "(private) = " + str(self.__dict__[key]) + "\n"
             else:
-                statement += self.name + '.' + key + ' = ' + str(self.__dict__[key]) + '\n'
+                statement += self.name + "." + key + " = " + str(self.__dict__[key]) + "\n"
         return statement
-    
+
     def __repr__(self):
         """Method to represent parameter definition when entering only parameter_name command.
         
         """
-        return self.__class__.__name__ + ' {' + 'name:{},defined_bounds:{},value:{},defined_units:{},description:{}'\
-                .format(self.name, self.defined_bounds, self.value, self.defined_units, self.description) + '}'
-            
+        return (
+            self.__class__.__name__
+            + " {"
+            + "name:{},defined_bounds:{},value:{},defined_units:{},description:{}".format(
+                self.name, self.defined_bounds, self.value, self.defined_units, self.description
+            )
+            + "}"
+        )
+
     def check_bounds(self, defined_bounds):
         """Method (*internal*) to check bounds syntax and value(s).
         
         """
         proper_syntax = True
-        if len(defined_bounds)==2:
+        if len(defined_bounds) == 2:
             try:
                 lower_bound = float(defined_bounds[0])
                 upper_bound = float(defined_bounds[1])
@@ -212,21 +240,25 @@ class Parameter:
                     proper_syntax = False
                     raise AssertionError
             except AssertionError:
-                raise AssertionError('bad definition of bounds, should be defined_bounds[0]<defined_bounds[1]')
+                raise AssertionError(
+                    "bad definition of bounds, should be defined_bounds[0]<defined_bounds[1]"
+                )
             except:
                 proper_syntax = False
-                raise TypeError('defined_bounds should be a [1x2] list of floats or integers')
+                raise TypeError("defined_bounds should be a [1x2] list of floats or integers")
         elif len(defined_bounds) == 1:
             try:
                 float(defined_bounds[0])
             except:
                 proper_syntax = False
-                raise TypeError('value should be a [1x1] list of float or integer')
+                raise TypeError("value should be a [1x1] list of float or integer")
         else:
             proper_syntax = False
-            raise IndexError('value/defined_bounds should be a [1x1] or [1x2] list of float(s)/integer(s)')
+            raise IndexError(
+                "value/defined_bounds should be a [1x1] or [1x2] list of float(s)/integer(s)"
+            )
         return proper_syntax
-    
+
     def check_units(self, defined_units):
         """Method (*internal*) to check units value.
         
@@ -234,18 +266,21 @@ class Parameter:
         proper_syntax = True
         try:
             ureg = pint.UnitRegistry()
-            ureg.default_system = 'mks'
+            ureg.default_system = "mks"
             Q_ = ureg.Quantity
-            formated_units = Q_('0' + defined_units)
+            formated_units = Q_("0" + defined_units)
             dimensionality = str(formated_units.dimensionality)
             formated_units = str(formated_units.units)
         except:
             proper_syntax = False
-            raise ValueError('bad units, type dir(pint.UnitRegistry().sys.system) with system in '\
-                             '[\'US\', \'cgs\', \'imperial\', \'mks\'] for detailed list of units')
+            raise ValueError(
+                "bad units, type dir(pint.UnitRegistry().sys.system) with system in "
+                "['US', 'cgs', 'imperial', 'mks'] for detailed list of units"
+            )
         return proper_syntax, formated_units, dimensionality
-     
-#-------[Positive Parameter Class Definition]----------------------------------
+
+
+# -------[Positive Parameter Class Definition]----------------------------------
 class PositiveParameter(Parameter):
     """Sub-class of the class Parameter.
     
@@ -258,6 +293,7 @@ class PositiveParameter(Parameter):
     For more details see :func:`~sizinglab.core.definition.Parameter`
     
     """
+
     def check_bounds(self, defined_bounds):
         """Method (*internal*) to check bounds syntax and value(s). 
         
@@ -271,23 +307,28 @@ class PositiveParameter(Parameter):
                     proper_syntax = False
                     raise AssertionError
             except AssertionError:
-                raise AssertionError('bad definition of bounds, should be 0<defined_bounds[0]<defined_bounds[1]')
+                raise AssertionError(
+                    "bad definition of bounds, should be 0<defined_bounds[0]<defined_bounds[1]"
+                )
             except:
                 proper_syntax = False
-                raise TypeError('defined_bounds should be a [1x2] list of floats or integers')
+                raise TypeError("defined_bounds should be a [1x2] list of floats or integers")
         elif len(defined_bounds) == 1:
             try:
-                if float(defined_bounds[0])< 0:
-                    raise AssertionError('bad definition of bounds, should be 0<defined_bounds')
+                if float(defined_bounds[0]) < 0:
+                    raise AssertionError("bad definition of bounds, should be 0<defined_bounds")
             except:
                 proper_syntax = False
-                raise TypeError('value should be a [1x1] list of float or integer')
+                raise TypeError("value should be a [1x1] list of float or integer")
         else:
             proper_syntax = False
-            raise IndexError('defined_bounds should be a [1x2] list of floats/integers such that 0<defined_bounds[0]<defined_bounds[1]')
+            raise IndexError(
+                "defined_bounds should be a [1x2] list of floats/integers such that 0<defined_bounds[0]<defined_bounds[1]"
+            )
         return proper_syntax
 
-#-------[ParameterSet Class Definition]----------------------------------------                    
+
+# -------[ParameterSet Class Definition]----------------------------------------
 class ParameterSet:
     """Class defining a set of different Parameter(s).
         
@@ -325,31 +366,32 @@ class ParameterSet:
         While using print function, display differs between variable and constraint.
     
     """
+
     def __init__(self, *parameters_list):
         """Method to create initial parameter set object using syntax expressed in example.
         
         """
         # Convert single parameter into tuple
         if isinstance(parameters_list, Parameter):
-            parameters_list = (parameters_list)
+            parameters_list = parameters_list
         # Check input type
-        if not(isinstance(parameters_list, tuple)):
-            raise TypeError('parameter list should be a single Parameter or tuple')
+        if not (isinstance(parameters_list, tuple)):
+            raise TypeError("parameter list should be a single Parameter or tuple")
         # Check parameters list
         proper_syntax = self.check_parameters(parameters_list)
         # Save parameters in dictionary
         if proper_syntax:
-            object.__setattr__(self, 'dictionary', OrderedDict())
+            object.__setattr__(self, "dictionary", OrderedDict())
             for i in range(len(parameters_list)):
                 self.dictionary[parameters_list[i].name] = parameters_list[i]
-    
+
     def __getitem__(self, index):
         """Method to return a parameter from a parameter set using its name as key: **parameter=parameter_set[parameter.name]**.
         
         """
         if index in self.dictionary.keys():
             return self.dictionary[index]
-        
+
     def __setitem__(self, key, value):
         """Method to replace parameter in a parameter set or expend dictionary if new key.
         
@@ -358,46 +400,46 @@ class ParameterSet:
             if key == value.name:
                 self.dictionary[key] = value
             else:
-                raise KeyError('the key mismatch parameter name')
-        elif not(isinstance(key, str)):
-            raise KeyError('key should be a string')
-        elif not(isinstance(Parameter, str)):
-            raise TypeError('assigned type should be a Parameter')
-    
+                raise KeyError("the key mismatch parameter name")
+        elif not (isinstance(key, str)):
+            raise KeyError("key should be a string")
+        elif not (isinstance(Parameter, str)):
+            raise TypeError("assigned type should be a Parameter")
+
     def __delitem__(self, key):
         """Method to delete a parameter in a parameter set: **del parameter_set[parameter.name]**.
         
-        """        
+        """
         if key in self.dictionary.keys():
             if len(self.dictionary.keys()) == 1:
                 self.dictionary = OrderedDict()
-                raise Warning('empty dictionary')
+                raise Warning("empty dictionary")
             else:
                 del self.dictionary[key]
         else:
-            raise KeyError('the key is not in dictionary')
-    
+            raise KeyError("the key is not in dictionary")
+
     def __str__(self):
         """Method used to print parameters in the set with funciton: **print(parameter_set)**.
         
-        """        
-        if len(self.dictionary.keys())==0:
-            statement = 'Current set is empty'
+        """
+        if len(self.dictionary.keys()) == 0:
+            statement = "Current set is empty"
         else:
-            statement = ''
+            statement = ""
             for key in self.dictionary.keys():
-                statement += key + ': ' + str(self.dictionary[key].name)
-                if len(self.dictionary[key].value)==0:
-                    statement += ' in [' + str(self.dictionary[key].defined_bounds[0])
-                    statement += ',' + str(self.dictionary[key].defined_bounds[1]) + ']'
+                statement += key + ": " + str(self.dictionary[key].name)
+                if len(self.dictionary[key].value) == 0:
+                    statement += " in [" + str(self.dictionary[key].defined_bounds[0])
+                    statement += "," + str(self.dictionary[key].defined_bounds[1]) + "]"
                 else:
-                    statement += '=' + str(self.dictionary[key].value[0])
-                if not(self.dictionary[key].defined_units == 'dimensionless'):
+                    statement += "=" + str(self.dictionary[key].value[0])
+                if not (self.dictionary[key].defined_units == "dimensionless"):
                     statement += self.dictionary[key].defined_units
-                statement += ', ' + self.dictionary[key].description
-                statement += '\n'
+                statement += ", " + self.dictionary[key].description
+                statement += "\n"
         return statement
-    
+
     def latex_render(self):
         """Method used to print parameters in latex form: **latex_render(parameter_set)**
             When parameter name is of the form name_indice this will lead to $name_{indice}$ latex form, number is automatically rendered as indice.
@@ -405,9 +447,38 @@ class ParameterSet:
         
         """
         logging.captureWarnings(True)
-        greek_list = ['alpha','beta','gamma','delta','epsilon','varepsilon','zeta','eta','theta','vartheta','gamma','kappa','lambda',\
-                      'mu','nu','xi','pi','varpi','rho','varrho','sigma','varsigma','tau','upsilon','phi','varphi','chi','psi','omega']
-        print('Defined set is:')
+        greek_list = [
+            "alpha",
+            "beta",
+            "gamma",
+            "delta",
+            "epsilon",
+            "varepsilon",
+            "zeta",
+            "eta",
+            "theta",
+            "vartheta",
+            "gamma",
+            "kappa",
+            "lambda",
+            "mu",
+            "nu",
+            "xi",
+            "pi",
+            "varpi",
+            "rho",
+            "varrho",
+            "sigma",
+            "varsigma",
+            "tau",
+            "upsilon",
+            "phi",
+            "varphi",
+            "chi",
+            "psi",
+            "omega",
+        ]
+        print("Defined set is:")
         for key in self.dictionary.keys():
             key_str = str(key)
             key_str = key_str.lower()
@@ -417,84 +488,96 @@ class ParameterSet:
                 char = key_str[idx]
                 try:
                     int(char)
-                    if not(previous_char_is_int) and idx !=0:
-                        key_str = key_str[0:idx] + '_' + key_str[idx:len(key_str)]
+                    if not (previous_char_is_int) and idx != 0:
+                        key_str = key_str[0:idx] + "_" + key_str[idx : len(key_str)]
                         previous_char_is_int = True
                 except:
                     pass
             # Adapt pi_1 to recognize greek expression
-            if key_str.find('_') != -1 and key_str.find('_') == key_str.rfind('_'):
-                key_list = key_str.split('_')
+            if key_str.find("_") != -1 and key_str.find("_") == key_str.rfind("_"):
+                key_list = key_str.split("_")
                 if key_list[0] in greek_list:
-                    key_list[0] = '\\' + key_list[0]
+                    key_list[0] = "\\" + key_list[0]
                 if key_list[1] in greek_list:
-                    key_list[1] = '\\' + key_list[1]
-                key_str = key_list[0] + '_{' + key_list[1] + '}'
+                    key_list[1] = "\\" + key_list[1]
+                key_str = key_list[0] + "_{" + key_list[1] + "}"
             # Adapt parameter name (if no indice used) to recognize greek expression
             if key_str in greek_list:
-                    key_str = '\\' + key_str
-            dimension = '' if self.dictionary[key].defined_units == 'dimensionless' else self.dictionary[key]._SI_units
+                key_str = "\\" + key_str
+            dimension = (
+                ""
+                if self.dictionary[key].defined_units == "dimensionless"
+                else self.dictionary[key]._SI_units
+            )
             if len(self.dictionary[key].defined_bounds) == 0:
-                expression = key_str + ' = {:.2E}{}, '.format(self.dictionary[key]._SI_bounds[0], dimension)
+                expression = key_str + " = {:.2E}{}, ".format(
+                    self.dictionary[key]._SI_bounds[0], dimension
+                )
             else:
-                expression = key_str + ' \in [{:.2E},{:.2E}]{}, '.format(self.dictionary[key]._SI_bounds[0], self.dictionary[key]._SI_bounds[1], dimension)
-            if '*' in self.dictionary[key].description:
+                expression = key_str + " \in [{:.2E},{:.2E}]{}, ".format(
+                    self.dictionary[key]._SI_bounds[0],
+                    self.dictionary[key]._SI_bounds[1],
+                    dimension,
+                )
+            if "*" in self.dictionary[key].description:
                 try:
-                    expression += key_str + '=' + sympy.latex(sympy.sympify(self.dictionary[key].description))
+                    expression += (
+                        key_str + "=" + sympy.latex(sympy.sympify(self.dictionary[key].description))
+                    )
                 except:
                     description = self.dictionary[key].description
-                    description = description.replace(' ','\\,')
+                    description = description.replace(" ", "\\,")
                     expression += description
             else:
                 description = self.dictionary[key].description
-                description = description.replace(' ','\\,')
+                description = description.replace(" ", "\\,")
                 expression += description
             display(Math(expression))
         logging.captureWarnings(False)
-        print('')
-    
+        print("")
+
     def __getstate__(self):
         """Method to save parameter set using pickle.
         
-        """        
+        """
         return self.dictionary
-    
-    def __setstate__(self,dict):
+
+    def __setstate__(self, dict):
         """Method to read parameter set using picklerLload().
         
-        """        
+        """
         self.dictionary = dict
-            
-    def check_parameters(self, parameters_list:tuple):
+
+    def check_parameters(self, parameters_list: tuple):
         """Method (*internal*) to check parameters.
         
         """
         proper_syntax = True
         for i in range(len(parameters_list)):
-            if not(isinstance(parameters_list[i], Parameter)):
+            if not (isinstance(parameters_list[i], Parameter)):
                 proper_syntax = False
-                raise TypeError('all the parameters should be of Parameter type')
+                raise TypeError("all the parameters should be of Parameter type")
                 break
         return proper_syntax
-    
+
     def first(self, *parameters_list):
         """Run trough parameters_list tuple order to move dictionary key to its position in the list.
         
         """
         # Check input type
-        if not(isinstance(parameters_list, tuple)):
-            raise TypeError('parameters_list should be a tuple of strings')
+        if not (isinstance(parameters_list, tuple)):
+            raise TypeError("parameters_list should be a tuple of strings")
         if len(parameters_list) == 1 and isinstance(parameters_list[0], tuple):
             parameters_list = parameters_list[0]
         for parameter_name in parameters_list:
-            if not(isinstance(parameter_name, str)):
-                raise TypeError('parameters_list should be a tuple of strings')
+            if not (isinstance(parameter_name, str)):
+                raise TypeError("parameters_list should be a tuple of strings")
         # Check for accessible parameters (stored)
         proper_syntax = True
         for parameter_name in parameters_list:
-            if not(parameter_name in self.dictionary.keys()):
+            if not (parameter_name in self.dictionary.keys()):
                 proper_syntax = False
-                raise KeyError('parameter {} not in parameter set'.format(parameter_name))
+                raise KeyError("parameter {} not in parameter set".format(parameter_name))
                 break
         if proper_syntax:
             # Delete the parameters to be saved first and save it back to the end of the list
@@ -506,12 +589,13 @@ class ParameterSet:
                 used_keys.append(parameter_name)
             # Write all the remaining parameters at the end of the dictionary
             for key in list(self.dictionary.keys()):
-                if not(key in used_keys):
+                if not (key in used_keys):
                     temp = self.dictionary[key]
                     del self.dictionary[key]
                     self.dictionary[key] = temp
-                    
-#-------[PositiveParameterSet Class Definition]--------------------------------                    
+
+
+# -------[PositiveParameterSet Class Definition]--------------------------------
 class PositiveParameterSet(ParameterSet):
     """Sub-class of the class Parameter.
     
@@ -524,6 +608,7 @@ class PositiveParameterSet(ParameterSet):
     For more details see :func:`~sizinglab.core.definition.ParameterSet`
     
     """
+
     def __setitem__(self, key, value):
         """Method to replace parameter in a parameter set or expend dictionary if new key.
         
@@ -532,25 +617,26 @@ class PositiveParameterSet(ParameterSet):
             if key == value.name:
                 self.dictionary[key] = value
             else:
-                raise KeyError('the key mismatch parameter name')
-        elif not(isinstance(key, str)):
-            raise KeyError('key should be a string')
-        elif not(isinstance(PositiveParameter, str)):
-            raise TypeError('assigned type should be a PositiveParameter')
-    
-    def check_parameters(self,parameters_list:tuple):
+                raise KeyError("the key mismatch parameter name")
+        elif not (isinstance(key, str)):
+            raise KeyError("key should be a string")
+        elif not (isinstance(PositiveParameter, str)):
+            raise TypeError("assigned type should be a PositiveParameter")
+
+    def check_parameters(self, parameters_list: tuple):
         """Method (*internal*) to check parameters.
         
         """
         proper_syntax = True
         for i in range(len(parameters_list)):
-            if not(isinstance(parameters_list[i], PositiveParameter)):
+            if not (isinstance(parameters_list[i], PositiveParameter)):
                 proper_syntax = False
-                raise TypeError('all the parameters should be of PositiveParameter type')
+                raise TypeError("all the parameters should be of PositiveParameter type")
                 break
         return proper_syntax
 
-#-------[Constraint Class Definition]------------------------------------------
+
+# -------[Constraint Class Definition]------------------------------------------
 class Constraint(object):
     """Class defining a Constraint.
         
@@ -575,13 +661,32 @@ class Constraint(object):
         ----
     
     """
-    def __init__(self, expression, desc=''):
+
+    def __init__(self, expression, desc=""):
         """Method to create initial Constraint.
         
         """
         # Forbiden character and parameters names
-        forbiden_char = ['!', '$', '£', '%', '^', '#', '&', '?', ';', 'ù', 'é', '@', '¤', 'µ', 'è', '°', '\\']
-        forbiden_param = ['I', 'gamma', 'beta', 're', 'ln', 'sqrt', 'arg']
+        forbiden_char = [
+            "!",
+            "$",
+            "£",
+            "%",
+            "^",
+            "#",
+            "&",
+            "?",
+            ";",
+            "ù",
+            "é",
+            "@",
+            "¤",
+            "µ",
+            "è",
+            "°",
+            "\\",
+        ]
+        forbiden_param = ["I", "gamma", "beta", "re", "ln", "sqrt", "arg"]
         # Assign default values
         self.description = desc
         self.parameters = []
@@ -589,37 +694,37 @@ class Constraint(object):
         self.function_expr = None
         self._isAlgebraic = True
         # Adapt expression to the form expression>=0
-        if not('<=' in expression) and not('>=' in expression):
+        if not ("<=" in expression) and not (">=" in expression):
             eps = sys.float_info.min
-            if '<' in expression:
-                expression = expression.replace('<','<=') + '-{}'.format(eps)
-            elif '>' in expression:
-                expression = expression.replace('>','>=') + '+{}'.format(eps)
+            if "<" in expression:
+                expression = expression.replace("<", "<=") + "-{}".format(eps)
+            elif ">" in expression:
+                expression = expression.replace(">", ">=") + "+{}".format(eps)
             else:
-                raise SyntaxError('constraint expression should include inequality character.')
-        if '<=' in expression:
-            left = expression.split('<=')[0]
-            right = expression.split('<=')[1]
-            if right =='0':
-                expression = '-(' + left + ')>=0'
+                raise SyntaxError("constraint expression should include inequality character.")
+        if "<=" in expression:
+            left = expression.split("<=")[0]
+            right = expression.split("<=")[1]
+            if right == "0":
+                expression = "-(" + left + ")>=0"
             else:
-                expression = right + '-(' + left + ')>=0'
+                expression = right + "-(" + left + ")>=0"
         else:
-            left = expression.split('>=')[0]
-            right = expression.split('>=')[1]
-            if right !='0':
-                expression = left + '-(' + right + ')'
+            left = expression.split(">=")[0]
+            right = expression.split(">=")[1]
+            if right != "0":
+                expression = left + "-(" + right + ")"
         # Search for parameters
-        sp_expr = sympy.sympify(expression.split('>=')[0])
+        sp_expr = sympy.sympify(expression.split(">=")[0])
         parameters = []
-        if not(isinstance(sp_expr,tuple)):
+        if not (isinstance(sp_expr, tuple)):
             sp_expr = [sp_expr]
         for i in range(len(sp_expr)):
             symbols = sp_expr[i].free_symbols
             for symb in symbols:
                 symb = str(symb)
                 try:
-                    if not(eval('isfunction(',symb,')')):
+                    if not (eval("isfunction(", symb, ")")):
                         parameters.append(symb)
                     else:
                         self._isAlgebraic = False
@@ -630,40 +735,47 @@ class Constraint(object):
             parameters = list(set(parameters))
         # Test expression
         test_expression = expression
-        index = numpy.argsort(-1*numpy.array([len(parameter) for parameter in parameters]))
+        index = numpy.argsort(-1 * numpy.array([len(parameter) for parameter in parameters]))
         parameters = numpy.array(parameters)
         parameters = parameters[index].tolist()
         for value in parameters:
-             test_expression = test_expression.replace(value,'1')
+            test_expression = test_expression.replace(value, "1")
         try:
             exec(test_expression)
             # Check parameters names does not contain forbiden character
             for parameter in parameters:
                 for char in forbiden_char:
                     if char in parameter:
-                        raise ValueError('parameter names should not contain special character.')
+                        raise ValueError("parameter names should not contain special character.")
             # Check parameters names are not forbiden names
             for parameter in parameters:
                 if parameter in forbiden_param:
-                    raise ValueError('parameter names should not be recognized by sympy as constant or function: {}.'.format(forbiden_param))
+                    raise ValueError(
+                        "parameter names should not be recognized by sympy as constant or function: {}.".format(
+                            forbiden_param
+                        )
+                    )
             # Save parameters and expression
             self.parameters = parameters
             self.function_expr = expression
             # Define function
-            expression = expression.split('>=')[0]
-            s = ''
+            expression = expression.split(">=")[0]
+            s = ""
             for parameter in parameters:
-                if s != '':
-                    s = s + ' , ' + parameter
+                if s != "":
+                    s = s + " , " + parameter
                 else:
                     s = s + parameter
-            self.function = eval('lambda ' + s + ': (' + str(expression) + ')')
+            self.function = eval("lambda " + s + ": (" + str(expression) + ")")
         except TypeError:
-            raise SyntaxError('expression syntax is uncorrect.')
+            raise SyntaxError("expression syntax is uncorrect.")
         except:
-            raise SyntaxError('expression error type not handled, check that none of the parameter are in forbiden set:{}.'.format(forbiden_param))
-            
-    
+            raise SyntaxError(
+                "expression error type not handled, check that none of the parameter are in forbiden set:{}.".format(
+                    forbiden_param
+                )
+            )
+
     def compute(self, parameters_dict):
 
         parameters_values = []
@@ -673,22 +785,23 @@ class Constraint(object):
         return result
 
     def __str__(self):
-        
-        s = '\nConstraint : {}\n'.format(self.description)
-        s += 'Contains {} parameter(s)\n'.format(len(self.parameters))
-        s += '--------------------------------------------\n'
-        s += 'Parameters are: ('
+
+        s = "\nConstraint : {}\n".format(self.description)
+        s += "Contains {} parameter(s)\n".format(len(self.parameters))
+        s += "--------------------------------------------\n"
+        s += "Parameters are: ("
         for parameter in self.parameters:
-            s += parameter + ','
-        s = s[0:len(s)-1] + ')\n'
-        s += '--------------------------------------------\n'
+            s += parameter + ","
+        s = s[0 : len(s) - 1] + ")\n"
+        s += "--------------------------------------------\n"
         if self._isAlgebraic:
-            s += 'Algebraic expression: \n \t' + self.function_expr + '\n'
+            s += "Algebraic expression: \n \t" + self.function_expr + "\n"
         else:
-            s += 'Embedded function: \n \t' + self.function_expr + '\n'
+            s += "Embedded function: \n \t" + self.function_expr + "\n"
         return s
 
-#-------[ConstraintSet Class Definition]---------------------------------------
+
+# -------[ConstraintSet Class Definition]---------------------------------------
 class ConstraintSet(object):
     """Class defining a ConstraintSet.
         
@@ -707,7 +820,8 @@ class ConstraintSet(object):
         ----
     
     """
-    def __init__(self, *constraints, desc=''):
+
+    def __init__(self, *constraints, desc=""):
         """Method to create initial ConstraintSet.
         
         """
@@ -716,17 +830,19 @@ class ConstraintSet(object):
         # save contraints and parameters
         for constraint in constraints:
             if isinstance(constraint, Constraint):
-                if not(constraint in self.constraints_list):
+                if not (constraint in self.constraints_list):
                     self.parameters.extend(constraint.parameters)
                     self.constraints_list.append(constraint)
                 else:
-                    warnings.warn('trying to save the same constraint multiple times: duplicate ignored.')
+                    warnings.warn(
+                        "trying to save the same constraint multiple times: duplicate ignored."
+                    )
             else:
-                warnings.warn('some of the entry are not Constraint type and will be ignored.')
+                warnings.warn("some of the entry are not Constraint type and will be ignored.")
         # Delete multiple data save
         if len(self.parameters) > 1:
             self.parameters = list(set(self.parameters))
-    
+
     def declare_doe_constraint(self, parameter_set):
         """Specific method to generate constraint function for pyvplm pixdoe use.
         
@@ -734,12 +850,12 @@ class ConstraintSet(object):
         if isinstance(parameter_set, ParameterSet):
             # check that all used parameters from constraints are declared
             for parameter in self.parameters:
-                if not(parameter in list(ParameterSet.dictionary.keys())):
+                if not (parameter in list(ParameterSet.dictionary.keys())):
                     return []
             # write function
             def f(X):
                 # check X type
-                if not(isinstance(numpy.ndarray)):
+                if not (isinstance(numpy.ndarray)):
                     return []
                 # check X dimension
                 if numpy.shape(X)[1] != len(list(parameter_set.dictionary.keys())):
@@ -752,18 +868,19 @@ class ConstraintSet(object):
                     idx = 0
                     for parameter in parameter_set.dictionary.keys():
                         idx += 1
-                        expression = expression.replace(parameter,'X[:,{}]'.format(idx))
+                        expression = expression.replace(parameter, "X[:,{}]".format(idx))
                     Y_local = numpy.array(exec(expression)).dtype(bool)
-                    if len(Y) == 0 :
+                    if len(Y) == 0:
                         Y = Y_local
                     else:
                         Y = Y * Y_local
                 return Y
+
             return f
-            
+
     def __str__(self):
-        
-        s = '\nConstraint Set : \n'
-        s += 'Contains {} constraint(s)\n'.format(len(self.constraints_list))
-        s += '--------------------------------------------\n'
+
+        s = "\nConstraint Set : \n"
+        s += "Contains {} constraint(s)\n".format(len(self.constraints_list))
+        s += "--------------------------------------------\n"
         return s
