@@ -44,6 +44,9 @@
     ipython = "*"
     pydoe2 = "*"
     pint = "*"
+    m2r = "*"
+    xlwt = "*"
+    xlrd = "*"
 
 [tool.poetry.dev-dependencies]
     wheel = "*"
