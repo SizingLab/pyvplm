@@ -44,7 +44,6 @@
     ipython = "*"
     pydoe2 = "*"
     pint = "*"
-    m2r = "*"
     xlwt = "*"
     xlrd = "*"
 
