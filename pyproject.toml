@@ -2,7 +2,7 @@
     line-length = 100
 
 [tool.poetry]
-    name = "pyvpml"
+    name = "pyvplm"
     version = "0.1.1"
     description = "Variable Power-Law regression Models tool"
     authors = [
