@@ -26,7 +26,7 @@ author = 'A.REYSSET, S.DELBECQ, M.BUDINGER'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '0.1.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -44,7 +44,7 @@ extensions = [
     'sphinx.ext.githubpages',
 	'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
-    'm2r',
+    'recommonmark',
 ]
 napoleon_google_docstring = False
 napoleon_include_special_with_doc = True

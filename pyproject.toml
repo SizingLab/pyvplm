@@ -59,6 +59,7 @@
     sphinx = "*"
     sphinx-rtd-theme = "*"
     sphinxcontrib-bibtex = "*"
+    recommonmark = "*"
 
 [build-system]
     requires = ["poetry>=0.12"]
