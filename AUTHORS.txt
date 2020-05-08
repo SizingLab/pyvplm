@@ -1,8 +1,0 @@
-pyVPLM is written and maintained by Aurelien Reysset <aurelien.reysset@insa-toulouse.fr>.
-
-Other contributors, listed alphabetically, are:
-
-* Marc Budinger <marc.budinger@insa-toulouse.fr>
-* Scott Delbecq <scott.delbecq@isae-supaero.fr>
-
-(If you think that your name belongs here, please let the maintainer(s) know)
