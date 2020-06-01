@@ -87,24 +87,11 @@ Four Jupyter Notebooks have been developed to present tool capabilities and func
 
 Additional documentation on sub-packages (`pyvplm.core`, `pyvplm.addon`) and functions can be find on the interactive documentation `master/docs/build/index.html` which can be launched within windows operating system with double-click command on `User guide.bat` file.
 
-## Requirements
-
-The packages uses different additional libraries to the two named before (numpy, pandas...) most of them coming with anaconda install. The complete set of necessary packages are summed up in `requirements.txt` file and checked during the install process.
-
 ## Install
 
-To install pyVPLM, follow those three steps:
+To install pyVPLM, simply run:
 
-1. Download pyVPLM source code folder `pyvplm-master`:
-	- Go to [GitHub](https://github.com/SizingLab/pyvplm), download the repository in any directory. 
-2. Add path to Anaconda:
-	- Open an Anaconda terminal and navigate to the master directory just copied (use `cd` command to change directory).
-	- Add path using command `pip install -e ./` (be sure to pip from conda: `conda install pip`).
-2. Or add library permanently to Anaconda:
-	- Open an Anaconda terminal and navigate to the master/dist directory just copied (use `cd` command to change directory).
-	- Install library using wheel with command `pip install pyVPLM-version-py3-none-any.whl` (be sure to pip from conda: `conda install pip`).
-3. Launch unittest to check the installation:
-   - Change directory to `./pyvplm/tests` within terminal and launch command `python -m unittest`. 
+`pip install pyvplm`
 
 ## License
 
