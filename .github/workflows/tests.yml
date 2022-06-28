@@ -34,6 +34,8 @@ jobs:
 
       - name: Poetry path
         run: echo "::add-path::$HOME/.poetry/bin"
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         shell: bash
 
       - name: Activate environment and install dependencies
@@ -81,6 +83,8 @@ jobs:
 
       - name: Poetry path
         run: echo "::add-path::$HOME/.poetry/bin"
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         shell: bash
 
       - name: Activate environment and install dependencies
