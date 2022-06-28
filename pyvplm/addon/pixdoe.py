@@ -498,6 +498,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                   * **spacing_division_criteria** (*int*): (>=2) defines the subdivision admitted error in Pi nominal space for feasible point, default is 5
                   * **log_space** (*bool*): defines if fullfact has to be in log space or when false, linear (default is log - True)
                   * **track** (*bool*): defines if the different process steps information have to be displayed (default is False)
+                  * **test_mode** (*bool*): set to False to show plots (default is False)
+                  * **relative_points** (*list*): specifies the realtive number of points needed for each pi number (same order as in pi_set)
      
      Returns
      -------    
@@ -510,8 +512,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
      Example
      -------
      define properly the parameter, pi set and transformation function:
-         >>> In [1]: from definition import PositiveParameter, PositiveParameterSet
-         >>> In [2]: from variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
+         >>> In [1]: from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
+         >>> In [2]: from pyvplm.addon.variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
          >>> In [3]: u = PositiveParameter('u', [1e-9, 1e-6], 'm', 'Deflection')
          >>> In [4]: f = PositiveParameter('f', [150, 500], 'N', 'Load applied')
          >>> In [5]: l = PositiveParameter('l', [1, 3], 'm', 'Cantilever length')
@@ -545,6 +547,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         log_space = True
         track = False
         test_mode = False
+        relative_points = []
         for key, value in kwargs.items():
             if not (
                 key
@@ -557,6 +560,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     "log_space",
                     "track",
                     "test_mode",
+                    "relative_points"
                 ]
             ):
                 raise KeyError("unknown argument " + key)
@@ -619,6 +623,11 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     test_mode = value
                 else:
                     raise ValueError("test_mode should be a boolean.")
+            elif key == "relative_points":
+                if isinstance(value, list):
+                    relative_points = value
+                else:
+                    raise ValueError("relative_points should be a list.")
         # Extract bounds on parameters set and parameters number
         x_Bounds = []
         for index in parameter_set.dictionary.keys():
@@ -648,6 +657,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         if not (numpy.issubdtype(level_repartition.dtype, numpy.integer)):
             raise TypeError("level_repartition type in index should be integer.")
         # Define factorisation for population calculation
+
         def fact_level(X):
             for i in range(len(X)):
                 if X[i] == 0:
@@ -706,7 +716,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
             step = 1
             previous_size = 0
             obtained_size_on_x = 0
-            # [PHASE1] Loop increasing x parameters'level till obtaining a contrained set size >= whished_size * init_coverage_factor [CAN BE SLOW]
+            # [PHASE1] Loop increasing x parameters'level until obtaining a contrained set size >= whished_size * init_coverage_factor [CAN BE SLOW]
             if track:
                 print(
                     "PHASE1: Constructing constrained X-DOE based on size >= {} criteria".format(
@@ -822,165 +832,164 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         doePIc = func_x_to_pi(doeXc.tolist())
         save["doePI_e"] = doePIc
         # Plot Pi vs Pi fullfact graphs
-        X = numpy.log10(save["doePI"]) if log_space else save["doePI"]
-        X1 = numpy.log10(save["doePI_n"]) if log_space else save["doePI_n"]
-        X2 = numpy.log10(save["doePI_e"]) if log_space else save["doePI_e"]
-        Y = numpy.log10(save["doePIn_c"]) if log_space else save["doePIn_c"]
-        Y1 = numpy.log10(save["doePIn_a"]) if log_space else save["doePIn_a"]
-        x_labels = list(pi_set.dictionary.keys())
-        graph_nb = 0
-        for i in range(numpy.shape(Y)[1] - 1):
-            for k in range(i + 1, numpy.shape(Y)[1]):
-                graph_nb += 1
-        n = math.ceil(graph_nb ** 0.5)
-        fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
-        graph_idx = 0
-        for i in range(numpy.shape(Y)[1] - 1):
-            for k in range(i + 1, numpy.shape(Y)[1]):
-                if graph_nb == 1:
-                    axes_handle = axes
-                else:
-                    nr = math.floor(graph_idx / n)
-                    nc = graph_idx - nr * n
-                    axes_handle = axes[nr, nc]
-                axes_handle.plot(X[:, i], X[:, k], "g.", label="All (Feas.)")
-                axes_handle.plot(
-                    X1[:, i], X1[:, k], "c.", label="{}-nearest (Feas.)".format(choice_nb)
-                )
-                axes_handle.plot(X2[:, i], X2[:, k], "b.", label="Elected (Feas.)")
-                axes_handle.plot(Y[:, i], Y[:, k], "k.", label="All (Obj.)")
-                axes_handle.plot(Y1[:, i], Y1[:, k], "r.", label="Active (Obj.)")
-                expression = (
-                    ("$log(" + x_labels[i].replace("pi", "\pi_{") + "})$")
-                    if log_space
-                    else (x_labels[i].replace("pi", "$\pi_{") + "}$")
-                )
-                axes_handle.set_xlabel(expression)
-                expression = (
-                    ("$log(" + x_labels[k].replace("pi", "\pi_{") + "})$")
-                    if log_space
-                    else (x_labels[k].replace("pi", "$\pi_{") + "}$")
-                )
-                axes_handle.set_ylabel(expression)
-                axes_handle.legend()
-                ymax = max(numpy.amax(X[:, k]), numpy.amax(Y[:, k]))
-                ymin = min(numpy.amin(X[:, k]), numpy.amin(Y[:, k]))
-                xmax = max(numpy.amax(X[:, i]), numpy.amax(Y[:, i]))
-                xmin = min(numpy.amin(X[:, i]), numpy.amin(Y[:, i]))
-                try:
-                    x_lines = (pi_steps - 1) * pi_levels[k] * spacing_division_criteria + 1
-                    axes_handle.set_xticks(numpy.linspace(xmin, xmax, x_lines))
-                except:
-                    pass
-                axes_handle.xaxis.set_ticklabels([])
-                try:
-                    y_lines = (pi_steps - 1) * pi_levels[i] * spacing_division_criteria + 1
-                    axes_handle.set_yticks(numpy.linspace(ymin, ymax, y_lines))
-                except:
-                    pass
-                axes_handle.yaxis.set_ticklabels([])
-                axes_handle.grid()
-                axes_handle.set_ylim((ymin, ymax))
-                axes_handle.set_xlim((xmin, xmax))
+        if not test_mode:
+            X = numpy.log10(save["doePI"]) if log_space else save["doePI"]
+            X1 = numpy.log10(save["doePI_n"]) if log_space else save["doePI_n"]
+            X2 = numpy.log10(save["doePI_e"]) if log_space else save["doePI_e"]
+            Y = numpy.log10(save["doePIn_c"]) if log_space else save["doePIn_c"]
+            Y1 = numpy.log10(save["doePIn_a"]) if log_space else save["doePIn_a"]
+            x_labels = list(pi_set.dictionary.keys())
+            graph_nb = 0
+            for i in range(numpy.shape(Y)[1] - 1):
+                for k in range(i + 1, numpy.shape(Y)[1]):
+                    graph_nb += 1
+            n = math.ceil(graph_nb ** 0.5)
+            fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
+            graph_idx = 0
+            for i in range(numpy.shape(Y)[1] - 1):
+                for k in range(i + 1, numpy.shape(Y)[1]):
+                    if graph_nb == 1:
+                        axes_handle = axes
+                    else:
+                        nr = math.floor(graph_idx / n)
+                        nc = graph_idx - nr * n
+                        axes_handle = axes[nr, nc]
+                    axes_handle.plot(X[:, i], X[:, k], "g.", label="All (Feas.)")
+                    axes_handle.plot(
+                        X1[:, i], X1[:, k], "c.", label="{}-nearest (Feas.)".format(choice_nb)
+                    )
+                    axes_handle.plot(X2[:, i], X2[:, k], "b.", label="Elected (Feas.)")
+                    axes_handle.plot(Y[:, i], Y[:, k], "k.", label="All (Obj.)")
+                    axes_handle.plot(Y1[:, i], Y1[:, k], "r.", label="Active (Obj.)")
+                    expression = (
+                        ("$log(" + x_labels[i].replace("pi", "\pi_{") + "})$")
+                        if log_space
+                        else (x_labels[i].replace("pi", "$\pi_{") + "}$")
+                    )
+                    axes_handle.set_xlabel(expression)
+                    expression = (
+                        ("$log(" + x_labels[k].replace("pi", "\pi_{") + "})$")
+                        if log_space
+                        else (x_labels[k].replace("pi", "$\pi_{") + "}$")
+                    )
+                    axes_handle.set_ylabel(expression)
+                    axes_handle.legend()
+                    ymax = max(numpy.amax(X[:, k]), numpy.amax(Y[:, k]))
+                    ymin = min(numpy.amin(X[:, k]), numpy.amin(Y[:, k]))
+                    xmax = max(numpy.amax(X[:, i]), numpy.amax(Y[:, i]))
+                    xmin = min(numpy.amin(X[:, i]), numpy.amin(Y[:, i]))
+                    try:
+                        x_lines = (pi_steps - 1) * pi_levels[k] * spacing_division_criteria + 1
+                        axes_handle.set_xticks(numpy.linspace(xmin, xmax, x_lines))
+                    except:
+                        pass
+                    axes_handle.xaxis.set_ticklabels([])
+                    try:
+                        y_lines = (pi_steps - 1) * pi_levels[i] * spacing_division_criteria + 1
+                        axes_handle.set_yticks(numpy.linspace(ymin, ymax, y_lines))
+                    except:
+                        pass
+                    axes_handle.yaxis.set_ticklabels([])
+                    axes_handle.grid()
+                    axes_handle.set_ylim((ymin, ymax))
+                    axes_handle.set_xlim((xmin, xmax))
+                    graph_idx += 1
+            while graph_idx < n ** 2:
+                nr = math.floor(graph_idx / n)
+                nc = graph_idx - nr * n
+                axes[nr, nc].axis("off")
                 graph_idx += 1
-        while graph_idx < n ** 2:
-            nr = math.floor(graph_idx / n)
-            nc = graph_idx - nr * n
-            axes[nr, nc].axis("off")
-            graph_idx += 1
-        try:
-            plot.savefig(temp_path + "create_const_doe_fig1.pdf", dpi=1200, format="pdf")
-        except:
-            pass
-        if not (test_mode):
+            try:
+                plot.savefig(temp_path + "create_const_doe_fig1.pdf", dpi=1200, format="pdf")
+            except:
+                pass
             plot.show()
-        # Plot x elected vs x constrained full-fact graphs (only for variables)
-        X = numpy.log10(doeXc) if log_space else doeXc
-        Y = numpy.log10(doeX) if log_space else doeX
-        Y_range = numpy.amax(Y, axis=0) - numpy.amin(Y, axis=0)
-        Y_range = Y_range + 1 * (Y_range == 0)
-        X = (X - numpy.amin(Y, axis=0)) / Y_range
-        for i in range(numpy.shape(X)[1]):
-            if numpy.amax(X[:, i]) == 0 and numpy.amin(X[:, i]) == 0:
-                X[:, i] = 0.5 * (X[:, i] == 0)
-                continue
-        x_labels = []
-        greek_list = [
-            "alpha",
-            "beta",
-            "gamma",
-            "delta",
-            "epsilon",
-            "varepsilon",
-            "zeta",
-            "eta",
-            "theta",
-            "vartheta",
-            "gamma",
-            "kappa",
-            "lambda",
-            "mu",
-            "nu",
-            "xi",
-            "pi",
-            "varpi",
-            "rho",
-            "varrho",
-            "sigma",
-            "varsigma",
-            "tau",
-            "upsilon",
-            "phi",
-            "varphi",
-            "chi",
-            "psi",
-            "omega",
-        ]
-        for key in parameter_set.dictionary.keys():
-            parameter_name = parameter_set[key].name
-            if len(parameter_name.split("_")) == 2:
-                parameter_name1 = parameter_name.split("_")[0]
-                parameter_name2 = parameter_name.split("_")[1]
-                if parameter_name1.lower() in greek_list:
-                    parameter_name = "\\" + parameter_name1.lower() + "_{"
+            # Plot x elected vs x constrained full-fact graphs (only for variables)
+            X = numpy.log10(doeXc) if log_space else doeXc
+            Y = numpy.log10(doeX) if log_space else doeX
+            Y_range = numpy.amax(Y, axis=0) - numpy.amin(Y, axis=0)
+            Y_range = Y_range + 1 * (Y_range == 0)
+            X = (X - numpy.amin(Y, axis=0)) / Y_range
+            for i in range(numpy.shape(X)[1]):
+                if numpy.amax(X[:, i]) == 0 and numpy.amin(X[:, i]) == 0:
+                    X[:, i] = 0.5 * (X[:, i] == 0)
+                    continue
+            x_labels = []
+            greek_list = [
+                "alpha",
+                "beta",
+                "gamma",
+                "delta",
+                "epsilon",
+                "varepsilon",
+                "zeta",
+                "eta",
+                "theta",
+                "vartheta",
+                "gamma",
+                "kappa",
+                "lambda",
+                "mu",
+                "nu",
+                "xi",
+                "pi",
+                "varpi",
+                "rho",
+                "varrho",
+                "sigma",
+                "varsigma",
+                "tau",
+                "upsilon",
+                "phi",
+                "varphi",
+                "chi",
+                "psi",
+                "omega",
+            ]
+            for key in parameter_set.dictionary.keys():
+                parameter_name = parameter_set[key].name
+                if len(parameter_name.split("_")) == 2:
+                    parameter_name1 = parameter_name.split("_")[0]
+                    parameter_name2 = parameter_name.split("_")[1]
+                    if parameter_name1.lower() in greek_list:
+                        parameter_name = "\\" + parameter_name1.lower() + "_{"
+                    else:
+                        parameter_name = parameter_name1 + "_{"
+                    if parameter_name2.lower() in greek_list:
+                        parameter_name += "\\" + parameter_name2.lower() + "}"
+                    else:
+                        parameter_name += parameter_name2 + "}"
+                if log_space:
+                    x_labels.append(
+                        "$\\frac{log("
+                        + parameter_name
+                        + ")-min(log("
+                        + parameter_name
+                        + "))}{Delta log("
+                        + parameter_name
+                        + ")}$"
+                    )
                 else:
-                    parameter_name = parameter_name1 + "_{"
-                if parameter_name2.lower() in greek_list:
-                    parameter_name += "\\" + parameter_name2.lower() + "}"
-                else:
-                    parameter_name += parameter_name2 + "}"
-            if log_space:
-                x_labels.append(
-                    "$\\frac{log("
-                    + parameter_name
-                    + ")-min(log("
-                    + parameter_name
-                    + "))}{\\Delta log("
-                    + parameter_name
-                    + ")}$"
-                )
-            else:
-                x_labels.append(
-                    "$\\frac{"
-                    + parameter_name
-                    + "-min("
-                    + parameter_name
-                    + ")}{\\Delta {"
-                    + parameter_name
-                    + "}}$"
-                )
-        X_data = pandas.DataFrame(X, columns=x_labels)
-        X_data["Name"] = "Feasible point"
-        plot.figure(figsize=(2 * (len(x_labels) - 1), 5))
-        pandas.plotting.parallel_coordinates(X_data, "Name")
-        plot.xticks(fontsize=16, rotation=90)
-        try:
-            plot.savefig(temp_path + "create_const_doe_fig2.pdf", dpi=1200, format="pdf")
-        except:
-            pass
-        if not (test_mode):
+                    x_labels.append(
+                        "$\\frac{"
+                        + parameter_name
+                        + "-min("
+                        + parameter_name
+                        + ")}{Delta {"
+                        + parameter_name
+                        + "}}$"
+                    )
+            X_data = pandas.DataFrame(X, columns=x_labels)
+            X_data["Name"] = "Feasible point"
+            plot.figure(figsize=(2 * (len(x_labels) - 1), 5))
+            pandas.plotting.parallel_coordinates(X_data, "Name")
+            plot.xticks(fontsize=16, rotation=90)
+            try:
+                plot.savefig(temp_path + "create_const_doe_fig2.pdf", dpi=1200, format="pdf")
+            except:
+                pass
             plot.show()
-        return doeXc, doePIc
+        return doeXc, doePIc, save["doePI"], save["doePI_n"], save["doePIn_c"], save["doePIn_a"]
     elif not (isinstance(parameter_set, PositiveParameterSet)):
         raise TypeError("level_repartition type should be PositiveParameterSet.")
     elif not (isinstance(pi_set, PositiveParameterSet)):

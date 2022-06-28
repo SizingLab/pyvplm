@@ -13,6 +13,7 @@ import numpy
 from collections import OrderedDict
 from IPython.display import display, Math
 
+
 # -------[Parameter Class Definition]-------------------------------------------
 class Parameter:
     """Class defining one physical parameter.
@@ -67,6 +68,8 @@ class Parameter:
         
     """
 
+    ureg = pint.UnitRegistry()
+
     def __init__(self, name: str, defined_bounds: list, defined_units: str, description: str):
         """Method to create initial parameter object using syntax expressed in example.
         
@@ -80,12 +83,12 @@ class Parameter:
         ):
             raise TypeError("attributes type mismatch class definition")
         # Check units syntax
-        proper_syntax, formated_units, dimensionality = self.check_units(defined_units)
+        proper_syntax, formatted_units, dimensionality = self.check_units(defined_units)
         # Check bounds syntax and values
         proper_syntax = proper_syntax and self.check_bounds(defined_bounds)
         # Save parameter attributes' values
         if proper_syntax:
-            if len(defined_bounds) == 2:
+            if len(defined_bounds) == 2 or formatted_units == "dimensionless":
                 self.name = name.lower()
             else:
                 self.name = name.upper()
@@ -97,19 +100,19 @@ class Parameter:
             else:
                 object.__setattr__(self, "defined_bounds", [])
                 self.value = defined_bounds
-            object.__setattr__(self, "defined_units", formated_units)
+            object.__setattr__(self, "defined_units", formatted_units)
             self.description = description
-            ureg = pint.UnitRegistry()
+            ureg = self.ureg
             ureg.default_system = "mks"
             Q_ = ureg.Quantity
             if len(defined_bounds) == 2:
-                SI_lower_bound = Q_(lower_bound, formated_units).to_base_units()
-                SI_upper_bound = Q_(upper_bound, formated_units).to_base_units()
+                SI_lower_bound = Q_(lower_bound, formatted_units).to_base_units()
+                SI_upper_bound = Q_(upper_bound, formatted_units).to_base_units()
                 object.__setattr__(
                     self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
                 )
             else:
-                SI_lower_bound = Q_(defined_bounds[0], formated_units).to_base_units()
+                SI_lower_bound = Q_(defined_bounds[0], formatted_units).to_base_units()
                 object.__setattr__(
                     self, "_SI_bounds", [SI_lower_bound.magnitude, SI_lower_bound.magnitude]
                 )
@@ -125,24 +128,24 @@ class Parameter:
             warnings.warn("accessing private attribute value")
         return super(Parameter, self).__getattribute__(attribute_name)
 
-    def __setattr__(self, attribute_name, value):
+    def __setattr__(self, attribute_name, value, check_units=True):
         """Method to write parameter attribute value, **parameter_name.attribute_name=value** (private attribute writing access denied).
         
         """
         if attribute_name == "defined_units":
             # Check units syntax
-            proper_syntax, formated_units, dimensionality = self.check_units(value)
+            proper_syntax, formatted_units, dimensionality = self.check_units(value)
             if proper_syntax:
-                ureg = pint.UnitRegistry()
+                ureg = self.ureg
                 ureg.default_system = "mks"
                 Q_ = ureg.Quantity
                 object.__setattr__(self, "_dimensionality", dimensionality)
-                object.__setattr__(self, "defined_units", formated_units)
+                object.__setattr__(self, "defined_units", formatted_units)
                 if len(self.value) == 0:
-                    SI_lower_bound = Q_(self.defined_bounds[0], formated_units).to_base_units()
-                    SI_upper_bound = Q_(self.defined_bounds[1], formated_units).to_base_units()
+                    SI_lower_bound = Q_(self.defined_bounds[0], formatted_units).to_base_units()
+                    SI_upper_bound = Q_(self.defined_bounds[1], formatted_units).to_base_units()
                 else:
-                    SI_lower_bound = Q_(self.value, formated_units).to_base_units()
+                    SI_lower_bound = Q_(self.value, formatted_units).to_base_units()
                     SI_upper_bound = SI_lower_bound
                 object.__setattr__(
                     self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
@@ -152,7 +155,7 @@ class Parameter:
             # Check bounds syntax and values
             proper_syntax = self.check_bounds(defined_bounds)
             # Get units
-            formated_units = self.defined_units
+            formatted_units = self.defined_units
             # Save parameter bounds values
             if proper_syntax:
                 if len(defined_bounds) == 2:
@@ -165,18 +168,17 @@ class Parameter:
                     object.__setattr__(self, "name", self.name.upper())
                     object.__setattr__(self, "defined_bounds", [])
                     object.__setattr__(self, "value", defined_bounds)
-                ureg = pint.UnitRegistry()
+                ureg = self.ureg
                 ureg.default_system = "mks"
-                formated_units
                 Q_ = ureg.Quantity
                 if len(defined_bounds) == 2:
-                    SI_lower_bound = Q_(lower_bound, formated_units).to_base_units()
-                    SI_upper_bound = Q_(upper_bound, formated_units).to_base_units()
+                    SI_lower_bound = Q_(lower_bound, formatted_units).to_base_units()
+                    SI_upper_bound = Q_(upper_bound, formatted_units).to_base_units()
                     object.__setattr__(
                         self, "_SI_bounds", [SI_lower_bound.magnitude, SI_upper_bound.magnitude]
                     )
                 else:
-                    SI_lower_bound = Q_(defined_bounds[0], formated_units).to_base_units()
+                    SI_lower_bound = Q_(defined_bounds[0], formatted_units).to_base_units()
                     object.__setattr__(
                         self, "_SI_bounds", [SI_lower_bound.magnitude, SI_lower_bound.magnitude]
                     )
@@ -227,6 +229,13 @@ class Parameter:
             + "}"
         )
 
+    def __eq__(self, other):
+        if isinstance(other, Parameter):
+            return self.name == other.name and self.defined_bounds == other.defined_bounds\
+                   and self.value == other.value and self.defined_units == other.defined_units\
+                   and self.description == other.description
+        return False
+
     def check_bounds(self, defined_bounds):
         """Method (*internal*) to check bounds syntax and value(s).
         
@@ -237,23 +246,19 @@ class Parameter:
                 lower_bound = float(defined_bounds[0])
                 upper_bound = float(defined_bounds[1])
                 if lower_bound >= upper_bound:
-                    proper_syntax = False
                     raise AssertionError
             except AssertionError:
                 raise AssertionError(
                     "bad definition of bounds, should be defined_bounds[0]<defined_bounds[1]"
                 )
-            except:
-                proper_syntax = False
+            except Exception:
                 raise TypeError("defined_bounds should be a [1x2] list of floats or integers")
         elif len(defined_bounds) == 1:
             try:
                 float(defined_bounds[0])
-            except:
-                proper_syntax = False
+            except Exception:
                 raise TypeError("value should be a [1x1] list of float or integer")
         else:
-            proper_syntax = False
             raise IndexError(
                 "value/defined_bounds should be a [1x1] or [1x2] list of float(s)/integer(s)"
             )
@@ -265,19 +270,19 @@ class Parameter:
         """
         proper_syntax = True
         try:
-            ureg = pint.UnitRegistry()
+            ureg = self.ureg
             ureg.default_system = "mks"
             Q_ = ureg.Quantity
-            formated_units = Q_("0" + defined_units)
-            dimensionality = str(formated_units.dimensionality)
-            formated_units = str(formated_units.units)
+            formatted_units = Q_("0" + defined_units)
+            dimensionality = str(formatted_units.dimensionality)
+            formatted_units = str(formatted_units.units)
         except:
             proper_syntax = False
             raise ValueError(
                 "bad units, type dir(pint.UnitRegistry().sys.system) with system in "
                 "['US', 'cgs', 'imperial', 'mks'] for detailed list of units"
             )
-        return proper_syntax, formated_units, dimensionality
+        return proper_syntax, formatted_units, dimensionality
 
 
 # -------[Positive Parameter Class Definition]----------------------------------
@@ -440,7 +445,12 @@ class ParameterSet:
                 statement += "\n"
         return statement
 
-    def latex_render(self):
+    def __eq__(self, other):
+        if isinstance(other, ParameterSet):
+            return self.dictionary == other.dictionary
+        return False
+
+    def latex_render(self, textArea=False):
         """Method used to print parameters in latex form: **latex_render(parameter_set)**
             When parameter name is of the form name_indice this will lead to $name_{indice}$ latex form, number is automatically rendered as indice.
             Greek letters will also be escaped automatically lambda_wind will lead to $\lambda_{wind}$.
@@ -532,7 +542,11 @@ class ParameterSet:
                 description = self.dictionary[key].description
                 description = description.replace(" ", "\\,")
                 expression += description
-            display(Math(expression))
+            # added to render in TextArea
+            if textArea:
+                return Math(expression)
+            else:
+                display(Math(expression))
         logging.captureWarnings(False)
         print("")
 
@@ -557,7 +571,6 @@ class ParameterSet:
             if not (isinstance(parameters_list[i], Parameter)):
                 proper_syntax = False
                 raise TypeError("all the parameters should be of Parameter type")
-                break
         return proper_syntax
 
     def first(self, *parameters_list):
@@ -578,7 +591,6 @@ class ParameterSet:
             if not (parameter_name in self.dictionary.keys()):
                 proper_syntax = False
                 raise KeyError("parameter {} not in parameter set".format(parameter_name))
-                break
         if proper_syntax:
             # Delete the parameters to be saved first and save it back to the end of the list
             used_keys = []
@@ -632,7 +644,6 @@ class PositiveParameterSet(ParameterSet):
             if not (isinstance(parameters_list[i], PositiveParameter)):
                 proper_syntax = False
                 raise TypeError("all the parameters should be of PositiveParameter type")
-                break
         return proper_syntax
 
 
@@ -666,8 +677,8 @@ class Constraint(object):
         """Method to create initial Constraint.
         
         """
-        # Forbiden character and parameters names
-        forbiden_char = [
+        # Forbidden character and parameters names
+        forbidden_char = [
             "!",
             "$",
             "£",
@@ -686,7 +697,7 @@ class Constraint(object):
             "°",
             "\\",
         ]
-        forbiden_param = ["I", "gamma", "beta", "re", "ln", "sqrt", "arg"]
+        forbidden_param = ["I", "gamma", "beta", "re", "ln", "sqrt", "arg"]
         # Assign default values
         self.description = desc
         self.parameters = []
@@ -714,6 +725,7 @@ class Constraint(object):
             right = expression.split(">=")[1]
             if right != "0":
                 expression = left + "-(" + right + ")"
+        expression = expression.strip()
         # Search for parameters
         sp_expr = sympy.sympify(expression.split(">=")[0])
         parameters = []
@@ -742,17 +754,17 @@ class Constraint(object):
             test_expression = test_expression.replace(value, "1")
         try:
             exec(test_expression)
-            # Check parameters names does not contain forbiden character
+            # Check parameters names does not contain forbidden character
             for parameter in parameters:
-                for char in forbiden_char:
+                for char in forbidden_char:
                     if char in parameter:
                         raise ValueError("parameter names should not contain special character.")
-            # Check parameters names are not forbiden names
+            # Check parameters names are not forbidden names
             for parameter in parameters:
-                if parameter in forbiden_param:
+                if parameter in forbidden_param:
                     raise ValueError(
                         "parameter names should not be recognized by sympy as constant or function: {}.".format(
-                            forbiden_param
+                            forbidden_param
                         )
                     )
             # Save parameters and expression
@@ -772,7 +784,7 @@ class Constraint(object):
         except:
             raise SyntaxError(
                 "expression error type not handled, check that none of the parameter are in forbiden set:{}.".format(
-                    forbiden_param
+                    forbidden_param
                 )
             )
 
@@ -853,6 +865,7 @@ class ConstraintSet(object):
                 if not (parameter in list(ParameterSet.dictionary.keys())):
                     return []
             # write function
+
             def f(X):
                 # check X type
                 if not (isinstance(numpy.ndarray)):
