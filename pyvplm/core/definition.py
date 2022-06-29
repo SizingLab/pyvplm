@@ -231,9 +231,13 @@ class Parameter:
 
     def __eq__(self, other):
         if isinstance(other, Parameter):
-            return self.name == other.name and self.defined_bounds == other.defined_bounds\
-                   and self.value == other.value and self.defined_units == other.defined_units\
-                   and self.description == other.description
+            return (
+                self.name == other.name
+                and self.defined_bounds == other.defined_bounds
+                and self.value == other.value
+                and self.defined_units == other.defined_units
+                and self.description == other.description
+            )
         return False
 
     def check_bounds(self, defined_bounds):

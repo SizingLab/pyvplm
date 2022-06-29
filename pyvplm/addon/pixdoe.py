@@ -560,7 +560,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     "log_space",
                     "track",
                     "test_mode",
-                    "relative_points"
+                    "relative_points",
                 ]
             ):
                 raise KeyError("unknown argument " + key)

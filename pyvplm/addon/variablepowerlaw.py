@@ -305,7 +305,7 @@ def buckingham_theorem(parameter_set, track=False):
                         upper_bound = upper_bound * parameter._SI_bounds[0] ** exponent_list[i]
                         expression += parameter.name + "**" + str(exponent_list[i]) + "*"
                 if len(expression) != 0:
-                    expression = expression[0: len(expression) - 1]
+                    expression = expression[0 : len(expression) - 1]
                 bounds = [lower_bound, upper_bound]
                 # Compute PI name
                 pi_name = "pi" + str(len(pi_set.dictionary.keys()) + 1)
@@ -638,13 +638,13 @@ def force_buckingham(parameter_set, *pi_list):
                                 for subparameter in combination:
                                     if subparameter[0:2] == "1/":
                                         old_parameter = (
-                                            old_parameter[0: len(old_parameter) - 1]
-                                            + subparameter[3: len(subparameter)]
+                                            old_parameter[0 : len(old_parameter) - 1]
+                                            + subparameter[3 : len(subparameter)]
                                             + "*"
                                         )
                                     else:
                                         old_parameter += subparameter + "*"
-                                old_parameter = old_parameter[0: len(old_parameter) - 1]
+                                old_parameter = old_parameter[0 : len(old_parameter) - 1]
                                 old_parameter = (
                                     old_parameter + ")" if parenthesis else old_parameter
                                 )
@@ -661,7 +661,7 @@ def force_buckingham(parameter_set, *pi_list):
                             for sub_idx in range(len(subparameter_list)):
                                 subparameter = subparameter_list[sub_idx]
                                 if subparameter[0:2] == "1/":
-                                    subparameter = subparameter[2: len(subparameter)]
+                                    subparameter = subparameter[2 : len(subparameter)]
                                     subparameter_list[sub_idx] = subparameter
                                     reverse_exponent = False
                                 else:
@@ -712,7 +712,7 @@ def force_buckingham(parameter_set, *pi_list):
                             for subparameter in subparameter_list:
                                 parameter_expression += "'" + subparameter + "',"
                             parameter_expression = (
-                                parameter_expression[0: len(parameter_expression) - 1] + ")"
+                                parameter_expression[0 : len(parameter_expression) - 1] + ")"
                             )
                             new_parameter = eval(parameter_expression)
                             parameter = new_parameter
@@ -807,7 +807,9 @@ def force_buckingham(parameter_set, *pi_list):
             pi_list[pi_number] = new_expression
             # Check pi is dimensionless
             pi_exponents = pandas.DataFrame(
-                numpy.array([pi_exponents, pi_exponents]).astype(float),  # FIX 10/12/2021 Allow non integer exponents
+                numpy.array([pi_exponents, pi_exponents]).astype(
+                    float
+                ),  # FIX 10/12/2021 Allow non integer exponents
                 columns=dimensional_matrix.columns.values.tolist(),
             )
             try:
@@ -1113,8 +1115,22 @@ def regression_models(doe, elected_pi0, order, **kwargs):
         return_axes = False
         fig_size = ()
         for key, value in kwargs.items():
-            if not (key in ["log_space", "ymax_axis", "test_mode", "plots", "latex", "skip_cross_validation",
-                            "force_choice", "removed_pi", "eff_pi0", "return_axes", "fig_size"]):
+            if not (
+                key
+                in [
+                    "log_space",
+                    "ymax_axis",
+                    "test_mode",
+                    "plots",
+                    "latex",
+                    "skip_cross_validation",
+                    "force_choice",
+                    "removed_pi",
+                    "eff_pi0",
+                    "return_axes",
+                    "fig_size",
+                ]
+            ):
                 raise KeyError("unknown argument " + key)
             elif key == "ymax_axis":
                 if isinstance(value, int) or isinstance(value, float):
@@ -1202,7 +1218,9 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                     if k > eff_elected_pi0 - 1:
                         delta_2 = 1
                     if log_space:
-                        term = term.replace("x" + str(k - delta_2), "log(pi" + str(k + delta + 1) + ")")
+                        term = term.replace(
+                            "x" + str(k - delta_2), "log(pi" + str(k + delta + 1) + ")"
+                        )
                     else:
                         term = term.replace("x" + str(k - delta_2), "pi" + str(k + delta + 1))
             else:
@@ -1271,7 +1289,9 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                     y_data = 10.0 ** Y
                 else:
                     y_data = Y
-                y_data += (y_data == 0.0) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
+                y_data += (
+                    y_data == 0.0
+                ) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
                 error_train = (y_pred - y_data) * (1 / y_data) * 100
                 # calculate local criteria
                 if choice == 1:
@@ -1294,7 +1314,7 @@ def regression_models(doe, elected_pi0, order, **kwargs):
         models = {}
         for idx in range(numpy.shape(X.values)[1]):
             error_test = numpy.array([])
-            values = X.values[:, 0: idx + 1]
+            values = X.values[:, 0 : idx + 1]
             # FIXES 06/05/21: permit to skip cross-validation for big data matrices
             if (numpy.shape(values)[0] > 10 * numpy.shape(X.values)[1]) and skip_cross_validation:
                 coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
@@ -1304,7 +1324,9 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                     y_data = 10.0 ** Y
                 else:
                     y_data = Y
-                y_data += (y_data == 0.0) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
+                y_data += (
+                    y_data == 0.0
+                ) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
                 error_train = (y_pred - y_data) * (1 / y_data) * 100
                 error_test = numpy.zeros(shape=numpy.shape(error_train))
             else:
@@ -1320,7 +1342,9 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                             y_data = 10.0 ** numpy.delete(Y, test_idx, 0)
                         else:
                             y_data = numpy.delete(Y, test_idx, 0)
-                        y_data += (y_data == 0.0) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
+                        y_data += (
+                            y_data == 0.0
+                        ) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
                         error_train = (y_pred - y_data) * (1 / y_data) * 100
                     # Calculate and save the error on the tested point (cross-validation)
                     y_pred = numpy.dot(values[test_idx, :], coeff)
@@ -1329,7 +1353,9 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                         y_data = 10.0 ** Y[test_idx]
                     else:
                         y_data = Y[test_idx]
-                    y_data += (y_data == 0.0) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
+                    y_data += (
+                        y_data == 0.0
+                    ) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
                     error_test = numpy.append(error_test, (y_pred - y_data) * (1 / y_data) * 100)
             # Write model expression
             labels = numpy.array(X.columns.tolist())
@@ -1341,11 +1367,11 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                 if coeff[i] < 0:
                     if labels[i] == "":
                         expression = (
-                            expression[0: len(expression) - 1] + "{:.5f}".format(coeff[i]) + "+"
+                            expression[0 : len(expression) - 1] + "{:.5f}".format(coeff[i]) + "+"
                         )
                     else:
                         expression = (
-                            expression[0: len(expression) - 1]
+                            expression[0 : len(expression) - 1]
                             + "{:.5f}*".format(coeff[i])
                             + labels[i]
                             + "+"
@@ -1355,7 +1381,7 @@ def regression_models(doe, elected_pi0, order, **kwargs):
                         expression += "{:.5f}".format(coeff[i]) + labels[i] + "+"
                     else:
                         expression += "{:.5f}*".format(coeff[i]) + labels[i] + "+"
-            expression = expression[0: len(expression) - 1]
+            expression = expression[0 : len(expression) - 1]
             # Calculate max and average absolute error and average and sigma error on train data
             error_average = numpy.mean(error_train)
             error_sigma = numpy.std(error_train)
@@ -1404,12 +1430,18 @@ def regression_models(doe, elected_pi0, order, **kwargs):
         if not test_mode or show_plots:
             x = numpy.array(range(len(models.keys()))).astype(int) + 1
             if not fig_size:
-                fig, axs = plot.subplots(4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=(14, 10))
+                fig, axs = plot.subplots(
+                    4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=(14, 10)
+                )
             else:
-                fig, axs = plot.subplots(4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=fig_size)
+                fig, axs = plot.subplots(
+                    4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=fig_size
+                )
             # Plot maximum absolute relative error
             axs[0].plot(x, numpy.array(abs_error_max_train), "k-*", label="Fitting set")
-            if not (max(abs_error_max_test) == 0.0 and min(abs_error_max_test) == 0.0):  # FIXES 06/05/21
+            if not (
+                max(abs_error_max_test) == 0.0 and min(abs_error_max_test) == 0.0
+            ):  # FIXES 06/05/21
                 axs[0].plot(x, numpy.array(abs_error_max_test), "r-*", label="Cross-validation set")
             y_max = min(ymax_axis, max(max(abs_error_max_train), max(abs_error_max_test)))
             axs[0].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
@@ -1418,8 +1450,12 @@ def regression_models(doe, elected_pi0, order, **kwargs):
             axs[0].legend(fontsize=16)
             # Plot average |relative error|
             axs[1].plot(x, numpy.array(abs_error_average_train), "k-*", label="Fitting set")
-            if not(max(abs_error_average_test) == 0.0 and min(abs_error_average_test) == 0.0):  # FIXES 06/05/21
-                axs[1].plot(x, numpy.array(abs_error_average_test), "r-*", label="Cross-validation set")
+            if not (
+                max(abs_error_average_test) == 0.0 and min(abs_error_average_test) == 0.0
+            ):  # FIXES 06/05/21
+                axs[1].plot(
+                    x, numpy.array(abs_error_average_test), "r-*", label="Cross-validation set"
+                )
             y_max = min(ymax_axis, max(max(abs_error_average_train), max(abs_error_average_test)))
             axs[1].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
             axs[1].set_ylabel(
@@ -1428,8 +1464,12 @@ def regression_models(doe, elected_pi0, order, **kwargs):
             axs[1].grid(True)
             # Plot the |average relative error|
             axs[2].plot(x, numpy.absolute(error_average_train), "k-*", label="Fitting set")
-            if not (max(error_average_test) == 0.0 and min(error_average_test) == 0.0):  # FIXES 06/05/21
-                axs[2].plot(x, numpy.absolute(error_average_test), "r-*", label="Cross-validation set")
+            if not (
+                max(error_average_test) == 0.0 and min(error_average_test) == 0.0
+            ):  # FIXES 06/05/21
+                axs[2].plot(
+                    x, numpy.absolute(error_average_test), "r-*", label="Cross-validation set"
+                )
             y_max = min(
                 ymax_axis,
                 max(max(map(abs, error_average_train)), max(map(abs, error_average_test))),
@@ -1439,8 +1479,12 @@ def regression_models(doe, elected_pi0, order, **kwargs):
             axs[2].grid(True)
             # Plot the standard deviation
             axs[3].plot(x, numpy.absolute(error_sigma_train), "k-*", label="Fitting set")
-            if not (max(error_sigma_test) == 0.0 and min(error_sigma_test) == 0.0):  # FIXES 06/05/21
-                axs[3].plot(x, numpy.absolute(error_sigma_test), "r-*", label="Cross-validation set")
+            if not (
+                max(error_sigma_test) == 0.0 and min(error_sigma_test) == 0.0
+            ):  # FIXES 06/05/21
+                axs[3].plot(
+                    x, numpy.absolute(error_sigma_test), "r-*", label="Cross-validation set"
+                )
             y_max = min(
                 ymax_axis, max(max(map(abs, error_sigma_train)), max(map(abs, error_sigma_test)))
             )
@@ -1538,18 +1582,18 @@ def concatenate_expression(expression, pi_list):
                     keep[idx] = False
                     idx = local_expression.index(pi_name)
                     if idx + len(pi_name) != len(local_expression):
-                        if local_expression[idx + len(pi_name): idx + len(pi_name) + 2] == "**":
+                        if local_expression[idx + len(pi_name) : idx + len(pi_name) + 2] == "**":
                             try:
                                 exponent = int(
                                     local_expression[
                                         idx
                                         + len(pi_name)
-                                        + 2: local_expression.index("*", idx + len(pi_name) + 2)
+                                        + 2 : local_expression.index("*", idx + len(pi_name) + 2)
                                     ]
                                 )
                             except:
                                 exponent = int(
-                                    local_expression[idx + len(pi_name) + 2: len(local_expression)]
+                                    local_expression[idx + len(pi_name) + 2 : len(local_expression)]
                                 )
                         else:
                             exponent = 1
@@ -2069,7 +2113,18 @@ def perform_regression(doePI, models, chosen_model, **kwargs):
         for i in range(numpy.shape(doePI)[1]):
             pi_list.append("\pi_{" + str(i + 1) + "}")
         for key, value in kwargs.items():
-            if not (key in ["pi_list", "test_mode", "latex", "max_pi_nb", "removed_pi", "eff_pi0", "no_plots"]):
+            if not (
+                key
+                in [
+                    "pi_list",
+                    "test_mode",
+                    "latex",
+                    "max_pi_nb",
+                    "removed_pi",
+                    "eff_pi0",
+                    "no_plots",
+                ]
+            ):
                 raise KeyError("unknown argument " + key)
             elif key == "pi_list":
                 if isinstance(value, list):
@@ -2147,7 +2202,7 @@ def perform_regression(doePI, models, chosen_model, **kwargs):
         except:
             pass
         # Adapt expression for calculation
-        elected_pi0 = expression[0: expression.find("=")]
+        elected_pi0 = expression[0 : expression.find("=")]
         elected_pi0 = elected_pi0.replace("log(", "")
         elected_pi0 = elected_pi0.replace(")", "")
         elected_pi0 = elected_pi0.replace(" ", "")
@@ -2164,11 +2219,11 @@ def perform_regression(doePI, models, chosen_model, **kwargs):
             expression = (
                 expression[0:idx]
                 + str(coeff)
-                + expression[idx + len("{:.5f}".format(coeff)) - 1: len(expression)]
+                + expression[idx + len("{:.5f}".format(coeff)) - 1 : len(expression)]
             )
             idx = idx + len("{:.5f}".format(coeff)) - 1
-        expression1 = expression[expression.find("=") + 1: len(expression)]
-        expression2 = expression[0: expression.find("=")]
+        expression1 = expression[expression.find("=") + 1 : len(expression)]
+        expression2 = expression[0 : expression.find("=")]
         log_space = True if expression2.find("log") != -1 else False
         # Check for problematic values
         if log_space:
@@ -2181,8 +2236,12 @@ def perform_regression(doePI, models, chosen_model, **kwargs):
             for i in removed_pi:
                 if idx > i:
                     delta += 1
-            expression1 = expression1.replace("pi" + str(idx + 1), "doePI[:,{}]".format(idx - delta))
-            expression2 = expression2.replace("pi" + str(idx + 1), "doePI[:,{}]".format(idx - delta))
+            expression1 = expression1.replace(
+                "pi" + str(idx + 1), "doePI[:,{}]".format(idx - delta)
+            )
+            expression2 = expression2.replace(
+                "pi" + str(idx + 1), "doePI[:,{}]".format(idx - delta)
+            )
         try:
             Y_reg = 10 ** eval(expression1) if log_space else eval(expression1)
             Y = 10 ** eval(expression2) if log_space else eval(expression2)
@@ -2212,7 +2271,7 @@ def perform_regression(doePI, models, chosen_model, **kwargs):
         for i in range(len(pi_list)):
             if i != elected_pi0:
                 y_label += pi_list[i] + ","
-        y_label = y_label[0: len(y_label) - 1] + ")$"
+        y_label = y_label[0 : len(y_label) - 1] + ")$"
         axs[0].set_ylabel(y_label, fontsize=18)
         error = ((numpy.array(Y_reg) - numpy.array(Y)) * (1 / numpy.array(Y)) * 100).tolist()
         n_bins = max(1, int(len(error) / 5))
@@ -2323,7 +2382,7 @@ def pi_sensitivity(pi_set, doePI, useWidgets, **kwargs):
         test_mode = False
         latex = False
         pi0_list = [list(pi_set.dictionary.keys())[0]]
-        piN_list = list(pi_set.dictionary.keys())[1: len(list(pi_set.dictionary.keys()))]
+        piN_list = list(pi_set.dictionary.keys())[1 : len(list(pi_set.dictionary.keys()))]
         for key, value in kwargs.items():
             if key == "test_mode":
                 if isinstance(value, bool):
@@ -2568,7 +2627,7 @@ def pi_sensitivity_sub(pi_set, doePI, **kwargs):
             plot.rc("font", family="serif")
         # Plot graphs
         fig, axes = plot.subplots(
-            nrows=len(y_index), ncols=len(x_index), sharex=False, sharey=False,  squeeze=False
+            nrows=len(y_index), ncols=len(x_index), sharex=False, sharey=False, squeeze=False
         )
         if len(y_index) == 1 or len(x_index) == 1:
             axes = numpy.reshape(axes, -1)
@@ -2853,20 +2912,21 @@ def pi_dependency(pi_set, doePI, useWidgets, **kwargs):
             pi_list = []
             for pi in pi_set.dictionary.keys():
                 pi_list.append(pi.replace("pi", "$\pi_{") + "}$")
-            x_list = [""]*len(x_list_)
+            x_list = [""] * len(x_list_)
             if x_list_:
                 for i in range(len(x_list_)):
                     x_list[i] = x_list_[i].replace("pi", "$\pi_{") + "}$"
             else:
                 x_list = pi_list
-            y_list = [""]*len(y_list_)
+            y_list = [""] * len(y_list_)
             if y_list_:
                 for i in range(len(y_list_)):
                     y_list[i] = y_list_[i].replace("pi", "$\pi_{") + "}$"
             else:
                 y_list = pi_list
-            _, _, _, plot = pi_dependency_sub(pi_set, doePI, order=2, threshold=0.9, figwidth=16, x_list=x_list_,
-                                              y_list=y_list_)
+            _, _, _, plot = pi_dependency_sub(
+                pi_set, doePI, order=2, threshold=0.9, figwidth=16, x_list=x_list_, y_list=y_list_
+            )
             checkboxes1 = []
             checkboxes2 = []
             cb_container1 = widgets.HBox()
@@ -3051,7 +3111,9 @@ def pi_dependency_sub(pi_set, doePI, **kwargs):
         r2_matrix = numpy.zeros((len(y_list), len(x_list)))
         regType_matrix = numpy.zeros((len(y_list), len(x_list))).astype(str)
         coeff_matrix = numpy.zeros((len(y_list), len(x_list)), dtype=(float, order + 1))
-        fig, axes = plot.subplots(nrows=len(y_list), ncols=len(x_list), sharex=False, sharey=False, squeeze=False)
+        fig, axes = plot.subplots(
+            nrows=len(y_list), ncols=len(x_list), sharex=False, sharey=False, squeeze=False
+        )
         fig.set_size_inches(min(figwidth, 6 * len(x_list)), 6 * len(y_list))
         # Write pi_list and x-y index
         xaxis_index = []
