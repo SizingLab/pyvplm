@@ -33,7 +33,7 @@
     ]
 
 [tool.poetry.dependencies]
-    python = "^3.7"
+    python = "^3.7, <3.10"
     numpy = "*"
     scipy = "*"
     scikit-learn = "*"
