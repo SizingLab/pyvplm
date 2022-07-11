@@ -98,5 +98,5 @@ jobs:
         shell: bash
 
       - name: Notebook tests
-        run: poetry run pytest --no-cov tests
+        run: poetry run pytest --no-cov --nbval-lax -p no:python notebooks
         shell: bash

@@ -39,6 +39,7 @@
     scikit-learn = "*"
     pandas = "*"
     sympy="*"
+    latex = "*"
     matplotlib = "*"
     ipywidgets = "*"
     ipython = "*"
