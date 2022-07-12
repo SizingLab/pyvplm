@@ -16,7 +16,6 @@ import copy
 import scipy
 from numpy import ndarray
 from pandas import DataFrame
-from scipy.optimize import minimize
 from sklearn.preprocessing import PolynomialFeatures
 from fractions import Fraction
 from itertools import permutations, combinations
@@ -32,17 +31,23 @@ from matplotlib.ticker import PercentFormatter
 import matplotlib.ticker as ticker
 from IPython.display import Latex, display, clear_output
 from sympy.interactive import printing
-from ipywidgets import widgets, VBox
-from pyDOE2 import lhs
+from ipywidgets import widgets, VBox, Label
 from pyvplm.core.definition import PositiveParameter, PositiveParameterSet, ConstraintSet
 import warnings
 
-# -------[Generate _temp folder for figures]------------------------------------
+# -------[Global variables and settings]----------------------------------------
 path = os.path.abspath(__file__)
-temp_path = path.replace("\\addon" + os.path.basename(__file__), "") + "_temp\\"
-
+temp_path = path.replace("\\addon\\" + os.path.basename(path), "") + "\\_temp\\"
 printing.init_printing(use_latex="png")
 pandas.options.mode.chained_assignment = None
+module_logger = logging.getLogger(__name__)
+
+
+# -------[Logg Exception]-------------------------------------------------------
+def logg_exception(ex: Exception):
+    template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+    message = template.format(type(ex).__name__, ex.args)
+    module_logger.info(message)
 
 
 # -------[Write dimensional matrix from parameter set]--------------------------
@@ -50,28 +55,28 @@ def write_dimensional_matrix(parameter_set: PositiveParameterSet) -> DataFrame:
     # noinspection PyUnresolvedReferences
     """Function to extract dimensional matrix from a PositiveParameterSet.
 
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
+    Parameters
+    ----------
+    parameter_set: defines the n physical parameters for the studied problem
 
-        Returns
-        -------
-        dimensional_matrix: Column labels refers to the parameters names and rows to the dimensions
+    Returns
+    -------
+    dimensional_matrix: column labels refers to the parameters names and rows to the dimensions
 
-        Example
-        -------
-        define a positive set first:
-            >>> In [1]: u = PositiveParameter('u', [1e-9,1e-6], 'm', 'Deflection')
-            >>> In [2]: f = PositiveParameter('f', [150,500], 'N', 'Load applied')
-            >>> In [3]: l = PositiveParameter('l', [1,3], 'm', 'Cantilever length')
-            >>> In [4]: e = PositiveParameter('e', [60e9,80e9], 'Pa', 'Young Modulus')
-            >>> In [5]: d = PositiveParameter('d', [10,60], 'mm', 'Diameter of cross-section')
-            >>> In [6]: parameter_set = PositiveParameterSet(u, f, l, e, d)
+    Example
+    -------
+    define a positive set first:
+        >>> In [1]: u = PositiveParameter('u', [1e-9,1e-6], 'm', 'Deflection')
+        >>> In [2]: f = PositiveParameter('f', [150,500], 'N', 'Load applied')
+        >>> In [3]: l = PositiveParameter('l', [1,3], 'm', 'Cantilever length')
+        >>> In [4]: e = PositiveParameter('e', [60e9,80e9], 'Pa', 'Young Modulus')
+        >>> In [5]: d = PositiveParameter('d', [10,60], 'mm', 'Diameter of cross-section')
+        >>> In [6]: parameter_set = PositiveParameterSet(u, f, l, e, d)
 
-        apply function:
-            >>> In [7]: dimensional_matrix = write_dimensional_matrix(parameter_set)
-            >>> In [8]: dimensional_matrix.values
-            >>> Out[8]: [[1, 0, 0], [1, 1, -2], [1, 0, 0], [-1, 1, -2], [1, 0, 0]]
+    then, apply function:
+        >>> In [7]: dimensional_matrix = write_dimensional_matrix(parameter_set)
+        >>> In [8]: dimensional_matrix.values
+        >>> Out[8]: [[1, 0, 0], [1, 1, -2], [1, 0, 0], [-1, 1, -2], [1, 0, 0]]
     """
     dimensional_matrix = []
     dimensional_set = []
@@ -82,6 +87,7 @@ def write_dimensional_matrix(parameter_set: PositiveParameterSet) -> DataFrame:
             # First extract all dimensions from saved parameters
             for key1 in parameter_set.dictionary.keys():
                 parameter = parameter_set.dictionary[key1]
+                # noinspection PyProtectedMember
                 dimensions = str(pint.util.ParserHelper.from_string(parameter._dimensionality))
                 # ParserHelper return expression of the form: "1.0 {'[length]': -1.0, '[mass]': 1.0, '[time]': -2.0}"
                 # Eval part between {} to create dictionary
@@ -92,6 +98,7 @@ def write_dimensional_matrix(parameter_set: PositiveParameterSet) -> DataFrame:
             # Then construct parameters exponent in matrix
             for key1 in parameter_set.dictionary.keys():
                 parameter = parameter_set.dictionary[key1]
+                # noinspection PyProtectedMember
                 dimensions = str(pint.util.ParserHelper.from_string(parameter._dimensionality))
                 dimensions = ast.literal_eval(dimensions[dimensions.find("{") : len(dimensions)])
                 dimensional_vector = []
@@ -122,37 +129,37 @@ def compute_echelon_form(
 ) -> tuple[list[list[Fraction]], list[list[Fraction]], list[Union[range, Any]]]:
     # noinspection PyUnresolvedReferences
     """Function that computes a matrix into its echelon form.
-        
-        Parameters
-        ----------
-        in_matrix: [m*n] numpy.ndarray of float or int
-        
-        Returns
-        -------
-        out_matrix: [m*n] matrix with echelon form derived from in_matrix
-        
-        pivot_matrix: [m*m] pivot matrix to link out_matrix to in_matrix
-        
-        pivot_points: [1*k] index of pivot points k = rank(in_matrix)<= min(m, n)
-            
-        Example
-        -------
-        define dimensional matrix:
-            >>> In [1]: in_matrix = numpy.array([[0, 1, 0], [1, 1, -2], [0, 1, 0], [1, -1, -2], [0, 1, 0]], int)
-        
-        perform echelon function:
-            >>> In [2]: (out_matrix, pivot_matrix, pivot_points) = compute_echelon_form(in_matrix)
-            >>> In [3]: nc = len(out_matrix[0]
-            >>> In [4]: nr = len(out_matrix)
-            >>> In [5]: print([[float(out_matrix[ir][ic]) for ic in range(nc)] for ir in range(nr)])
-                [[1.0, 0.0, -2.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
-            >>> In [6]: print([[float(pivot[nr][nc]) for nc in range(len(pivot[0]))] for nr in range(len(pivot))])
-                [[-1.0, 1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0, 0.0], [-1.0, 0.0, 1.0, 0.0, 0.0],
-                [2.0, -1.0, 0.0, 1.0, 0.0], [-1.0, 0.0, 0.0, 0.0, 1.0]]
-            >>> In [7]: print(pivot_points)
-                [1, 0]
-            
-        """
+
+    Parameters
+    ----------
+    in_matrix: [m*n] numpy.ndarray of float or int
+
+    Returns
+    -------
+    out_matrix: [m*n] matrix with echelon form derived from in_matrix
+
+    pivot_matrix: [m*m] pivot matrix to link out_matrix to in_matrix
+
+    pivot_points: [1*k] index of pivot points k = rank(in_matrix)<= min(m, n)
+
+    Example
+    -------
+    define dimensional matrix:
+        >>> In [1]: in_matrix = numpy.array([[0, 1, 0], [1, 1, -2], [0, 1, 0], [1, -1, -2], [0, 1, 0]], int)
+
+    perform echelon function:
+        >>> In [2]: (out_matrix, pivot_matrix, pivot_points) = compute_echelon_form(in_matrix)
+        >>> In [3]: nc = len(out_matrix[0]
+        >>> In [4]: nr = len(out_matrix)
+        >>> In [5]: print([[float(out_matrix[ir][ic]) for ic in range(nc)] for ir in range(nr)])
+            [[1.0, 0.0, -2.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        >>> In [6]: print([[float(pivot[nr][nc]) for nc in range(len(pivot[0]))] for nr in range(len(pivot))])
+            [[-1.0, 1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0, 0.0], [-1.0, 0.0, 1.0, 0.0, 0.0],
+            [2.0, -1.0, 0.0, 1.0, 0.0], [-1.0, 0.0, 0.0, 0.0, 1.0]]
+        >>> In [7]: print(pivot_points)
+            [1, 0]
+
+    """
     if isinstance(in_matrix, numpy.ndarray):
         # Check values
         if not (
@@ -223,43 +230,43 @@ def buckingham_theorem(
 ) -> tuple[PositiveParameterSet, list[str]]:
     # noinspection PyUnresolvedReferences
     """Function that returns pi_set dimensionless parameters from a set of physical parameters.
-        The Pi expression is lower integer exponent i.e. Pi1 = x1**2*x2**-1 and not x1**1*x2**-0.5 or x1**4*x2**-2
-        
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        track: Activates information display (default is False)
-        
-        Returns
-        -------
-        pi_set: PositiveParameterSet
-                Defines the k (k<n) dimensionless parameters of the problem 
-        
-        pi_list: [1*k] list of str
-                 The dimensionless parameters' expression
-        
-        Example
-        -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
-        
-        orient repetitive set (using if possible d and l):
-            >>> In [8]: parameter_set.first('d', 'l')
-        
-        search corresponding pi_set:
-            >>> In [9]: (pi_set, pi_list) = buckingham_theorem(parameter_set, True)
-            >>> In [10]: print(pi_set)
-                Chosen repetitive set is: {d, l}
-                pi1: pi1 in [1.666666666666667e-08,9.999999999999999e-05], d**-1.0*u**1.0
-                pi2: pi2 in [16.666666666666668,300.0], d**-1.0*l**1.0
-                pi3: pi3 in [12000.0,1920000.0000000002], d**2.0*e**1.0*f**-1.0
-        
-        Note
-        ----
-        Repetitive parameters are elected as first pivot point in the order of arrival in 
-        parameter set dictionary keys, therefore user can orient repetitive set applying
-        the 'first' method on the parameter set (see example)
-    
+    The Pi expression is lower integer exponent i.e. Pi1 = x1**2*x2**-1 and not x1**1*x2**-0.5 or x1**4*x2**-2
+
+    Parameters
+    ----------
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    track: Activates information display (default is False)
+
+    Returns
+    -------
+    pi_set: PositiveParameterSet
+            Defines the k (k<n) dimensionless parameters of the problem
+
+    pi_list: [1*k] list of str
+             The dimensionless parameters' expression
+
+    Example
+    -------
+    define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+
+    orient repetitive set (using if possible d and l):
+        >>> In [8]: parameter_set.first('d', 'l')
+
+    search corresponding pi_set:
+        >>> In [9]: (pi_set, pi_list) = buckingham_theorem(parameter_set, True)
+        >>> In [10]: print(pi_set)
+            Chosen repetitive set is: {d, l}
+            pi1: pi1 in [1.666666666666667e-08,9.999999999999999e-05], d**-1.0*u**1.0
+            pi2: pi2 in [16.666666666666668,300.0], d**-1.0*l**1.0
+            pi3: pi3 in [12000.0,1920000.0000000002], d**2.0*e**1.0*f**-1.0
+
+    Note
+    ----
+    Repetitive parameters are elected as first pivot point in the order of arrival in
+    parameter set dictionary keys, therefore user can orient repetitive set applying
+    the 'first' method on the parameter set (see example)
+
     """
     pi_set = PositiveParameterSet()
     pi_list = []
@@ -302,11 +309,15 @@ def buckingham_theorem(
                 for i in range(len(exponent_list)):
                     parameter = parameter_set[str(parameter_list[i])]
                     if exponent_list[i] > 0:
+                        # noinspection PyProtectedMember
                         lower_bound = lower_bound * parameter._SI_bounds[0] ** exponent_list[i]
+                        # noinspection PyProtectedMember
                         upper_bound = upper_bound * parameter._SI_bounds[1] ** exponent_list[i]
                         expression += parameter.name + "**" + str(exponent_list[i]) + "*"
                     elif exponent_list[i] < 0:
+                        # noinspection PyProtectedMember
                         lower_bound = lower_bound * parameter._SI_bounds[1] ** exponent_list[i]
+                        # noinspection PyProtectedMember
                         upper_bound = upper_bound * parameter._SI_bounds[0] ** exponent_list[i]
                         expression += parameter.name + "**" + str(exponent_list[i]) + "*"
                 if len(expression) != 0:
@@ -317,6 +328,7 @@ def buckingham_theorem(
                 # Save parameter and expression list
                 # pi_name = pi_name.upper() if bounds[0] == bounds[1] else pi_name
                 # Standardized pi names for stability 17/12/2021
+                # noinspection PyUnusedLocal
                 bounds = [bounds[0]] if bounds[0] == bounds[1] else bounds
                 exec(
                     pi_name
@@ -352,37 +364,37 @@ def automatic_buckingham(
 ) -> tuple[Any, dict[str, Any]]:
     # noinspection PyUnresolvedReferences
     """Function that returns all possible pi_set (with lower exponent) from a set of physical parameters.
-        Based on buckingham_theorem function call.
-        
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        track: Activates information display (default is False)
-        
-        Returns
-        -------
-        combinatory_pi_set: dict of [1*2] tuples 
-                            Stores pi_set at [0] tuple index and Pi expression (str) list at [1] tuple index
-                            
-        alternative_set_dict: dict of str
-                              Stores the alternate expressions for widgets display
-        
-        Example
-        -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
-        
-        search corresponding pi_set:
-            >>> In [7]: combinatory_pi_set = automatic_buckingham(parameter_set, True)
-                [AUTO. BUCKINGHAM] Testing repetitive set 1/120: total alternative pi set size is 1
-                [AUTO. BUCKINGHAM] Testing repetitive set 2/120: total alternative pi set size is 1
-                [AUTO. BUCKINGHAM] Testing repetitive set 3/120: total alternative pi set size is 1
-                ...
-            >>> In [8]: print(combinatory_pi_set[1][0])
-                pi1: pi1 in [1000000.0,2999999999.9999995], l**1.0*u**-1.0
-                pi2: pi2 in [1.2e-10,0.0005333333333333334], e**1.0*f**-1.0*u**2.0
-                pi3: pi3 in [10000.0,59999999.99999999], d**1.0*u**-1.0            
-    
+    Based on buckingham_theorem function call.
+
+    Parameters
+    ----------
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    track: Activates information display (default is False)
+
+    Returns
+    -------
+    combinatory_pi_set: dict of [1*2] tuples
+                        Stores pi_set at [0] tuple index and Pi expression (str) list at [1] tuple index
+
+    alternative_set_dict: dict of str
+                          Stores the alternate expressions for widgets display
+
+    Example
+    -------
+    define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+
+    search corresponding pi_set:
+        >>> In [7]: combinatory_pi_set = automatic_buckingham(parameter_set, True)
+            [AUTO. BUCKINGHAM] Testing repetitive set 1/120: total alternative pi set size is 1
+            [AUTO. BUCKINGHAM] Testing repetitive set 2/120: total alternative pi set size is 1
+            [AUTO. BUCKINGHAM] Testing repetitive set 3/120: total alternative pi set size is 1
+            ...
+        >>> In [8]: print(combinatory_pi_set[1][0])
+            pi1: pi1 in [1000000.0,2999999999.9999995], l**1.0*u**-1.0
+            pi2: pi2 in [1.2e-10,0.0005333333333333334], e**1.0*f**-1.0*u**2.0
+            pi3: pi3 in [10000.0,59999999.99999999], d**1.0*u**-1.0
+
     """
     if isinstance(parameter_set, PositiveParameterSet) and isinstance(track, bool):
         # Extract parameters_list
@@ -443,37 +455,37 @@ def force_buckingham(
 ) -> PositiveParameterSet:
     # noinspection PyUnresolvedReferences
     """Function used to define manually a dimensionless set of parameters.
-        Parameters availability, pi expression and dimension or even pi matrix rank are checked.
-        
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        *pi_list: Defines the Pi dimensionless parameters' expression of the problem
-        
-        Returns
-        -------
-        pi_set: PositiveParameterSet
-                Defines the k (k<n) dimensionless parameters of the problem
-        
-        Example
-        -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
-        
-        force pi set:
-            >>> In [7]: pi_set = force_buckingham(parameter_set, 'l/u', 'e/f*u^2', 'd/u')
-            >>> In [8]: print(pi_set)
-                pi1: pi1 in [1000000.0,2999999999.9999995], u**-1.0*l**1.0
-                pi2: pi2 in [1.2e-10,0.0005333333333333334], u**2.0*f**-1.0*e**1.0
-                pi3: pi3 in [10000.0,59999999.99999999], u**-1.0*d**1.0
-        
-        Note
-        ----
-        The analysis is conducted on Pi dimension, rank of Pi-parameter exponents,
-        global expression and number of Pi compared to dimensional matrix rank and
-        parameters number. 
-        The 'understood expression' is visible by printing pi_set.
-    
+    Parameters availability, pi expression and dimension or even pi matrix rank are checked.
+
+    Parameters
+    ----------
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    *pi_list: Defines the Pi dimensionless parameters' expression of the problem
+
+    Returns
+    -------
+    pi_set: PositiveParameterSet
+            Defines the k (k<n) dimensionless parameters of the problem
+
+    Example
+    -------
+    define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+
+    force pi set:
+        >>> In [7]: pi_set = force_buckingham(parameter_set, 'l/u', 'e/f*u^2', 'd/u')
+        >>> In [8]: print(pi_set)
+            pi1: pi1 in [1000000.0,2999999999.9999995], u**-1.0*l**1.0
+            pi2: pi2 in [1.2e-10,0.0005333333333333334], u**2.0*f**-1.0*e**1.0
+            pi3: pi3 in [10000.0,59999999.99999999], u**-1.0*d**1.0
+
+    Note
+    ----
+    The analysis is conducted on Pi dimension, rank of Pi-parameter exponents,
+    global expression and number of Pi compared to dimensional matrix rank and
+    parameters number.
+    The 'understood expression' is visible by printing pi_set.
+
     """
     if isinstance(pi_list, str):
         pi_list = pi_list
@@ -521,9 +533,8 @@ def force_buckingham(
                         )
                         try:
                             list(sympy_expr.args)
-                        except Exception:  # Most probable, parameter name is sympy function name: hypothesis
-                            # of no simplification
-                            sympy_expr.args = ()
+                        except Exception as ex:  # Most probable, parameter name is sympy function name
+                            logg_exception(ex)
                         if not (len(list(sympy_expr.args)) == 0):
                             list_change = True
                             del parameter_list[idx]
@@ -531,7 +542,8 @@ def force_buckingham(
                                 # Check that argument is not a value
                                 try:
                                     float(str(argument))
-                                except:
+                                except Exception as ex:
+                                    logg_exception(ex)
                                     parameter_list.append(str(argument))
                 # When parsing is stuck because 1/expression is found, replace 1/expression by expression with all
                 # terms power changed
@@ -642,7 +654,8 @@ def force_buckingham(
                             new_parameter = eval(parameter_expression)
                             parameter = new_parameter
                             new_parameter = "*" + new_parameter
-                        except:
+                        except Exception as ex:
+                            logg_exception(ex)
                             # Only one parameter found with no exponent, case .../u-> 1/u -> parameter u
                             new_parameter = "*" + parameter + "**-1"
                         expression = expression.replace(old_parameter, new_parameter)
@@ -659,7 +672,7 @@ def force_buckingham(
                     )
         # Calculate the dimension matrix of the variables
         dimensional_matrix = write_dimensional_matrix(parameter_set)
-        # Extract parameters' coefficient from the PI expression (extracting first bigger parameters'names)
+        # Extract parameters' coefficient from the PI expression (extracting first bigger parameters' names)
         # and write dimension
         parameter_list = numpy.array(list(parameter_set.dictionary.keys()))
         parameter_length = numpy.array([])
@@ -704,6 +717,7 @@ def force_buckingham(
                     pi_parameters[pi_number, parameter_list.index(parameter)] = exponent
                     if len(bounds) == 0:
                         if exponent < 0:
+                            # noinspection PyProtectedMember
                             bounds = (
                                 numpy.array(
                                     [
@@ -714,9 +728,11 @@ def force_buckingham(
                                 ** exponent
                             )
                         else:
+                            # noinspection PyProtectedMember
                             bounds = numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
                     else:
                         if exponent < 0:
+                            # noinspection PyProtectedMember
                             bounds = bounds * (
                                 numpy.array(
                                     [
@@ -727,6 +743,7 @@ def force_buckingham(
                                 ** exponent
                             )
                         else:
+                            # noinspection PyProtectedMember
                             bounds = bounds * (
                                 numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
                             )
@@ -742,8 +759,8 @@ def force_buckingham(
             )
             try:
                 pi_exponents = pi_exponents.drop(columns=["dimensionless"])
-            except:
-                pass
+            except Exception as ex:
+                logg_exception(ex)
             # noinspection PyUnresolvedReferences
             pi_exponents = pi_exponents.values.tolist()[0]
             if numpy.sum(numpy.abs(pi_exponents)) != 0:
@@ -795,38 +812,38 @@ def force_buckingham(
 
 # -------[Define function translating x into pi]--------------------------------
 def declare_func_x_to_pi(parameters_set: PositiveParameterSet, pi_set: PositiveParameterSet):
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,GrazieInspection
     """Functions that declare pi=f(x) to transform parameters set values into pi set values.
-        
-        Parameters
-        ----------
-        parameters_set: Defines the n physical parameters for the studied problem
-        
-        pi_set: Defines the k (k<n) dimensionless parameters of the problem
-        
-        Returns
-        -------
-        f: function
-            a function of x, **x** being a [m*n] numpy.array of float representing physical parameters values
-            which returns a [m*k] numpy.array of float corresponding to the dimensionless parameters values
-        
-        Example
-        -------
-        define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
-        
-        define pi set using buckingham:
-            >>> In [7]: pi_set, _ = buckingham_theorem(parameter_set, False)
-        
-        set x values:
-            >>> In [8]: x = [[1, 1.5, 2, 3, 5],[0.1, 2, 1, 2, 1],[2, 1, 3, 1.5, 2]]
-        
-        declare function and compute y values:
-            >>> In [9]: func_x_to_pi = declare_func_x_to_pi(parameter_set, pi_set)
-            >>> In [10]: func_x_to_pi(x)
-                array([[ 2.  ,  2.  ,  5.  ],
-                       [10.  ,  0.01, 10.  ],
-                       [ 1.5 ,  6.  ,  1.  ]])
-            
+
+    Parameters
+    ----------
+    parameters_set: Defines the n physical parameters for the studied problem
+
+    pi_set: Defines the k (k<n) dimensionless parameters of the problem
+
+    Returns
+    -------
+    f: function
+        a function of x, **x** being a [m*n] numpy.ndarray of float representing physical parameters values
+        which returns a [m*k] numpy.ndarray of float corresponding to the dimensionless parameters values
+
+    Example
+    -------
+    define a positive set first, see: :func:`~pyvplm.addon.variablepowerlaw.write_dimensional_matrix`
+
+    define pi set using buckingham:
+        >>> In [7]: pi_set, _ = buckingham_theorem(parameter_set, False)
+
+    set x values:
+        >>> In [8]: x = [[1, 1.5, 2, 3, 5],[0.1, 2, 1, 2, 1],[2, 1, 3, 1.5, 2]]
+
+    declare function and compute y values:
+        >>> In [9]: func_x_to_pi = declare_func_x_to_pi(parameter_set, pi_set)
+        >>> In [10]: func_x_to_pi(x)
+            array([[ 2.  ,  2.  ,  5.  ],
+                   [10.  ,  0.01, 10.  ],
+                   [ 1.5 ,  6.  ,  1.  ]])
+
     """
     if isinstance(parameters_set, PositiveParameterSet) and isinstance(
         pi_set, PositiveParameterSet
@@ -896,20 +913,20 @@ def declare_func_x_to_pi(parameters_set: PositiveParameterSet, pi_set: PositiveP
 # -------[Define function calculating constraints]------------------------------
 def declare_constraints(parameters_set: PositiveParameterSet, constraint_set: ConstraintSet):
     """Functions that declare constraint=f(X_doe)/f(PI_doe) to return validity of a DoE set .
-        
-        Parameters
-        ----------
-        parameters_set: Defines the n physical/dimensionless parameters (be careful to share set
-        with pixdoe.create_const_doe)
-        
-        constraint_set: Defines the constraints that apply on the parameters from parameters_set
-        
-        Returns
-        -------
-        f: function
-            a function of X, **X** being a [m*k] (k<=n) numpy.ndarray of float representing parameters values
-            which returns a [m*1] numpy.ndarray of bool corresponding to the DoE validity
-            
+
+    Parameters
+    ----------
+    parameters_set: Defines the n physical/dimensionless parameters (be careful to share set
+    with pixdoe.create_const_doe)
+
+    constraint_set: Defines the constraints that apply on the parameters from parameters_set
+
+    Returns
+    -------
+    f: function
+        a function of X, **X** being a [m*k] (k<=n) numpy.ndarray of float representing parameters values
+        which returns a [m*1] numpy.ndarray of bool corresponding to the DoE validity
+
     """
     if isinstance(parameters_set, PositiveParameterSet) and isinstance(
         constraint_set, ConstraintSet
@@ -957,86 +974,86 @@ def declare_constraints(parameters_set: PositiveParameterSet, constraint_set: Co
 def regression_models(
     doe: numpy.ndarray, elected_pi0: str, order: int, **kwargs
 ) -> Union[tuple[dict, Any, Any], dict]:
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyShadowingNames,GrazieInspection
     """Functions that calculate the regression model coefficient with increasing model complexity.
-        The added terms for complexity increase are sorted depending on their regression coefficient value
-        on standardized pi.
-        For more information on regression see Scipy linalg method :func:`~scipy.linalg.lstsq`
-        
-        Parameters
-        ----------
-        doe: [m*k] numpy.array of float or int
-             Represents the elected feasible constrained sets of m experiments values expressed over
-             the k dimensionless parameters
-        
-        elected_pi0: Selected pi for regression: syntax is 'pin' with n>=1 and n<=k
-        
-        order: Model order >=1
-               * Order 2 in log_space=True is :
-                   log(pi0) = log(cst) + a1*log(pi1) + a11*log(pi1)**2 + a12*log(pi1)*log(pi2) + a2*log(pi2)
-                   + a22*log(pi2)**2
-               * Order 2 in log_space=False is :
-                   pi0 = cst + a1*pi1 + a11*pi1**2 + a12*pi1*pi2 + a2*pi2 + a22*pi2
-        
-        **kwargs: additional argumens 
-                  * **ymax_axis** (*float*): set y-axis maximum value representing relative error, 100=100%
-                  (default value)
-                  * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space
-                  (True) or linear (False)
-                  * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some
-                  issues if used
-                  * **plots** (*bool*): overrules test_mode and allows showing plots
-                  * **skip_cross_validation** (**bool**): for a big amount of data (data nb > 10 * nb models) you may
-                  want to skip cross-validation
-                  for time-calculation purpose, in that case only a trained dataset is calculated and error calculation
-                  is only performed on trained set
-                  (default is False).
-                  * **force_choice** (*int*): forces the choice of the regression criteria (1 => max(abs(error)), ... )
-                  * **removed_pi** (*list*): list of indexes of removed pi to be ignored
-                  * **eff_pi0** (*int*): effective pi0 index in the modfied DOE (used only with removed_pi)
-                  * **return_axes** (*bool*): returns the axes objects for the plots if True (default is False)
-                  * **fig_size** (*tuple*): tuple of 2 numbers specifying the width and height of the plot in inches
-        Returns
-        -------
-        models: dict of [1*4] tuple
-                Stores the different regression models information as for model 'i':
-                    * dict[i][0]: str of the model expression
-                    * dict[i][1]: numpy.ndarray of the regression coefficients
-                    * dict[i][2]: pandas.DataFrame of the trained set (**max abs(e)**, **average abs(e)**,
-                    **average e** and **sigma e**)
-                    * dict[i][3]: pandas.DataFrame of the tested set (**max abs(e)**, **average abs(e)**,
-                    **average e** and **sigma e**)
-                    
-                    Where **e** represents the relative error on elected_pi0>0 in %
-                    
-                Additional data is saved in:
-                    * dict['max abs(e)']: (1*2) tuple containing trained and test sets max absolute relative error
-                    * dict['ave. abs(e)']: (1*2) tuple containing trained and test sets average absolute relative error
-                    * dict['ave. e']: (1*2) tuple containing trained and test sets average relative error
-                    * dict['sigma e']: (1*2) tuple containing trained and test sets standard deviation on relative error
-        
-        Example
-        -------
-        to define the parameter and pi sets and generate DOE: to define the parameter and pi sets refer to:
-        :func:`~pyvplm.addon.variablepowerlaw.reduce_parameter_set`
-        
-        generate mathematic relation between Pi parameters knowing pi1=l/u and following formulas:  
-            >>> In [14]: PI2 = doeX['e']*(1/doeX['f'])* doeX['u']**2
-            >>> In [15]: PI3 = doeX['d']*(1/doeX['u'])
-            >>> In [16]: PI1 = numpy.zeros(len(PI2))
-            >>> In [17]: for i in range(len(PI1)):
-            >>>     ...:        PI1[i] = (10**2.33)*
-            >>>     ...:        (PI2[i]**(1.35+0.17*numpy.log10(PI2[i])+0.042*numpy.log10(PI3[i])))*
-            >>>     ...:        (PI3[i]**-0.25) + (random.random()-0.5)/1000000
-            >>> In [18]: l_values = PI1 * doeX['u']
-            >>> In [19]: doeX['l'] = l_values   
-            >>> In [20]: doeX = doeX[list(parameter_set.dictionary.keys())]
-            >>> In [21]: func_x_to_pi = declare_func_x_to_pi(parameter_set, pi_set)
-            >>> In [22]: doePI = func_x_to_pi(doeX.values)
-            >>> In [23]: models = regression_models(doePI, 'pi1', 3)
-                
-            .. image:: ../source/_static/Pictures/variablepowerlaw_regression_models1.png
-  
+    The added terms for complexity increase are sorted depending on their regression coefficient value
+    on standardized pi.
+    For more information on regression see Scipy linalg method :func:`~scipy.linalg.lstsq`
+
+    Parameters
+    ----------
+    doe: [m*k] numpy.ndarray of float or int
+         Represents the elected feasible constrained sets of m experiments values expressed over
+         the k dimensionless parameters
+
+    elected_pi0: Selected pi for regression: syntax is 'pin' with n>=1 and n<=k
+
+    order: Model order >=1
+           * Order 2 in log_space=True is :
+               log(pi0) = log(cst) + a1*log(pi1) + a11*log(pi1)**2 + a12*log(pi1)*log(pi2) + a2*log(pi2)
+               + a22*log(pi2)**2
+           * Order 2 in log_space=False is :
+               pi0 = cst + a1*pi1 + a11*pi1**2 + a12*pi1*pi2 + a2*pi2 + a22*pi2
+
+    **kwargs: additional argumens
+              * **ymax_axis** (*float*): set y-axis maximum value representing relative error, 100=100%
+              (default value)
+              * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space
+              (True) or linear (False)
+              * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some
+              issues if used
+              * **plots** (*bool*): overrules test_mode and allows showing plots
+              * **skip_cross_validation** (**bool**): for a big amount of data (data nb > 10 * nb models) you may
+              want to skip cross-validation
+              for time-calculation purpose, in that case only a trained dataset is calculated and error calculation
+              is only performed on trained set
+              (default is False).
+              * **force_choice** (*int*): forces the choice of the regression criteria (1 => max(abs(error)), ... )
+              * **removed_pi** (*list*): list of indexes of removed pi to be ignored
+              * **eff_pi0** (*int*): effective pi0 index in the modfied DOE (used only with removed_pi)
+              * **return_axes** (*bool*): returns the axes objects for the plots if True (default is False)
+              * **fig_size** (*tuple*): tuple of 2 numbers specifying the width and height of the plot in inches
+    Returns
+    -------
+    models: dict of [1*4] tuple
+            Stores the different regression models information as for model 'i':
+                * dict[i][0]: str of the model expression
+                * dict[i][1]: numpy.ndarray of the regression coefficients
+                * dict[i][2]: pandas.DataFrame of the trained set (**max abs(e)**, **average abs(e)**,
+                **average e** and **sigma e**)
+                * dict[i][3]: pandas.DataFrame of the tested set (**max abs(e)**, **average abs(e)**,
+                **average e** and **sigma e**)
+
+                Where **e** represents the relative error on elected_pi0>0 in %
+
+            Additional data is saved in:
+                * dict['max abs(e)']: (1*2) tuple containing trained and test sets max absolute relative error
+                * dict['ave. abs(e)']: (1*2) tuple containing trained and test sets average absolute relative error
+                * dict['ave. e']: (1*2) tuple containing trained and test sets average relative error
+                * dict['sigma e']: (1*2) tuple containing trained and test sets standard deviation on relative error
+
+    Example
+    -------
+    to define the parameter and pi sets and generate DOE: to define the parameter and pi sets refer to:
+    :func:`~pyvplm.addon.variablepowerlaw.reduce_parameter_set`
+
+    generate mathematic relation between Pi parameters knowing pi1=l/u and following formulas:
+        >>> In [14]: PI2 = doeX['e']*(1/doeX['f'])* doeX['u']**2
+        >>> In [15]: PI3 = doeX['d']*(1/doeX['u'])
+        >>> In [16]: PI1 = numpy.zeros(len(PI2))
+        >>> In [17]: for idx in range(len(PI1)):
+        >>>     ...:        PI1[idx] = (10**2.33)*
+        >>>     ...:        (PI2[idx]**(1.35+0.17*numpy.log10(PI2[idx])+0.042*numpy.log10(PI3[idx])))*
+        >>>     ...:        (PI3[idx]**-0.25) + (random.random()-0.5)/1000000
+        >>> In [18]: l_values = PI1 * doeX['u']
+        >>> In [19]: doeX['l'] = l_values
+        >>> In [20]: doeX = doeX[list(parameter_set.dictionary.keys())]
+        >>> In [21]: func_x_to_pi = declare_func_x_to_pi(parameter_set, pi_set)
+        >>> In [22]: doePI = func_x_to_pi(doeX.values)
+        >>> In [23]: models = regression_models(doePI, 'pi1', 3)
+
+        .. image:: ../source/_static/Pictures/variablepowerlaw_regression_models1.png
+
     """
     if isinstance(doe, numpy.ndarray) and isinstance(elected_pi0, str) and isinstance(order, int):
         # Check values
@@ -1202,7 +1219,8 @@ def regression_models(
                 choice = 2
             try:
                 choice = int(choice)
-            except Exception:
+            except Exception as ex:
+                logg_exception(ex)
                 choice = 5
             while not ((choice > 0) and (choice <= 4)):
                 print("error: input choice should be in list.")
@@ -1211,7 +1229,8 @@ def regression_models(
                     choice = 2
                 try:
                     choice = int(choice)
-                except:
+                except Exception as ex:
+                    logg_exception(ex)
                     choice = 5
         else:
             if force_choice == 0:
@@ -1225,10 +1244,13 @@ def regression_models(
             x_remaining = x_remaining.drop(columns=ordered_labels)
             available_labels = x_remaining.columns.values.tolist()
             best_criteria = float("Inf")
+            # noinspection PyUnresolvedReferences
             best_label = available_labels[0]
+            # noinspection PyTypeChecker
             for idx in range(len(available_labels)):
                 # select new column
                 values = X[ordered_labels]
+                # noinspection PyUnresolvedReferences
                 values[available_labels[idx]] = x_remaining[available_labels[idx]]
                 values = values.values
                 # calculate regression coefficients
@@ -1236,8 +1258,8 @@ def regression_models(
                 # calculate error on trained set
                 y_pred = numpy.dot(values, coeff)
                 if log_space:
-                    y_pred = 10.0 ** y_pred
-                    y_data = 10.0 ** Y
+                    y_pred = 10.0**y_pred
+                    y_data = 10.0**Y
                 else:
                     y_data = Y
                 y_data += (
@@ -1256,6 +1278,7 @@ def regression_models(
                 # save label if best candidate
                 if local_criteria < best_criteria:
                     best_criteria = local_criteria
+                    # noinspection PyUnresolvedReferences
                     best_label = available_labels[idx]
             ordered_labels.append(best_label)
         # Re-order labels/DoE
@@ -1271,8 +1294,8 @@ def regression_models(
                 coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
                 y_pred = numpy.dot(values, coeff)
                 if log_space:
-                    y_pred = 10.0 ** y_pred
-                    y_data = 10.0 ** Y
+                    y_pred = 10.0**y_pred
+                    y_data = 10.0**Y
                 else:
                     y_data = Y
                 y_data += (
@@ -1289,7 +1312,7 @@ def regression_models(
                     if test_idx == (numpy.shape(values)[0] - 1):
                         y_pred = numpy.dot(numpy.delete(values, test_idx, 0), coeff)
                         if log_space:
-                            y_pred = 10.0 ** y_pred
+                            y_pred = 10.0**y_pred
                             y_data = 10.0 ** numpy.delete(Y, test_idx, 0)
                         else:
                             y_data = numpy.delete(Y, test_idx, 0)
@@ -1300,7 +1323,7 @@ def regression_models(
                     # Calculate and save the error on the tested point (cross-validation)
                     y_pred = numpy.dot(values[test_idx, :], coeff)
                     if log_space:
-                        y_pred = 10.0 ** y_pred
+                        y_pred = 10.0**y_pred
                         y_data = 10.0 ** Y[test_idx]
                     else:
                         y_data = Y[test_idx]
@@ -1455,11 +1478,11 @@ def regression_models(
                 if not os.path.isdir(temp_path):
                     try:
                         os.mkdir(temp_path)
-                    except Exception:
-                        pass
+                    except Exception as ex:
+                        logg_exception(ex)
                 plot.savefig(temp_path + "regression_models.pdf", dpi=1200, format="pdf")
-            except Exception:
-                pass
+            except Exception as ex:
+                logg_exception(ex)
         if not test_mode:
             plot.show()
         # De-activate latex render on plot
@@ -1487,25 +1510,25 @@ def regression_models(
 def concatenate_expression(expression: str, pi_list: list[str]) -> str:
     # noinspection PyUnresolvedReferences
     """Function that transform regression model expression into latex form with concatenation (only for power-laws).
-        
-        Parameters
-        ----------
-        expression: Expression of the regression model
-        
-        pi_list: Defines the pi expressions (default is pi1, pi2...)
 
-        Returns
-        -------
-        new_expression: Represents the new model formula in latex form
-        
-        Example
-        -------
-        define expression and list:
-            >>> In [1]: expression = 'log(pi1) = 2.33011+1.35000*log(pi2)-0.25004*log(pi3)+0.04200*log(pi2)*log(pi3)+'
-            >>>    ...: '0.17000*log(pi2)**2'
-            >>> In [2]: pi_list = ['\\pi_{1}','\\pi_{2}','\\pi_{3}']
-        adapt expression:
-            concatenate_expression(expression, pi_list)
+    Parameters
+    ----------
+    expression: Expression of the regression model
+
+    pi_list: Defines the pi expressions (default is pi1, pi2...)
+
+    Returns
+    -------
+    new_expression: Represents the new model formula in latex form
+
+    Example
+    -------
+    define expression and list:
+        >>> In [1]: expression = 'log(pi1) = 2.33011+1.35000*log(pi2)-0.25004*log(pi3)+0.04200*log(pi2)*log(pi3)+'
+        >>>    ...: '0.17000*log(pi2)**2'
+        >>> In [2]: pi_list = ['\\pi_{1}','\\pi_{2}','\\pi_{3}']
+    adapt expression:
+        concatenate_expression(expression, pi_list)
 
     """
     pi_numbers = []
@@ -1546,7 +1569,8 @@ def concatenate_expression(expression: str, pi_list: list[str]) -> str:
                                         + 2 : local_expression.index("*", idx + len(pi_name) + 2)
                                     ]
                                 )
-                            except:
+                            except Exception as ex:
+                                logg_exception(ex)
                                 exponent = int(
                                     local_expression[idx + len(pi_name) + 2 : len(local_expression)]
                                 )
@@ -1607,48 +1631,48 @@ def adapt_parameter_set(
 ) -> tuple[PositiveParameterSet, PositiveParameterSet, DataFrame]:
     # noinspection PyUnresolvedReferences
     """Function that transform physical parameters' problem (and corresponding DOE) after FEM calculation.
-        
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        pi_set: Defines the k (k<n) dimensionless parameters of the problem
-        
-        doe_x: DOE of the parameter_set in SI units (column names should be of the form 'parameter_i')
-        
-        replaced_parameter: Name of the replaced parameter (should not be a repetitive term, i.e. present in only
-        one PI (PI0) term to ensure proper PI spacing)
-        
-        new_parameter: Name of new parameter (units has to be identical to replaced parameter)
-        
-        expression: Relation between old and new parameter if x_new = 2*x_old+3*other_parameter,
-        write '2*x_old+3*other_parameter'
-        
-        description: Saved description for new parameter
-        
-        Returns
-        -------
-        new_parameter_set: Represents the new physical problem
-        
-        new_pi_set: Dimensionless parameters set derived from pi_set replacing parameter
-        
-        new_doeX: Computed DOE from doeX using expression (relation between parameters)
-        
-        Example
-        -------
-        to define the parameter, pi sets and calculate DOE refer to:
-        :func:`~pyvplm.addon.variablepowerlaw.regression_models`
-        
-        save DOE into dataframe:
-            >>> In [9]: labels = list(parameter_set.dictionary.keys())
-            >>> In [10]: doe_x = pandas.DataFrame(doe_x, columns=labels)
-        
-        then imagine you want to replace one parameter (after FEM simulation):
-            >>> In [11]: (new_parameter_set, new_pi_set, new_doeX)
-            >>>     ...: = adapt_parameter_set(parameter_set, pi_set, doe_x, 'd', 'd_out', 'd+2*e', 'outer diameter')
-            
-        you are able to perform new regression calculation!
-        
+
+    Parameters
+    ----------
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    pi_set: Defines the k (k<n) dimensionless parameters of the problem
+
+    doe_x: DOE of the parameter_set in SI units (column names should be of the form 'parameter_i')
+
+    replaced_parameter: Name of the replaced parameter (should not be a repetitive term, i.e. present in only
+    one PI (PI0) term to ensure proper PI spacing)
+
+    new_parameter: Name of new parameter (units has to be identical to replaced parameter)
+
+    expression: Relation between old and new parameter if x_new = 2*x_old+3*other_parameter,
+    write '2*x_old+3*other_parameter'
+
+    description: Saved description for new parameter
+
+    Returns
+    -------
+    new_parameter_set: Represents the new physical problem
+
+    new_pi_set: Dimensionless parameters set derived from pi_set replacing parameter
+
+    new_doeX: Computed DOE from doeX using expression (relation between parameters)
+
+    Example
+    -------
+    to define the parameter, pi sets and calculate DOE refer to:
+    :func:`~pyvplm.addon.variablepowerlaw.regression_models`
+
+    save DOE into dataframe:
+        >>> In [9]: labels = list(parameter_set.dictionary.keys())
+        >>> In [10]: doe_x = pandas.DataFrame(doe_x, columns=labels)
+
+    then imagine you want to replace one parameter (after FEM simulation):
+        >>> In [11]: (new_parameter_set, new_pi_set, new_doeX)
+        >>>     ...: = adapt_parameter_set(parameter_set, pi_set, doe_x, 'd', 'd_out', 'd+2*e', 'outer diameter')
+
+    you are able to perform new regression calculation!
+
     """
     if (
         isinstance(parameter_set, PositiveParameterSet)
@@ -1694,7 +1718,8 @@ def adapt_parameter_set(
         expression_1 = expression_1.replace("[]", "doeX.values")
         try:
             values = eval(expression_1)
-        except:
+        except Exception as ex:
+            logg_exception(ex)
             raise SyntaxError("expression syntax is not correct.")
         # Check new parameter values
         if numpy.amin(values) <= 0:
@@ -1704,9 +1729,9 @@ def adapt_parameter_set(
                 )
             )
         # Check expression dimension
-        ureg = pint.UnitRegistry()
         for idx in range(len(parameter_list)):
             parameter_name = parameter_list[idx]
+            # noinspection PyProtectedMember
             exec(
                 parameter_name
                 + "="
@@ -1715,12 +1740,14 @@ def adapt_parameter_set(
             )
         try:
             value = eval(expression)
-        except:
+        except Exception:
             raise SyntaxError("expression syntax is not correct: units not homogenous.")
+        # noinspection PyProtectedMember
         if value.units != parameter_set[replaced_parameter]._SI_units:
             raise ValueError("replaced and new parameters should have the same dimension.")
         # Save new parameter and parameter set
         new_parameter_set = copy.deepcopy(parameter_set)
+        # noinspection PyUnusedLocal
         bounds = [numpy.amin(values), numpy.amax(values)]
         exec(
             new_parameter
@@ -1803,36 +1830,36 @@ def adapt_parameter_set(
 def reduce_parameter_set(
     parameter_set: PositiveParameterSet, pi_set: PositiveParameterSet, elected_output: str
 ) -> tuple[PositiveParameterSet, PositiveParameterSet]:
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyShadowingNames
     """Function that reduces physical parameters and Pi set extracting output physical parameter and Pi0.
-        
-        Parameters
-        ----------
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        pi_set: Defines the k (k<n) dimensionless parameters of the problem
-               
-        elected_output: Parameter that represents FEM output
-        
-        Returns
-        -------
-        reduced_parameter_set: Parameter set reduced by elected_output
-        
-        reduced_pi_set: Pi set reduced by Pi0 (dimensionless parameter countaining output parameter)
-        
-        Example
-        -------
-        to define the parameter and pi sets refer to: :func:`~pyvplm.addon.variablepowerlaw.buckingham_theorem`
-        
-        reduce sets considering 'u' is the output:
-            >>> In [9]: reduced_parameter_set, reduced_pi_set = reduce_parameter_set(parameter_set, pi_set, 'u')
-        
-        then declare transformation function and create DOE:
-            >>> In [10]: func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
-            >>> In [11]: from pyvplm.addon.pixdoe import create_const_doe
-            >>> In [12]: doeX, _ = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 50)
-            >>> In [13]: doeX = pandas.DataFrame(doeX, columns=list(reduced_parameter_set.dictionary.keys()))
-    
+
+    Parameters
+    ----------
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    pi_set: Defines the k (k<n) dimensionless parameters of the problem
+
+    elected_output: Parameter that represents FEM output
+
+    Returns
+    -------
+    reduced_parameter_set: Parameter set reduced by elected_output
+
+    reduced_pi_set: Pi set reduced by Pi0 (dimensionless parameter countaining output parameter)
+
+    Example
+    -------
+    to define the parameter and pi sets refer to: :func:`~pyvplm.addon.variablepowerlaw.buckingham_theorem`
+
+    reduce sets considering 'u' is the output:
+        >>> In [9]: reduced_parameter_set, reduced_pi_set = reduce_parameter_set(parameter_set, pi_set, 'u')
+
+    then declare transformation function and create DOE:
+        >>> In [10]: func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
+        >>> In [11]: from pyvplm.addon.pixdoe import create_const_doe
+        >>> In [12]: doeX, _ = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 50)
+        >>> In [13]: doeX = pandas.DataFrame(doeX, columns=list(reduced_parameter_set.dictionary.keys()))
+
     """
     if (
         isinstance(parameter_set, PositiveParameterSet)
@@ -1845,13 +1872,11 @@ def reduce_parameter_set(
         reduced_pi_set = copy.deepcopy(pi_set)
         # Look into PI expression to see if parameter appears only into one of them
         parameter_list = numpy.array(list(parameter_set.dictionary.keys()))
-        parameter_index = numpy.array(range(len(parameter_list))).astype(int)
         parameter_length = numpy.array([]).astype(int).astype(int)
         # noinspection PyTypeChecker
         for parameter in parameter_list.tolist():
             parameter_length = numpy.append(parameter_length, len(parameter))
         parameter_list = parameter_list[numpy.argsort(-1 * parameter_length)].tolist()
-        parameter_index = parameter_index[numpy.argsort(-1 * parameter_length)].tolist()
         pi_list = list(pi_set.dictionary.keys())
         parameter_in_expression = numpy.zeros(len(pi_list)).astype(bool)
         for idx in range(len(pi_list)):
@@ -1885,20 +1910,20 @@ def reduce_parameter_set(
 # -------[Define function to import saved doe Dataframe]------------------------
 def import_csv(file_name: str, parameter_set: PositiveParameterSet):
     """Function to import .CSV with column label syntax as 'param_name' or 'param_name [units]'.
-        Auto-adaptation to SI-units is performed and parameters out of set are ignored/deleted.
-        
-        Parameters
-        ----------
-        file_name: Name of the saved file with path (example: file_name = './subfolder/name')
-        
-        parameter_set: Defines the n physical parameters for the studied problem
-        
+    Auto-adaptation to SI-units is performed and parameters out of set are ignored/deleted.
+
+    Parameters
+    ----------
+    file_name: Name of the saved file with path (example: file_name = './subfolder/name')
+
+    parameter_set: Defines the n physical parameters for the studied problem
+
     """
     if isinstance(parameter_set, PositiveParameterSet):
         # Load file
         try:
             doe_x = pandas.read_csv(file_name, sep=";")
-        except:
+        except Exception:
             raise SyntaxError("Unable to load file!")
         # Get parameter name and units: column name is either 'parameter_name' or parameter_name [units]'
         parameter_list = list(doe_x.columns.values)
@@ -1923,7 +1948,9 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
                 if units_list[idx] != "SI":
                     try:
                         value = Q_(1, units_list[idx]).to_base_units()
+                        # noinspection PyProtectedMember
                         if str(value.units) != parameter_set[parameter]._SI_units:
+                            # noinspection PyProtectedMember
                             raise ValueError(
                                 "dimensions mismatch for parameter {}, {} found instead of {}.".format(
                                     parameter, str(value.units), parameter_set[parameter]._SI_units
@@ -1932,12 +1959,13 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
                         else:
                             # Overwrite parameter column with SI units values
                             values = doe_x[parameter + " [" + units_list[idx] + "]"]
-                            for idx in range(len(values)):
-                                value = Q_(values[idx], units_list[idx]).to_base_units()
-                                values[idx] = value.magnitude
+                            for i in range(len(values)):
+                                value = Q_(values[i], units_list[idx]).to_base_units()
+                                values[i] = value.magnitude
                             doe_x[parameter] = values
                             doe_x = doe_x.drop(parameter + " [" + units_list[idx] + "]", axis=1)
-                    except:
+                    except Exception as ex:
+                        logg_exception(ex)
                         warnings.warn(
                             "parameter {} units defined in file are unreadable, SI units are applied!".format(
                                 parameter
@@ -1963,18 +1991,18 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
 # -------[Define function to save doe Dataframe]--------------------------------
 def save_csv(doe_x: ndarray, file_name: str, parameter_set: PositiveParameterSet, is_SI: bool):
     """Function to save .CSV with column label syntax as 'param_name [units]'.
-        With units either defined by user or SI (is_SI, True by default).
-        
-        Parameters
-        ----------
-        doe_x: DOE of the parameter_set either in defined_units or SI units
-        
-        file_name: Name of the saved file with path (example: file_name = './subfolder/name')
-        
-        parameter_set: Defines the n physical parameters for the studied problem
-        
-        is_SI: Define if parameters values are expressed in SI units or units defined by user
-        
+    With units either defined by user or SI (is_SI, True by default).
+
+    Parameters
+    ----------
+    doe_x: DOE of the parameter_set either in defined_units or SI units
+
+    file_name: Name of the saved file with path (example: file_name = './subfolder/name')
+
+    parameter_set: Defines the n physical parameters for the studied problem
+
+    is_SI: Define if parameters values are expressed in SI units or units defined by user
+
     """
     if (
         isinstance(doe_x, numpy.ndarray)
@@ -1984,12 +2012,13 @@ def save_csv(doe_x: ndarray, file_name: str, parameter_set: PositiveParameterSet
     ):
         # Check that data array and parameter set have same size
         if numpy.shape(doe_x)[1] != len(list(parameter_set.dictionary.keys())):
-            raise ValueError("data dimension mismatch parameter_set keys'number")
+            raise ValueError("data dimension mismatch parameter_set keys' number")
         # Check that values are in defined bounds
         key_list = list(parameter_set.dictionary.keys())
         for idx in range(numpy.shape(doe_x)[1]):
             max_value = numpy.amax(doe_x[:, idx])
             min_value = numpy.amin(doe_x[:, idx])
+            # noinspection PyProtectedMember
             bounds = (
                 parameter_set[key_list[idx]]._SI_bounds
                 if is_SI
@@ -2003,6 +2032,7 @@ def save_csv(doe_x: ndarray, file_name: str, parameter_set: PositiveParameterSet
         labels = []
         for key in parameter_set.dictionary.keys():
             if is_SI:
+                # noinspection PyProtectedMember
                 labels.append(str(key) + " [" + parameter_set[key]._SI_units + "]")
             else:
                 labels.append(str(key) + " [" + parameter_set[key].defined_units + "]")
@@ -2012,7 +2042,8 @@ def save_csv(doe_x: ndarray, file_name: str, parameter_set: PositiveParameterSet
             file_name += ".csv"
             doe_x.to_csv(file_name, sep=";", index=False)
             print("\n" + file_name + " file created with success...")
-        except:
+        except Exception as ex:
+            logg_exception(ex)
             print(file_name + " file not created, check file_name syntax")
     else:
         if not (isinstance(doe_x, numpy.ndarray)):
@@ -2029,39 +2060,39 @@ def save_csv(doe_x: ndarray, file_name: str, parameter_set: PositiveParameterSet
 def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
     # noinspection PyUnresolvedReferences
     """Function to perform regresion using models expression form (with replaced coefficients).
-        
-        Parameters
-        ----------
-        doe_pi: numpy.ndarray
-               DOE of the pi_set
-        
-        models: specific 
-                Output of :func:`~pyvplm.addon.variablepowerlaw`.
-        
-        chosen_model: int
-                       The elected regression model number
-        
-        **kwargs: additional argumens 
-                  * **pi_list** (*list* of *str*): the name/expression of pi (default is pi1, pi2, pi3...)
-                  * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some
-                  issues if used
-                  * **removed_pi** (**list**): list of indexes of removed pi numbers
-                  * **max_pi_nb** (*int*): maximum potential pi number that could appear in any expression (only useful
-                  if some pi mubers have been removed)
-                  * **eff_pi_0** (*int*): effective pi0 index in pi_list (used only if some pi numbers have
-                  been removed)
-                  * **no_plots** (*bool*): for GUI use, will return Y and Yreg as well as expression and
-                  latex_expression, will not plot anything
 
-        Example
-        -------
-        to define regression models refer to: :func:`~pyvplm.addon.variablepowerlaw.regression_models`
-        
-        then perform regression on model n°8 to show detailed results on model fit and error:
-                >>> In[24]: perform_regression(doe_pi, models, chosen_model=8)
-                
-                .. image:: ../source/_static/Pictures/variablepowerlaw_perform_regression1.png
-        
+    Parameters
+    ----------
+    doe_pi: numpy.ndarray
+           DOE of the pi_set
+
+    models: specific
+            Output of :func:`~pyvplm.addon.variablepowerlaw`.
+
+    chosen_model: int
+                   The elected regression model number
+
+    **kwargs: additional argumens
+              * **pi_list** (*list* of *str*): the name/expression of pi (default is pi1, pi2, pi3...)
+              * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some
+              issues if used
+              * **removed_pi** (**list**): list of indexes of removed pi numbers
+              * **max_pi_nb** (*int*): maximum potential pi number that could appear in any expression (only useful
+              if some pi mubers have been removed)
+              * **eff_pi_0** (*int*): effective pi0 index in pi_list (used only if some pi numbers have
+              been removed)
+              * **no_plots** (*bool*): for GUI use, will return Y and Yreg as well as expression and
+              latex_expression, will not plot anything
+
+    Example
+    -------
+    to define regression models refer to: :func:`~pyvplm.addon.variablepowerlaw.regression_models`
+
+    then perform regression on model n°8 to show detailed results on model fit and error:
+            >>> In[24]: perform_regression(doe_pi, models, chosen_model=8)
+
+            .. image:: ../source/_static/Pictures/variablepowerlaw_perform_regression1.png
+
     """
     if isinstance(doe_pi, numpy.ndarray) and isinstance(chosen_model, int):
         test_mode = False
@@ -2135,7 +2166,8 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
         for key in models.keys():
             try:
                 max_value = max(max_value, int(key))
-            except:
+            except Exception as ex:
+                logg_exception(ex)
                 break
         if chosen_model > max_value:
             raise KeyError("chosen_model should be <={}.".format(max_value))
@@ -2147,7 +2179,8 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
             expression_latex = concatenate_expression(expression, pi_list)
             if not test_mode:
                 display(Latex(expression_latex))
-        except:
+        except Exception as ex:
+            logg_exception(ex)
             expression_latex = "error"
             if not test_mode:
                 print(expression + "\n")
@@ -2156,13 +2189,13 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
             if not os.path.isdir(temp_path):
                 try:
                     os.mkdir(temp_path)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logg_exception(ex)
             hs = open(temp_path + "latex_formula.txt", "a")
             hs.write(expression_latex + "\n")
             hs.close()
-        except:
-            pass
+        except Exception as ex:
+            logg_exception(ex)
         # Adapt expression for calculation
         elected_pi0 = expression[0 : expression.find("=")]
         elected_pi0 = elected_pi0.replace("log(", "")
@@ -2270,11 +2303,11 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
             if not os.path.isdir(temp_path):
                 try:
                     os.mkdir(temp_path)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logg_exception(ex)
             plot.savefig(temp_path + "regression_models_fig2.pdf", dpi=1200, format="pdf")
-        except Exception:
-            pass
+        except Exception as ex:
+            logg_exception(ex)
         if not test_mode:
             plot.show()
         # De-activate latex render on plot
@@ -2294,52 +2327,52 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
 def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: bool, **kwargs):
     # noinspection PyUnresolvedReferences
     """Function to perform sensitivity analysis on dimensionless parameters according to specific performance.
-        
-        Parameters
-        ----------           
-        pi_set: Set of dimensionless parameters
-                 
-        doe_pi: DOE of the complete pi_set (except pi0)
-        
-        use_widgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
-        
-        **kwargs: additional argumens 
-                  * **pi0** (*list* of *str*): name of the different pi0 = f(pi...) considered as design drivers
-                  * **piN** (*list* of *str*): name of the f(pi1, pi2, ..., piN) considered as secondary parameters
-                  * **latex** (*bool*): display in latex format
-                  * **figwidth** (*int*): change figure width (default is 16 in widgets mode)
-                  * **zero_ymin** (*bool*): set y-axis minimum value to 0 (default is False)
-                  * **xlabel_size** (*int*): set x-axis label font size (default is 18)
-               
-        Example
-        -------
-        to load a doe example:
-                >>> In [1]: doe_pi = pandas.read_excel('./pi_analysis_example.xls')
-                >>> In [2]: doe_pi = doe[['pj','pfe','pi2','pi3','pi4','pi5','pi6']].values
-                >>> In [3]: pi1 = PositiveParameter('pi1',[0.1,1],'','p_j')
-                >>> In [4]: pi2 = PositiveParameter('pi2',[0.1,1],'','p_fe')
-                >>> In [5]: pi3 = PositiveParameter('pi3',[0.1,1],'','d_i*d_e**-1')
-                >>> In [6]: pi4 = PositiveParameter('pi4',[0.1,1],'','e_tooth*d_e**-1*n')
-                >>> In [7]: pi5 = PositiveParameter('pi5',[0.1,1],'','e_yoke*d_e**-1*n')
-                >>> In [8]: pi6 = PositiveParameter('pi6',[0.1,1],'','w_pm*d_e**-1')
-                >>> In [9]: pi7 = PositiveParameter('pi7',[0.1,1],'','r_i*d_e**-1')
-                >>> In [10]: pi_set = PositiveParameterSet(pi1, pi2, pi3, pi4, pi5, pi6, pi7)
-        
-        then perform sensitivity analysis:
-                >>> In [11]: pi_sensitivity(pi_set, doe_pi, False, pi0=['pi1', 'pi2'], piN=['pi3', 'pi4', 'pi5', 'pi6',
-                >>>     ...: 'pi7'])
-                
-                .. image:: ../source/_static/Pictures/variablepowerlaw_pi_sensitivity.png
-                
-        Note
-        ----
-        Within Jupyter Notebook, rendering will be slightly different with compressed size in X-axis to be printed
-        within one page width and labels adapted consequently.
-        The graph indices are: 
-            * MCC: Maximum Correlation Coefficient is the maximum value between Spearman and Pearson coefficients
-            * alpha: variability coefficient is the ratio between parameter standard deviation and average value
-            * IF: Impact Factor is the product of both previous coefficients
-        
+
+    Parameters
+    ----------
+    pi_set: Set of dimensionless parameters
+
+    doe_pi: DOE of the complete pi_set (except pi0)
+
+    use_widgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
+
+    **kwargs: additional argumens
+              * **pi0** (*list* of *str*): name of the different pi0 = f(pi...) considered as design drivers
+              * **piN** (*list* of *str*): name of the f(pi1, pi2, ..., piN) considered as secondary parameters
+              * **latex** (*bool*): display in latex format
+              * **figwidth** (*int*): change figure width (default is 16 in widgets mode)
+              * **zero_ymin** (*bool*): set y-axis minimum value to 0 (default is False)
+              * **xlabel_size** (*int*): set x-axis label font size (default is 18)
+
+    Example
+    -------
+    to load a doe example:
+            >>> In [1]: doe_pi = pandas.read_excel('./pi_analysis_example.xls')
+            >>> In [2]: doe_pi = doe[['pj','pfe','pi2','pi3','pi4','pi5','pi6']].values
+            >>> In [3]: pi1 = PositiveParameter('pi1',[0.1,1],'','p_j')
+            >>> In [4]: pi2 = PositiveParameter('pi2',[0.1,1],'','p_fe')
+            >>> In [5]: pi3 = PositiveParameter('pi3',[0.1,1],'','d_i*d_e**-1')
+            >>> In [6]: pi4 = PositiveParameter('pi4',[0.1,1],'','e_tooth*d_e**-1*n')
+            >>> In [7]: pi5 = PositiveParameter('pi5',[0.1,1],'','e_yoke*d_e**-1*n')
+            >>> In [8]: pi6 = PositiveParameter('pi6',[0.1,1],'','w_pm*d_e**-1')
+            >>> In [9]: pi7 = PositiveParameter('pi7',[0.1,1],'','r_i*d_e**-1')
+            >>> In [10]: pi_set = PositiveParameterSet(pi1, pi2, pi3, pi4, pi5, pi6, pi7)
+
+    then perform sensitivity analysis:
+            >>> In [11]: pi_sensitivity(pi_set, doe_pi, False, pi0=['pi1', 'pi2'], piN=['pi3', 'pi4', 'pi5', 'pi6',
+            >>>     ...: 'pi7'])
+
+            .. image:: ../source/_static/Pictures/variablepowerlaw_pi_sensitivity.png
+
+    Note
+    ----
+    Within Jupyter Notebook, rendering will be slightly different with compressed size in X-axis to be printed
+    within one page width and labels adapted consequently.
+    The graph indices are:
+        * MCC: Maximum Correlation Coefficient is the maximum value between Spearman and Pearson coefficients
+        * alpha: variability coefficient is the ratio between parameter standard deviation and average value
+        * IF: Impact Factor is the product of both previous coefficients
+
     """
     if isinstance(use_widgets, bool):
         test_mode = False
@@ -2371,27 +2404,23 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
             pi_list = []
             for pi in pi_set.dictionary.keys():
                 pi_list.append(pi.replace("pi", "$\pi_{") + "}$")
-            axes, plot, _, _ = pi_sensitivity_sub(
+            axes, my_plot, _, _ = pi_sensitivity_sub(
                 pi_set, doe_pi, pi0=pi0_list, piN=piN_list, figwidth=16, latex=latex
             )
             if latex:
-                plot.rc("text", usetex=True)
-            checkboxes1 = []
-            checkboxes2 = []
-            cb_container1 = widgets.HBox()
-            cb_container2 = widgets.HBox()
-            container3 = widgets.HBox()
+                my_plot.rc("text", usetex=True)
+            primary_py = []
+            secondary_py = []
+            primary_py_panel = widgets.HBox()
+            secondary_py_panel = widgets.HBox()
+            graph_parameters_panel = widgets.HBox()
             for pi_parameter in range(numpy.shape(doe_pi)[1]):
                 if pi_parameter == 0:
-                    # noinspection PyUnresolvedReferences
-                    widget1 = widgets.Checkbox(description=pi_list[pi_parameter], value=True)
-                    # noinspection PyUnresolvedReferences
-                    widget2 = widgets.Checkbox(description=pi_list[pi_parameter], value=False)
+                    widget1 = widgets.Checkbox(value=True)
+                    widget2 = widgets.Checkbox(value=False)
                 else:
-                    # noinspection PyUnresolvedReferences
-                    widget1 = widgets.Checkbox(description=pi_list[pi_parameter], value=False)
-                    # noinspection PyUnresolvedReferences
-                    widget2 = widgets.Checkbox(description=pi_list[pi_parameter], value=True)
+                    widget1 = widgets.Checkbox(value=False)
+                    widget2 = widgets.Checkbox(value=True)
                 widget1.style = {
                     "description_width": "0px"
                 }  # sets the width to the left of the checkbox
@@ -2400,16 +2429,20 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
                     "description_width": "0px"
                 }  # sets the width to the left of the checkbox
                 widget2.layout.width = "auto"  # sets the overall width check box widget
-                checkboxes1.append(widget1)
-                checkboxes2.append(widget2)
-            cb_container1.children = [i for i in checkboxes1]
-            cb_container2.children = [i for i in checkboxes2]
+                primary_py.append(widget1)
+                primary_py.append(Label(value=pi_list[pi_parameter]))
+                secondary_py.append(widget2)
+                secondary_py.append(Label(value=pi_list[pi_parameter]))
+            primary_py_panel.children = [i for i in primary_py]
+            secondary_py_panel.children = [i for i in secondary_py]
             label_slider = widgets.FloatSlider(
                 value=18, min=5, max=24, step=1, description="X-label FontSize:"
             )
             zero_y = widgets.Checkbox(description="y-axis intersect 0", value=False)
-            container3.children = [label_slider, zero_y]
-            tab = widgets.Tab(children=[cb_container1, cb_container2, container3])
+            graph_parameters_panel.children = [label_slider, zero_y]
+            tab = widgets.Tab(
+                children=[primary_py_panel, secondary_py_panel, graph_parameters_panel]
+            )
             button = widgets.Button(description="Apply")
             tab.set_title(0, "Primary PI")
             tab.set_title(1, "Secondary PI")
@@ -2417,31 +2450,34 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
             menu = VBox(children=[tab, button])
             display(menu)
             if not test_mode:
-                plot.show()
+                my_plot.show()
             reference_list = list(pi_set.dictionary.keys())
 
+            # noinspection PyShadowingNames,PyUnusedLocal
             def on_button_clicked(b):
                 clear_output()
                 display(menu)
                 idx = 0
                 pi0_list = []
-                for c in cb_container1.children:
-                    if c.value:
-                        pi0_list.append(reference_list[idx])
-                    idx += 1
+                for c in primary_py_panel.children:
+                    if isinstance(c.value, bool):
+                        if c.value:
+                            pi0_list.append(reference_list[int(idx)])
+                        idx += 1
                 idx = 0
                 piN_list = []
-                for c in cb_container2.children:
-                    if c.value:
-                        piN_list.append(reference_list[idx])
-                    idx += 1
-                for c in container3.children:
+                for c in secondary_py_panel.children:
+                    if isinstance(c.value, bool):
+                        if c.value:
+                            piN_list.append(reference_list[int(idx)])
+                        idx += 1
+                for c in graph_parameters_panel.children:
                     if isinstance(c.value, bool):
                         zero_ymin_value = c.value
                     else:
                         fontsize = int(c.value)
                 # noinspection PyUnboundLocalVariable
-                axes, plot, _, _ = pi_sensitivity_sub(
+                axes, my_local_plot, _, _ = pi_sensitivity_sub(
                     pi_set,
                     doe_pi,
                     pi0=pi0_list,
@@ -2451,37 +2487,36 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
                     xlabel_size=fontsize,
                 )
                 if latex:
-                    plot.rc("text", usetex=True)
+                    my_local_plot.rc("text", usetex=True)
                 if not test_mode:
-                    plot.show()
+                    my_local_plot.show()
 
             button.on_click(on_button_clicked)
         else:
-            _, plot, _, _ = pi_sensitivity_sub(pi_set, doe_pi, **kwargs)
+            _, my_plot, _, _ = pi_sensitivity_sub(pi_set, doe_pi, **kwargs)
             try:
                 if not os.path.isdir(temp_path):
                     try:
                         os.mkdir(temp_path)
-                    except Exception:
-                        pass
-                plot.savefig(temp_path + "pi_sensitivity.pdf", dpi=1200, format="pdf")
-            except:
-                pass
+                    except Exception as ex:
+                        logg_exception(ex)
+                my_plot.savefig(temp_path + "pi_sensitivity.pdf", dpi=1200, format="pdf")
+            except Exception as ex:
+                logg_exception(ex)
             if not test_mode:
-                plot.show()
+                my_plot.show()
                 print("MCC - Maximum Correlation Coefficient between Pearson and Spearman")
                 print("alpha - Relative standard deviation (on dimensionless parameter)")
                 print("IF - Impact factor IF=MCC*alpha")
             # De-activate latex render on plot
-            plot.rc("text", usetex=False)
-            plot.rc("font", family="sans-serif")
+            my_plot.rc("text", usetex=False)
+            my_plot.rc("font", family="sans-serif")
     else:
         raise TypeError("useWidgets should be a boolean")
 
 
 def pi_sensitivity_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
-    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`
-    """
+    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`"""
     if isinstance(pi_set, PositiveParameterSet) and isinstance(doe_pi, numpy.ndarray):
         # Check data and define default when widgets option chosen
         if numpy.shape(doe_pi)[1] != len(list(pi_set.dictionary.keys())):
@@ -2519,14 +2554,14 @@ def pi_sensitivity_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                 if isinstance(value, str):
                     try:
                         x_index = pi_list.index(value)
-                    except:
+                    except Exception:
                         raise ValueError("piN not in pi_set")
                 elif isinstance(value, list):
                     x_index = []
                     for piN_value in value:
                         try:
                             x_index.append(pi_list.index(piN_value))
-                        except:
+                        except Exception:
                             raise ValueError("some piN values not in pi_set")
                 else:
                     raise TypeError("piN should be a string or a list of string")
@@ -2714,6 +2749,7 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
     """Function to write pi description in latex form: ***internal*** to
     :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity` and :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`
     """
+    # noinspection SpellCheckingInspection
     greek_list = [
         "alpha",
         "beta",
@@ -2748,7 +2784,8 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
     latex_pi_list = []
     try:
         parameter_list = list(parameter_set.dictionary.keys())
-    except:
+    except Exception as ex:
+        logg_exception(ex)
         parameter_list = []
     problem = False
     for pi_name in pi_set.dictionary.keys():
@@ -2761,7 +2798,8 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
         for expression in expression_list:
             try:
                 float(expression)
-            except:
+            except Exception as ex:
+                logg_exception(ex)
                 if len(parameter_list) != 0:
                     if not (expression in parameter_list):
                         problem = True
@@ -2831,34 +2869,34 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
 
 # -------[Define function to PI sensitivity to design drivers]------------------
 def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: bool, **kwargs):
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,GrazieInspection
     """Function to perform dependency analysis on dimensionless parameters.
-        
-        Parameters
-        ----------
-        pi_set: Set of dimensionless parameters
-                 
-        doe_pi: DOE of the complete pi_set (except pi0)
-        
-        useWidgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
-        
-        **kwargs: additional argumens 
-                  * **x_list** (*list* of *str*): name of the different pi to be defined as x-axis (default: all)
-                  * **y_list** (*list* of *str*): name of the different pi to be defined as y-axis (default: all)
-                  * **order** (*int*): the order chosen for power-law or polynomial regression model (default is 2)
-                  * **threshold** (*float*): in ]0,1[ the lower limit to consider regression for plot  (default is 0.9)
-                  * **figwidth** (*int*): change figure width (default is 16 in widgets mode)
-                  * **xlabel_size** (*int*): set x-axis label font size (default is 16)
-                  
-        Example
-        -------
-        to load a doe example: see :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`
-        
-        then perform dependency analysis:
-                >>> In [11]: pi_dependency(pi_set, doe_pi, useWidgets=False)
-                
-                .. image:: ../source/_static/Pictures/variablepowerlaw_pi_dependency.png
-        
+
+    Parameters
+    ----------
+    pi_set: Set of dimensionless parameters
+
+    doe_pi: DOE of the complete pi_set (except pi0)
+
+    useWidgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
+
+    **kwargs: additional argumens
+              * **x_list** (*list* of *str*): name of the different pi to be defined as x-axis (default: all)
+              * **y_list** (*list* of *str*): name of the different pi to be defined as y-axis (default: all)
+              * **order** (*int*): the order chosen for power-law or polynomial regression model (default is 2)
+              * **threshold** (*float*): in ]0,1[ the lower limit to consider regression for plot  (default is 0.9)
+              * **figwidth** (*int*): change figure width (default is 16 in widgets mode)
+              * **xlabel_size** (*int*): set x-axis label font size (default is 16)
+
+    Example
+    -------
+    to load a doe example: see :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity`
+
+    then perform dependency analysis:
+            >>> In [11]: pi_dependency(pi_set, doe_pi, useWidgets=False)
+
+            .. image:: ../source/_static/Pictures/variablepowerlaw_pi_dependency.png
+
     """
     if isinstance(useWidgets, bool):
         test_mode = False
@@ -2884,53 +2922,67 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
             pi_list = []
             for pi in pi_set.dictionary.keys():
                 pi_list.append(pi.replace("pi", "$\pi_{") + "}$")
-            x_list = [""] * len(x_list_)
             if len(x_list_) != 0:
+                x_list = [""] * len(x_list_)
                 for i in range(len(x_list_)):
                     x_list[i] = x_list_[i].replace("pi", "$\pi_{") + "}$"
+                    if not (x_list[i] in pi_list):
+                        raise KeyError("defined list key {} not in pi_set".format(x_list[i]))
             else:
                 x_list = pi_list
-            y_list = [""] * len(y_list_)
             if len(y_list_) != 0:
+                y_list = [""] * len(y_list_)
                 for i in range(len(y_list_)):
                     y_list[i] = y_list_[i].replace("pi", "$\pi_{") + "}$"
+                    if not (y_list[i] in pi_list):
+                        raise KeyError("defined list key {} not in pi_set".format(y_list[i]))
             else:
                 y_list = pi_list
-            _, _, _, plot = pi_dependency_sub(
+            _, _, _, my_plot = pi_dependency_sub(
                 pi_set, doe_pi, order=2, threshold=0.9, figwidth=16, x_list=x_list, y_list=y_list
             )
-            checkboxes1 = []
-            checkboxes2 = []
-            cb_container1 = widgets.HBox()
-            cb_container2 = widgets.HBox()
-            container3 = widgets.HBox()
+            primary_py = []
+            secondary_py = []
+            primary_py_panel = widgets.HBox()
+            secondary_py_panel = widgets.HBox()
+            graph_parameters_panel = widgets.HBox()
             if len(x_list_) != 0:
                 max_range_x = len(x_list)
             else:
                 max_range_x = numpy.shape(doe_pi)[1]
             for pi_parameter in range(max_range_x):
-                checkboxes1.append(
-                    widgets.Checkbox(description=x_list[pi_parameter], value=True, width=90)
-                )
+                widget = widgets.Checkbox(value=True)
+                widget.style = {
+                    "description_width": "0px"
+                }  # sets the width to the left of the checkbox
+                widget.layout.width = "auto"  # sets the overall width check box widget
+                primary_py.append(widget)
+                primary_py.append(Label(value=pi_list[pi_parameter]))
             if len(y_list_) != 0:
                 max_range_y = len(y_list)
             else:
                 max_range_y = numpy.shape(doe_pi)[1]
             for pi_parameter in range(max_range_y):
-                checkboxes2.append(
-                    widgets.Checkbox(description=y_list[pi_parameter], value=True, width=90)
-                )
-            cb_container1.children = [i for i in checkboxes1]
-            cb_container2.children = [i for i in checkboxes2]
+                widget = widgets.Checkbox(value=True)
+                widget.style = {
+                    "description_width": "0px"
+                }  # sets the width to the left of the checkbox
+                widget.layout.width = "auto"  # sets the overall width check box widget
+                secondary_py.append(widget)
+                secondary_py.append(Label(value=pi_list[pi_parameter]))
+            primary_py_panel.children = [i for i in primary_py]
+            secondary_py_panel.children = [i for i in secondary_py]
             label_slider = widgets.FloatSlider(
                 value=18, min=5, max=24, step=1, description="X-label FontSize:"
             )
             order_slider = widgets.FloatSlider(value=2, min=1, max=4, step=1, description="Order:")
             threshold_slider = widgets.FloatSlider(
-                value=0.9, min=0.0, max=1.0, step=0.01, description="Thresold:"
+                value=0.9, min=0.0, max=1.0, step=0.01, description="Threshold:"
             )
-            container3.children = [label_slider, order_slider, threshold_slider]
-            tab = widgets.Tab(children=[cb_container1, cb_container2, container3])
+            graph_parameters_panel.children = [label_slider, order_slider, threshold_slider]
+            tab = widgets.Tab(
+                children=[primary_py_panel, secondary_py_panel, graph_parameters_panel]
+            )
             button = widgets.Button(description="Apply")
             tab.set_title(0, "Primary PI")
             tab.set_title(1, "Secondary PI")
@@ -2938,26 +2990,28 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
             menu = VBox(children=[tab, button])
             display(menu)
             if not test_mode:
-                plot.show()
-            reference_list = list(pi_set.dictionary.keys())
+                my_plot.show()
 
+            # noinspection PyUnusedLocal
             def on_button_clicked(b):
                 clear_output()
                 display(menu)
                 idx = 0
                 xlist = []
-                for c in cb_container1.children:
-                    if c.value:
-                        xlist.append(reference_list[idx])
-                    idx += 1
+                for c in primary_py_panel.children:
+                    if isinstance(c.value, bool):
+                        if c.value:
+                            xlist.append(pi_list[idx])
+                        idx += 1
                 idx = 0
                 ylist = []
-                for c in cb_container2.children:
-                    if c.value:
-                        ylist.append(reference_list[idx])
-                    idx += 1
+                for c in secondary_py_panel.children:
+                    if isinstance(c.value, bool):
+                        if c.value:
+                            ylist.append(pi_list[idx])
+                        idx += 1
                 idx = 0
-                for c in container3.children:
+                for c in graph_parameters_panel.children:
                     if idx == 0:
                         fontsize = int(c.value)
                     elif idx == 1:
@@ -2966,7 +3020,7 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
                         threshold_value = float(c.value)
                     idx += 1
                 # noinspection PyUnboundLocalVariable
-                _, _, _, plot = pi_dependency_sub(
+                _, _, _, my_local_plot = pi_dependency_sub(
                     pi_set,
                     doe_pi,
                     x_list=xlist,
@@ -2976,39 +3030,38 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
                     figwidth=16,
                     xlabel_size=fontsize,
                 )
-                if not (test_mode):
-                    plot.show()
+                if not test_mode:
+                    my_local_plot.show()
 
             button.on_click(on_button_clicked)
         else:
-            _, _, _, plot = pi_dependency_sub(pi_set, doe_pi, **kwargs)
+            _, _, _, my_plot = pi_dependency_sub(pi_set, doe_pi, **kwargs)
             try:
                 if not os.path.isdir(temp_path):
                     try:
                         os.mkdir(temp_path)
-                    except Exception:
-                        pass
-                plot.savefig(temp_path + "pi_dependency.pdf", dpi=1200, format="pdf")
-            except:
-                pass
+                    except Exception as ex:
+                        logg_exception(ex)
+                my_plot.savefig(temp_path + "pi_dependency.pdf", dpi=1200, format="pdf")
+            except Exception as ex:
+                logg_exception(ex)
             if not test_mode:
-                plot.show()
+                my_plot.show()
     else:
         raise TypeError("useWidgets should be a boolean")
 
 
 def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
-    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`
-    """
+    """Sub-function of :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`"""
     if isinstance(pi_set, PositiveParameterSet) and isinstance(doe_pi, numpy.ndarray):
         # Check data and define default when widgets option chosen
         if numpy.shape(doe_pi)[1] != len(list(pi_set.dictionary.keys())):
             raise ValueError("doePI and pi_set dimensions mismatch")
         if numpy.amin(doe_pi) <= 0:
             raise ValueError("doePI values should be strictly positive")
-        x_list = list(pi_set.dictionary.keys())
-        y_list = list(pi_set.dictionary.keys())
         pi_list = list(pi_set.dictionary.keys())
+        for i in range(len(pi_list)):
+            pi_list[i] = pi_list[i].replace("pi", "$\pi_{") + "}$"
         order = 1
         threshold = 0.9
         figwidth = float("Inf")
@@ -3032,7 +3085,7 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
             elif key == "x_list":
                 if isinstance(value, list):
                     for pi_name in value:
-                        if not (pi_name in x_list):
+                        if not (pi_name in pi_list):
                             raise KeyError("defined list key {} not in pi_set".format(pi_name))
                     x_list = list(set(value))
                 else:
@@ -3040,7 +3093,7 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
             elif key == "y_list":
                 if isinstance(value, list):
                     for pi_name in value:
-                        if not (pi_name in y_list):
+                        if not (pi_name in pi_list):
                             raise KeyError("defined list key {} not in pi_set".format(pi_name))
                     y_list = list(set(value))
                 else:
@@ -3074,6 +3127,7 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                 else:
                     raise ValueError("xlabel_size should be integer")
         xy_identical = True
+        # noinspection PyUnboundLocalVariable
         if len(x_list) == len(y_list):
             for element in x_list:
                 if not (element in y_list):
@@ -3098,8 +3152,6 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
         yaxis_index = []
         for idx in range(len(y_list)):
             yaxis_index.append(pi_list.index(y_list[idx]))
-        for idx in range(len(pi_list)):
-            pi_list[idx] = pi_list[idx].replace("pi", "$\\pi_{") + "}$"
         for yaxis_i in range(len(yaxis_index)):
             for xaxis_i in range(len(xaxis_index)):
                 xaxis_value = xaxis_index[xaxis_i]
@@ -3302,7 +3354,7 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                     else:
                         axes[yaxis_i, xaxis_i].set_facecolor("xkcd:light beige")
                 # Highlight best model in x-y plot (if scatter plot not chosen)
-                if not (xy_identical) and xaxis_i == len(xaxis_index) - 1:
+                if not xy_identical and xaxis_i == len(xaxis_index) - 1:
                     if numpy.amax(r2_matrix[yaxis_i, :]) >= threshold:
                         axes[yaxis_i, numpy.argsort(-1 * r2_matrix[yaxis_i, :])[0]].set_facecolor(
                             "xkcd:light beige"
@@ -3313,7 +3365,7 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                     axes[yaxis_i, xaxis_i].set_yticklabels([])
                 elif xaxis_i == len(xaxis_index) - 1 and (yaxis_i % 2) == 0:
                     axes[yaxis_i, xaxis_i].yaxis.set_ticks_position("right")
-                elif xaxis_i > 0 and xaxis_i < len(xaxis_index) - 1:
+                elif 0 < xaxis_i < len(xaxis_index) - 1:
                     axes[yaxis_i, xaxis_i].set_yticklabels([])
                 if yaxis_i == 0 and (xaxis_i % 2) == 0:
                     axes[yaxis_i, xaxis_i].set_xticklabels([])
@@ -3321,9 +3373,9 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                     axes[yaxis_i, xaxis_i].xaxis.set_ticks_position("top")
                 elif yaxis_i == len(yaxis_index) - 1 and (xaxis_i % 2) == 1:
                     axes[yaxis_i, xaxis_i].set_xticklabels([])
-                elif yaxis_i > 0 and yaxis_i < len(yaxis_index) - 1:
+                elif 0 < yaxis_i < len(yaxis_index) - 1:
                     axes[yaxis_i, xaxis_i].set_xticklabels([])
-                if not (xy_identical):
+                if not xy_identical:
                     if xaxis_i == 0:
                         axes[yaxis_i, xaxis_i].set_ylabel(latex_pi_list[yaxis_value], fontsize=16)
                     if yaxis_i == len(yaxis_index) - 1:
@@ -3335,345 +3387,3 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
         raise TypeError("doePI should be numpy array")
     else:
         raise TypeError("pi_set should be a PositiveParameterSet")
-
-
-def pi_nonlinear(
-    pi_set, doe: ndarray, elected_pi0: str, non_linear_pi_list: list[str], order: int, **kwargs
-):
-    """Functions that try to adapt defined pi parameters to a non-linear form (1+(pi/beta)^alpha).
-        The starting points are defined.
-        For more information on regression see Scipy linalg method :func:`~scipy.linalg.lstsq`
-        
-        Parameters
-        ----------
-        pi_set: PositiveParameterSet 
-                Set of dimensionless parameters
-        
-        doe: [m*k] numpy.array of float or int
-             Represents the elected feasible constrained sets of m experiments values expressed over the k dimensionless
-             parameters
-        
-        elected_pi0: str
-                     Selected pi for regression: syntax is 'pin' with n>=1 and n<=k
-                     
-        non_linear_pi_list: list(str)
-                            List of the supposed non-linear pi expressions: syntax is 'pin' with n>=1 and n<=k
-        
-        order: int
-               * Model order >=1: as an example, order 2 in log_space=True is :
-                   log(pi0) = log(cst) + a1*log(pi1) + a11*log(pi1)**2 + a12*log(pi1)*log(pi2) + a2*log(pi2)
-                   + a22*log(pi2)**2
-               * Model order >=1: as an example, order 2 in log_space=False is :
-                   pi0 = cst + a1*pi1 + a11*pi1**2 + a12*pi1*pi2 + a2*pi2 + a22*pi2
-        
-        **kwargs: additional arguments (pass :func:`~pyvplm.addon.variablepowerlaw.model_regression` arguments and
-        additionals for optimizer)
-                  * **ymax_axis** (*float*): set y-axis maximum value representing relative error, 100=100% (default)
-                  * **log_space** (*bool*): define if polynomial regression should be performed within logarithmic space
-                  (True) or linear (False) default is logarithmic
-                  * **latex** (*bool*): define if graph legend font should be latex (default is False) - may cause some
-                  issues if used
-                  * **starting_points** (*int*): set the number of starting points chosen for optimisation
-                  (default is 10**(2*len(non_linear_pi_list)))
-                  * **max_iter** (*int*): set the number of optimisation maximum iterations for each starting point
-                  (default is 10**len(non_linear_pi_list))
-                  * **f_tol** (*float*): set the function tolerance stopping criteria as a percentage of x0 value
-                  (default value is 0.1%)
-                  * **beta_bounds** (*list(float)*): the boundaries for beta coefficient (default is [0.001, 1000.0])
-                  * **alpha_bounds** (*list(float)*): the boundaries for alpha coefficient (default is [0.0, 10.0])
-        
-        Returns
-        -------
-        result: object from optimizer (see :func:`~scipy.optimize.minimize`)
-                Additional attributes:
-                    * x0: ndarray of the selected starting point
-                    * x_bounds: numpy.array of associated boundaries
-  
-    """
-    if (
-        isinstance(doe, numpy.ndarray)
-        and isinstance(elected_pi0, str)
-        and isinstance(non_linear_pi_list, list)
-        and isinstance(order, int)
-    ):
-        # Check values
-        if elected_pi0[0:2] != "pi":
-            raise SyntaxError("elected_pi0 should be of the form pik with k an int.")
-        if (int(elected_pi0[2 : len(elected_pi0)]) < 1) or (
-            int(elected_pi0[2 : len(elected_pi0)]) > len(doe)
-        ):
-            raise ValueError("elected_pi0 should be >=1 and <={}.".format(len(doe)))
-        for pi_name in non_linear_pi_list:
-            if not (isinstance(pi_name, str)):
-                raise TypeError("all pi in non_linear_pi_list should be string.")
-            if pi_name[0:2] != "pi":
-                raise SyntaxError(
-                    "{} in non_linear_pi_list should be of the form pik with k an int.".format(
-                        pi_name
-                    )
-                )
-            pi_name = int(pi_name[2 : len(pi_name)])
-            if (pi_name < 1) or (pi_name > len(doe)):
-                raise ValueError(
-                    "all pi in non_linear_pi_list should have indices in [1;{}].".format(len(doe))
-                )
-        if order < 1:
-            raise ValueError("order should be >=1.")
-        if not (
-            numpy.issubdtype(doe.dtype, numpy.integer) or numpy.issubdtype(doe.dtype, numpy.float64)
-        ):
-            raise TypeError("doe type in index should be integer or float.")
-        # Get specific arguments
-        starting_points = 10 ** (2 * len(non_linear_pi_list))
-        beta_bounds = numpy.array([0.001, 1000.0])
-        alpha_bounds = numpy.array([0.0, 10.0])
-        max_iter = 10 ** len(non_linear_pi_list)
-        log_space = True
-        f_tol = 0.1 / 100
-        for key, value in kwargs.items():
-            if key == "f_tol":
-                if isinstance(value, float):
-                    if value <= 0:
-                        ValueError("f_tol should be a positive float")
-                    else:
-                        f_tol = value / 100
-                else:
-                    raise TypeError("f_tol should be a float")
-            if key == "max_iter":
-                if isinstance(value, int):
-                    if value <= 10:
-                        ValueError("max_iter should be >10")
-                    else:
-                        max_iter = value
-                else:
-                    raise TypeError("max_iter should be an integer")
-            if key == "starting_points":
-                if isinstance(value, int):
-                    if value <= 0:
-                        ValueError("starting_points should be >0")
-                    else:
-                        starting_points = value
-                else:
-                    raise TypeError("starting_points should be a positive integer")
-            elif key == "beta_bounds":
-                if isinstance(value, list):
-                    if len(value) == 2:
-                        if isinstance(value[0], float) and isinstance(value[1], float):
-                            if value[0] < value[1]:
-                                if not (value[0] <= 0):
-                                    beta_bounds = numpy.array(value)
-                                else:
-                                    raise ValueError("beta_bounds should not intersect 0 value")
-                            else:
-                                TypeError(
-                                    "beta_bounds should be [min_value, max_value] with min_value<max_value"
-                                )
-                        else:
-                            TypeError("beta_bounds should be [float, float]")
-                    else:
-                        TypeError("beta_bounds should be [float, float]")
-                else:
-                    raise ValueError("beta_bounds should be [float, float]")
-            elif key == "alpha_bounds":
-                if isinstance(value, list):
-                    if len(value) == 2:
-                        if isinstance(value[0], float) and isinstance(value[1], float):
-                            if value[0] < value[1]:
-                                alpha_bounds = numpy.array(value)
-                            else:
-                                TypeError(
-                                    "alpha_bounds should be [min_value, max_value] with min_value<max_value"
-                                )
-                        else:
-                            TypeError("alpha_bounds should be [float, float]")
-                    else:
-                        TypeError("alpha_bounds should be [float, float]")
-                else:
-                    raise ValueError("alpha_bounds should be [float, float]")
-            elif key == "log_space":
-                if isinstance(value, bool):
-                    log_space = value
-                else:
-                    raise ValueError("log_space should be boolean")
-        try:
-            del kwargs["starting_points"]
-        except:
-            pass
-        try:
-            del kwargs["max_iter"]
-        except:
-            pass
-        try:
-            del kwargs["beta_bounds"]
-        except:
-            pass
-        try:
-            del kwargs["alpha_bounds"]
-        except:
-            pass
-
-        # Define the objective function
-        def objective(x, info):
-            # Transform doe
-            doe_transformed = copy.deepcopy(doe)
-            for idx in range(len(non_linear_pi_list)):
-                pi_name = non_linear_pi_list[idx]
-                doe_transformed[:, int(pi_name[2 : len(pi_name)]) - 1] = (
-                    1
-                    + (doe_transformed[:, int(pi_name[2 : len(pi_name)]) - 1] / x[2 * idx])
-                    ** x[2 * idx + 1]
-                )
-            # Perform regression in silent mode and get final result on chosen criteria
-            models = regression_models(
-                doe_transformed,
-                elected_pi0=elected_pi0,
-                order=order,
-                test_mode=True,
-                log_space=log_space,
-            )
-            abs_error_average_test = models["ave. |e|"][1]
-            res = min(abs_error_average_test)
-            # Display information at each iteration
-            if not (info["Silent"]):
-                message = "print('{0:4d}"
-                for idx in range(len(x) + 1):
-                    message += " {" + str(idx + 1) + ":.2E}"
-                message += "'.format(info['Nfeval']"
-                for idx in range(len(x)):
-                    message += ", x[" + str(idx) + "]"
-                message += ", res))"
-                eval(message)
-            info["Nfeval"] += 1
-            return res
-
-        # Calculate with no transformation objective function
-        models = regression_models(
-            doe, elected_pi0=elected_pi0, order=order, test_mode=True, log_space=log_space
-        )
-        abs_error_average_test = models["ave. |e|"][1]
-        objective_to_optimize = min(abs_error_average_test)
-        print(
-            "\nObjective to minimize (average of the absolute relative error - C2): f(x)={:.2E} %\n".format(
-                objective_to_optimize
-            )
-        )
-        # Print iteration title
-        message = "print('{0:4s}"
-        for idx in range(2 * len(non_linear_pi_list) + 1):
-            message += " {" + str(idx + 1) + ":9s}"
-        message += "'.format('Eval'"
-        for idx in range(len(non_linear_pi_list)):
-            message += ", 'beta" + str(idx) + "', 'alpha" + str(idx) + "'"
-        message += ", 'f(x)'))"
-        # Define multistart DOE
-        beta_bounds.shape = (1, 2)
-        alpha_bounds.shape = (1, 2)
-        bounds = []
-        for idx in range(len(non_linear_pi_list)):
-            pi_name = non_linear_pi_list[idx]
-            if len(bounds) == 0:
-                bounds = numpy.r_[beta_bounds, alpha_bounds]
-            else:
-                bounds = numpy.r_[bounds, numpy.r_[beta_bounds, alpha_bounds]]
-        x0_levels = lhs(
-            2 * len(non_linear_pi_list), samples=starting_points, criterion="centermaximin"
-        )
-        x0 = bounds[:, 0] + x0_levels * (bounds[:, 1] - bounds[:, 0])
-        # Evaluate tolerance
-        f_tol = f_tol * abs(objective(x0[0, :], {"Nfeval": 0, "Silent": True}))
-        print("Calculation tolerance is set to: {:.2E}.\n".format(f_tol))
-        # Launch optimization process with multi-starts
-        result = []
-        best_result = float("inf")
-        for idx in range(numpy.shape(x0)[0]):
-            print("\nStarting point {}/{} x0={}\n".format(idx + 1, numpy.shape(x0)[0], x0[idx, :]))
-            eval(message)
-            # noinspection PyTypeChecker
-            local_result = minimize(
-                objective,
-                x0[idx, :],
-                args=({"Nfeval": 0, "Silent": False},),
-                method="L-BFGS-B",
-                jac=None,
-                bounds=bounds,
-                constraints=(),
-                tol=None,
-                callback=None,
-                options={"maxiter": max_iter, "ftol": f_tol, "disp": False},
-            )
-            # Save of best result
-            if local_result.success:
-                if local_result.fun < best_result:
-                    local_result.x0 = x0[idx, :]
-                    local_result.x_bounds = numpy.transpose(bounds)
-                    best_result = local_result.fun
-                    result = local_result
-        # Callback the optimizer for best starting point solution
-        print("\nCallback for best starting point solution\n")
-        x0 = result.x
-        # noinspection PyTypeChecker
-        local_result = minimize(
-            objective,
-            x0,
-            args=({"Nfeval": 0, "Silent": False},),
-            method="L-BFGS-B",
-            jac=None,
-            bounds=bounds,
-            constraints=(),
-            tol=None,
-            callback=None,
-            options={"maxiter": max_iter, "ftol": f_tol, "disp": True},
-        )
-        local_result.x0 = x0
-        local_result.x_bounds = numpy.transpose(bounds)
-        # Analyse results and plot graph
-        if result.success:
-            if local_result.fun < objective_to_optimize:
-                result = local_result
-                print(
-                    "\nModel quality has been improved C2:{:.2E} %->{:.2E} % considering following "
-                    "modifications:".format(objective_to_optimize, result.fun)
-                )
-                for idx in range(len(non_linear_pi_list)):
-                    print(
-                        non_linear_pi_list[idx]
-                        + "= 1 + ("
-                        + non_linear_pi_list[idx]
-                        + "/"
-                        + str(result.x[2 * idx])
-                        + ")**"
-                        + str(result.x[2 * idx + 1])
-                    )
-                return result
-            else:
-                print(
-                    "\nWARNING: non-linear formulation does not improve model quality C2:{}%->{}%!".format(
-                        objective_to_optimize, result.fun
-                    )
-                )
-        else:
-            print(
-                "\nModel quality has been improved C2:{:.2E} %->{:.2E} % considering following modifications:".format(
-                    objective_to_optimize, result.fun
-                )
-            )
-            for idx in range(len(non_linear_pi_list)):
-                print(
-                    non_linear_pi_list[idx]
-                    + "= 1 + ("
-                    + non_linear_pi_list[idx]
-                    + "/"
-                    + str(result.x[2 * idx])
-                    + ")**"
-                    + str(result.x[2 * idx + 1])
-                )
-            return result
-    else:
-        if not (isinstance(doe, numpy.ndarray)):
-            raise TypeError("doe should be numpy array.")
-        elif not (isinstance(elected_pi0, str)):
-            raise TypeError("elected_pi0 should be a string.")
-        elif not (isinstance(non_linear_pi_list, list)):
-            raise TypeError("non_linear_pi_list should be a list of strings (can be of size 1).")
-        else:
-            raise TypeError("order should be an integer.")

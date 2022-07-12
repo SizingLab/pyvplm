@@ -29,6 +29,10 @@ tags
 .installed.cfg
 *.egg-info
 
+# FEM simulation files
+*.fem
+*.ans
+
 # Unittest and coverage
 htmlcov/*
 .coverage
@@ -49,6 +53,9 @@ docs/_rst/*
 docs/_build/*
 cover/*
 MANIFEST
+
+# Temporary folder
+pyvplm/_temp/*
 
 # Per-project virtualenvs
 .venv*/

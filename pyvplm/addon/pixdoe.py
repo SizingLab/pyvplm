@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Addon module generating constrained fullfactorial DOE on 2-spaces (pi/x) problems
+Addon module generating constrained full-factorial DOE on 2-spaces (pi/x) problems
 """
-# -------[Extend Sizinlab directories]------------------------------------------
-import os
-import sys
-import pyvplm
-
-path = os.path.abspath(pyvplm.__file__)
-temp_path = path.replace("__init__.py", "") + "_temp/"
 
 # -------[Import necessary packages]--------------------------------------------
+import os
+import sys
 import pyDOE2
 import numpy
 import math
@@ -19,46 +14,53 @@ import functools
 import pandas
 import matplotlib.pyplot as plot
 import warnings
+from numpy import ndarray
 from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
 
-# -------[Define function creating fullfact using bounds and levels]------------
-def create_doe(bounds, parameters_level, log_space=True):
+# -------[Global variables and settings]----------------------------------------
+path = os.path.abspath(__file__)
+temp_path = path.replace("\\addon\\" + os.path.basename(path), "") + "\\_temp\\"
+
+
+# -------[Define function creating full-fact using bounds and levels]-----------
+def create_doe(
+    bounds: ndarray, parameters_level: ndarray, log_space: bool = True
+) -> tuple[ndarray, ndarray]:
+    # noinspection PyUnresolvedReferences,PyShadowingNames
     """Functions that generates a fullfact DOE mesh using bounds and levels number.
-    
-     Parameters
-     ----------
-     Bounds: [n*2] numpy.array of floats 
-             Defines the n parameters [lower, upper] bounds
-     
-     parameters_level: [1*n] numpy.array of int 
-                        Defines the parameters levels
-     
-     log_space: bool
-                Defines if fullfact has to be in log space or when false, linear (default is True)
-     
-     Returns
-     -------
-     doe_values: [m*n] numpy.array of float 
-                 A fullfact DOE, with n the number of parameters and m the number of experiments (linked to level repartition)
-    
-     spacing: [1*n] numpy.array 
-              Represents the DOE's points spacing on each paramater axis in the space
-    
-     Example
-     -------
-     define bounds and parameters' levels:
-         >>> In [1]: bounds = numpy.array([[10, 100], [100, 1000]], float)
-         >>> In [2]: parameters_level = numpy.array([2, 3], int)
-     
-     generate doe in log space:
-         >>> In [3]: doe_values, spacing = create_doe(bounds, parameters_level, True)
-     
-     returns:
-         >>> In [4]: doe_values.tolist()
-         >>> Out[4]: [[10, 100], [100, 100], [10, 316.228], [100, 316.228], [10, 1000], [100, 1000]]
-         >>> In [5]: spacing.tolist()
-         >>> Out[5]: [1.0, 0.5]
-    
+
+    Parameters
+    ----------
+    bounds: [n*2] numpy.ndarray of floats, defines the n parameters [lower, upper] bounds
+
+    parameters_level: [1*n] numpy.ndarray of int, defines the parameters levels
+
+    log_space: Defines if fullfact has to be in log space or when false, linear (default is True)
+
+    Returns
+    -------
+    doe_values: [m*n] numpy.ndarray of float
+             A fullfact DOE, with n the number of parameters and m the number of experiments (linked to level
+             repartition)
+
+    spacing: [1*n] numpy.ndarray
+          Represents the DOE's points spacing on each paramater axis in the space
+
+    Example
+    -------
+    define bounds and parameters' levels:
+     >>> In [1]: bounds = numpy.array([[10, 100], [100, 1000]], float)
+     >>> In [2]: parameters_level = numpy.array([2, 3], int)
+
+    generate doe in log space:
+     >>> In [3]: doe_values, spacing = create_doe(bounds, parameters_level, True)
+
+    returns:
+     >>> In [4]: doe_values.tolist()
+     >>> Out[4]: [[10, 100], [100, 100], [10, 316.228], [100, 316.228], [10, 1000], [100, 1000]]
+     >>> In [5]: spacing.tolist()
+     >>> Out[5]: [1.0, 0.5]
+
     """
     if (
         isinstance(bounds, numpy.ndarray)
@@ -67,7 +69,7 @@ def create_doe(bounds, parameters_level, log_space=True):
     ):
         if log_space and numpy.amin(bounds) < 0:
             raise ValueError(
-                "to translate on log space all bounds shoold be >0, else choose log_space = False."
+                "to translate on log space all bounds should be >0, else choose log_space = False."
             )
         if numpy.issubdtype(bounds.dtype, numpy.float64) and numpy.issubdtype(
             parameters_level.dtype, numpy.integer
@@ -89,16 +91,14 @@ def create_doe(bounds, parameters_level, log_space=True):
             for idx in range(numpy.shape(doe_levels)[1]):
                 if sum(doe_levels[:, idx]) == 0:
                     doe_levels[:, idx] = 1
-            # Init DOE
-            doe_values = numpy.array([], float)
             # Translate levels into values x=xmin+level/max(level)*(xmax-xmin)
             doe_values = bounds[:, 0] + doe_levels / doe_levels.max(axis=0) * (
                 bounds[:, 1] - bounds[:, 0]
             )
-            # Calculate spacing in fullfact space (linear or log)
+            # Calculate spacing in full-fact space (linear or log)
             spacing = 1 / doe_levels.max(axis=0) * (bounds[:, 1] - bounds[:, 0])
             # Transform calculated value from log to linear if necessary
-            doe_values = 10 ** doe_values if log_space else doe_values
+            doe_values = 10**doe_values if log_space else doe_values
             return doe_values, spacing
         elif not (numpy.issubdtype(bounds.dtype, numpy.float64)):
             raise TypeError("elements type in in bounds should be float.")
@@ -113,49 +113,54 @@ def create_doe(bounds, parameters_level, log_space=True):
 
 
 # -------[Define function keeping nominal point if surrounded by feasible]------
-def surroundings(doe, nominal_doe, proper_spacing, LogLin=True):
-    """Function to reduce a given nominal DOE on a max distance criteria with points from feasible DOE ('reachable' points).
-    
-     Parameters
-     ----------
-     doe: [m*n] numpy.array of int or float 
-          DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
-     
-     nominal_doe: [k*n] numpy.array of int or float
-                  Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
-     
-     proper_spacing: [n*1] numpy.array of float
-                     Represents max distance criteria on each DOE axis (i.e. parameter scale)
-                     
-     log_space: bool
-                Defines if fullfact has to be in log space or when false, linear (default is True)
-     
-     Returns
-     -------
-     reduced_nominal_doe: [l*n] numpy.array
-                          A reduced set of nominal_doe (l<=k) validating proper_spacing criteria with feasible points from doe
-     
-     to_be_removed: numpy.array of bool
-                  Returns the corresponding indices that does not validate proper_spacing criteria
-    
-     Example
-     -------
-     define bounds and parameters' levels:
-         >>> In [1]: bounds = numpy.array([[10, 100], [100, 1000]], float)
-         >>> In [2]: parameters_level_nominal = numpy.array([2, 3], int)
-         >>> In [3]: parameters_level_feasible = numpy.array([4, 6], int)
-     
-     generate doe(s) in log space:
-         >>> In [4]: doe, _ = create_doe(bounds, parameters_level_feasible, True)
-         >>> In [5]: nominal_doe, proper_spacing = create_doe(bounds, parameters_level_nominal, True)
-    
-     search surrounding points:
-         >>> In [6]: reduced_nominal_doe, to_be_removed = surroundings(doe, nominal_doe, proper_spacing, True)
-         >>> In [7]: reduced_nominal_doe.tolist()
-         >>> Out[7]: [[10.0, 100.0], [100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796], [10.0, 1000.0], [100.0, 1000.0]]
-         >>> In [8]: to_be_removed.tolist()
-         >>> Out[8]: [False, False, False, False, False, False]
-    
+def surroundings(
+    doe, nominal_doe: ndarray, proper_spacing: ndarray, LogLin: bool = True
+) -> tuple[ndarray, ndarray]:
+    # noinspection PyUnresolvedReferences,PyShadowingNames
+    """Function to reduce a given nominal DOE on a max distance criteria with points from feasible DOE ('reachable'
+    points).
+
+    Parameters
+    ----------
+    doe: [m*n] numpy.ndarray of int or float
+      DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
+
+    nominal_doe: [k*n] numpy.ndarray of int or float
+              Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
+
+    proper_spacing: [n*1] numpy.ndarray of float
+                 Represents max distance criteria on each DOE axis (i.e. parameter scale)
+
+    LogLin: defines if fullfact has to be in log space or when false, linear (default is True)
+
+    Returns
+    -------
+    reduced_nominal_doe: [l*n] numpy.ndarray
+                      A reduced set of nominal_doe (l<=k) validating proper_spacing criteria with feasible
+                      points from DOE
+
+    to_be_removed: numpy.ndarray of bool
+              Returns the corresponding indices that do not validate proper_spacing criteria
+
+    Example
+    -------
+    define bounds and parameters' levels:
+     >>> In [1]: bounds = numpy.array([[10, 100], [100, 1000]], float)
+     >>> In [2]: parameters_level_nominal = numpy.array([2, 3], int)
+     >>> In [3]: parameters_level_feasible = numpy.array([4, 6], int)
+
+    generate doe(s) in log space:
+     >>> In [4]: doe, _ = create_doe(bounds, parameters_level_feasible, True)
+     >>> In [5]: nominal_doe, proper_spacing = create_doe(bounds, parameters_level_nominal, True)
+
+    search surrounding points:
+     >>> In [6]: reduced_nominal_doe, to_be_removed = surroundings(doe, nominal_doe, proper_spacing, True)
+     >>> In [7]: reduced_nominal_doe.tolist()
+     >>> Out[7]: [[10.0, 100.0], [100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796],
+     >>>    ...: [10.0, 1000.0], [100.0, 1000.0]]
+     >>> In [8]: to_be_removed.tolist()
+     >>> Out[8]: [False, False, False, False, False, False]
+
     """
     if (
         isinstance(doe, numpy.ndarray)
@@ -199,7 +204,7 @@ def surroundings(doe, nominal_doe, proper_spacing, LogLin=True):
                 to_be_removed[y_idx] = False
         return nominal_doe[to_be_removed == False], to_be_removed
     elif not (isinstance(doe, numpy.ndarray)):
-        raise TypeError("doe shoold be numpy array.")
+        raise TypeError("doe should be numpy array.")
     elif not (isinstance(nominal_doe, numpy.ndarray)):
         raise TypeError("nominal_doe shoold be numpy array.")
     elif not (isinstance(proper_spacing, numpy.ndarray)):
@@ -208,42 +213,50 @@ def surroundings(doe, nominal_doe, proper_spacing, LogLin=True):
         raise TypeError("log_space shoold be boolean.")
 
 
-# -------[Define function finding choice_nb nearest points to nominal]----------
+# -------[Define function finding the choice_nb nearest points to nominal]------
 def find_nearest(doe, nominal_doe, choice_nb, proper_spacing, log_space=True):
-    """Function that returns for each point in nominal DOE point, the indices and max relative error for choice_nb nearest points in feasible DOE.
-        As a distance has to be computed to select nearest in further functions, it is the max value of the relative errors (compared to bounds) 
-        that is returned (this avoid infinite relative error for [0, 0] origin point).
-        
-     Parameters
-     ----------
-     doe: [m*n] numpy.array of int or float 
+    # noinspection PyUnresolvedReferences
+    """Function that returns for each point in nominal DOE point, the indices and max relative error for choice_nb
+    nearest points in feasible DOE. As a distance has to be computed to select nearest in further functions, it is
+    the max value of the relative errors (compared to bounds) that is returned (this avoid infinite relative error
+    for [0, 0] origin point).
+
+        Parameters
+        ----------
+        doe: [m*n] numpy.ndarray of int or float
           DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
- 
-     nominal_doe: [k*n] numpy.array of int or float 
+
+        nominal_doe: [k*n] numpy.ndarray of int or float
                   Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
-    
-     choice_nb: int
-                Number of returned nearest point from DOE for each nominal DOE point, criteria is max relative distance error max(x-x_n/(max(x_n)-min(x_n)))
-     
-     log_space: bool
+
+        choice_nb: int
+                Number of the nearest points returned from DOE for each nominal DOE point, criteria is max relative
+                distance error max(x-x_n/(max(x_n)-min(x_n)))
+
+        proper_spacing: [n*1] numpy.ndarray of float
+                         Represents max distance criteria on each DOE axis (i.e. parameter scale)
+
+        log_space: bool
                 Defines if fullfact has to be in log space or when false, linear (default is True)
-    
-     Returns
-     -------
-     nearest_index_in_doe: [k*choice_nb] numpy.array of int
+
+        Returns
+        -------
+        nearest_index_in_doe: [k*choice_nb] numpy.array of int
                             Gathers the corresponding 'choice_nb' nearest DOE points indices
-    
-     Example
-     -------
-     to define DOEs, see :func:`~sizinglab.addon.pixdoe.surroundings`
-     
-     then extract the 2 nearest feasible points for each nominal point:
+
+        Example
+        -------
+        to define DOEs, see :func:`~sizinglab.addon.pixdoe.surroundings`
+
+        then extract the 2 nearest feasible points for each nominal point:
          >>> In [6]: index, max_rel_distance = find_nearest(doe, nominal_doe, 2, proper_spacing, True)
          >>> In [7]: index.tolist()
          >>> Out[7]: [[0, 4], [3, 7], [8, 12], [11, 15], [20, 16], [23, 19]]
          >>> In [8]: max_rel_distance.tolist()
-         >>> Out[8]: [[0.0, 0.20000000000000018], [0.0, 0.20000000000000018], [0.10000000000000009, 0.10000000000000009], [0.10000000000000009, 0.10000000000000009], [0.0, 0.20000000000000018], [0.0, 0.20000000000000018]]
-    
+         >>> Out[8]: [[0.0, 0.20000000000000018], [0.0, 0.20000000000000018],
+         [0.10000000000000009, 0.10000000000000009], [0.10000000000000009, 0.10000000000000009]
+         [0.0, 0.20000000000000018], [0.0, 0.20000000000000018]]
+
     """
     if (
         isinstance(doe, numpy.ndarray)
@@ -288,7 +301,7 @@ def find_nearest(doe, nominal_doe, choice_nb, proper_spacing, log_space=True):
                 rel_distance_matrix = (reduced_X - x_value) / (
                     numpy.amax(Y, axis=0) - numpy.amin(Y, axis=0)
                 )
-                rel_distance_vector = numpy.sum(rel_distance_matrix ** 2, axis=1) ** 0.5
+                rel_distance_vector = numpy.sum(rel_distance_matrix**2, axis=1) ** 0.5
                 nearest_index_in_doe[i] = reduced_index[
                     numpy.argpartition(rel_distance_vector, choice_nb)[:choice_nb]
                 ]
@@ -309,41 +322,41 @@ def find_nearest(doe, nominal_doe, choice_nb, proper_spacing, log_space=True):
 # -------[Define function electing point by increasing occurrence]---------------
 def elect_nearest(doe, nominal_doe, index):
     """Function that tries to assign for each point in nominal DOE, one point in feasible DOE elected from its 'choice_nb' found indices.
-        The assignments are done point-to-point electing each time the one maximizing minimum relative distance with current elected set.
-        If from available indices they all are already in the set, point is deleted and thus: j<=k (not likely to happen).
-        
-     Parameters
-     ----------
-     doe: [m*n] numpy.array of int or float 
-          DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
- 
-     nominal_doe: [k*n] numpy.array of int or float 
-                  Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
- 
-     index: [k*nb_choice] numpy.array of int 
-             Gathers the corresponding 'choice_nb' nearest DOE points indices (computed with :~pixdoe.find_nearest)
-    
-     Returns
-     -------
-     doe_elected: [j*n] numpy.array of int or float 
-                    Returned DOE with feasible points assigned to reduced nominal DOE (deleted points with no assignment, i.e. all indices already assigned)
-     
-     reduced_nominal_doe: [j*n] numpy.array of int or float 
-                            Reduced nominal DOE (j<=k), all point are covered with feasible point
-    
-     Example
-     -------
-     to define DOEs and find nearest points, see :func:`~sizinglab.addon.pixdoe.surroundings`
-     
-     then elect one point for each nominal point:
-         >>> In [7]: doe_elected, reduced_nominal_doe, max_error = elect_nearest(doe, nominal_doe, index)
-         >>> In [8]: doe_elected.tolist()
-         >>> Out[8]: [[100.0, 100.0], [10.0, 251.18864315095797], [100.0, 251.18864315095797], [10.0, 1000.0], [100.0, 1000.0]]
-         >>> In [9]: reduced_nominal_doe.tolist()
-         >>> Out[9]: [[100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796], [10.0, 1000.0], [100.0, 1000.0]]
-         >>> In [10]: max_error.tolist()
-         >>> Out[10]: [0.0, 0.10000000000000009, 0.10000000000000009, 0.0, 0.0]
-    
+       The assignments are done point-to-point electing each time the one maximizing minimum relative distance with current elected set.
+       If from available indices they all are already in the set, point is deleted and thus: j<=k (not likely to happen).
+
+    Parameters
+    ----------
+    doe: [m*n] numpy.array of int or float
+         DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
+
+    nominal_doe: [k*n] numpy.array of int or float
+                 Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
+
+    index: [k*nb_choice] numpy.array of int
+            Gathers the corresponding 'choice_nb' nearest DOE points indices (computed with :~pixdoe.find_nearest)
+
+    Returns
+    -------
+    doe_elected: [j*n] numpy.array of int or float
+                   Returned DOE with feasible points assigned to reduced nominal DOE (deleted points with no assignment, i.e. all indices already assigned)
+
+    reduced_nominal_doe: [j*n] numpy.array of int or float
+                           Reduced nominal DOE (j<=k), all point are covered with feasible point
+
+    Example
+    -------
+    to define DOEs and find nearest points, see :func:`~sizinglab.addon.pixdoe.surroundings`
+
+    then elect one point for each nominal point:
+        >>> In [7]: doe_elected, reduced_nominal_doe, max_error = elect_nearest(doe, nominal_doe, index)
+        >>> In [8]: doe_elected.tolist()
+        >>> Out[8]: [[100.0, 100.0], [10.0, 251.18864315095797], [100.0, 251.18864315095797], [10.0, 1000.0], [100.0, 1000.0]]
+        >>> In [9]: reduced_nominal_doe.tolist()
+        >>> Out[9]: [[100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796], [10.0, 1000.0], [100.0, 1000.0]]
+        >>> In [10]: max_error.tolist()
+        >>> Out[10]: [0.0, 0.10000000000000009, 0.10000000000000009, 0.0, 0.0]
+
     """
     if (
         isinstance(doe, numpy.ndarray)
@@ -435,32 +448,32 @@ def declare_does(
     x_Bounds, x_levels, parameters_constraints, pi_constraints, func_x_to_pi, log_space=True
 ):
     """Function to generate X and Pi DOE with constraints (called as sub-function script).
-    
-     Parameters
-     ----------
-     x_Bounds: [n*2] numpy.array of floats 
-                Defines the n parameters [lower, upper] bounds
-     
-     x_levels: [1*n] numpy.array of int 
-                Defines the parameters levels
-                
-     parameters_constraints, pi_constraints: function
-                                             Defines parameter and Pi constraints
-     
-     func_x_to_pi: function
-                    Translates X physical values into Pi dimensionless values (space transformation matrix)
-     
-     log_space: bool
-                Defines if fullfact has to be in log space or when false, linear (default is True)
-     
-     Returns
-     -------
-     doeX: [m*n] numpy.array of float 
-                 A fullfact DOE, with n the number of parameters and m the number of experiments (linked to levels)
-    
-     doePI: [k*n] numpy.array of float 
-              Represents the Pi DOE's points computed from doeX and applying both X and Pi constraints (k<=m)
-    
+
+    Parameters
+    ----------
+    x_Bounds: [n*2] numpy.array of floats
+               Defines the n parameters [lower, upper] bounds
+
+    x_levels: [1*n] numpy.array of int
+               Defines the parameters levels
+
+    parameters_constraints, pi_constraints: function
+                                            Defines parameter and Pi constraints
+
+    func_x_to_pi: function
+                   Translates X physical values into Pi dimensionless values (space transformation matrix)
+
+    log_space: bool
+               Defines if fullfact has to be in log space or when false, linear (default is True)
+
+    Returns
+    -------
+    doeX: [m*n] numpy.array of float
+                A fullfact DOE, with n the number of parameters and m the number of experiments (linked to levels)
+
+    doePI: [k*n] numpy.array of float
+             Represents the Pi DOE's points computed from doeX and applying both X and Pi constraints (k<=m)
+
     """
     doeX, _ = create_doe(x_Bounds, x_levels, log_space)
     doeX = doeX[apply_constraints(doeX, parameters_constraints) == True]
@@ -475,61 +488,61 @@ def declare_does(
 # -------[Main function: create physical points matching nominal Pi DOE]--------
 def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs):
     """Function to generate a constrained feasible set DOE with repartition on PI not far from nominal fullfact DOE.
-    
-     Parameters
-     ----------
-     parameter_set: PositiveParameterSet 
-                    Defines the n physical parameters for the studied problem
-     
-     pi_set: PositiveParameterSet 
-             Defines the k (k<n) dimensionless parameters of the problem (WARNING: no cross-validation with parameter_set, uses func_x_to_pi for translation)
-     
-     func_x_to_pi: function 
-                   Translates X physical values into Pi dimensionless values (space transformation matrix)
- 
-     whished_size: int 
-                   Is the whished size of the final elected X-DOE that represents a constrained fullfact Pi-DOE
-    
-     **kwargs: additional argumens 
-                  * **level_repartition** (*numpy.array* of *int*): defines the parameters levels relative repartition, default is equaly shared (same number of levels)
-                  * **parameters_constraints** (*function*): returns numpy.array of bool to validate each point in X-DOE, default is []
-                  * **pi_constraints** (*function*): returns numpy.array of bool to validate each point in Pi-DOE, default is []
-                  * **choice_nb** (*int*): number of returned nearest point from DOE for each nominal DOE point,default is 3
-                  * **spacing_division_criteria** (*int*): (>=2) defines the subdivision admitted error in Pi nominal space for feasible point, default is 5
-                  * **log_space** (*bool*): defines if fullfact has to be in log space or when false, linear (default is log - True)
-                  * **track** (*bool*): defines if the different process steps information have to be displayed (default is False)
-                  * **test_mode** (*bool*): set to False to show plots (default is False)
-                  * **relative_points** (*list*): specifies the realtive number of points needed for each pi number (same order as in pi_set)
-     
-     Returns
-     -------    
-     doeXc: [j*n] numpy.array of float 
-            Represents the elected feasible constrained sets of physical parameters matching spacing criteria with j >= whished_size
-     
-     doePIc: [j*n] numpy.array of float
-             Represents the elected feasible constrained sets of dimensionless parameters matching spacing criteria with j >= whished_size
-             
-     Example
-     -------
-     define properly the parameter, pi set and transformation function:
-         >>> In [1]: from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
-         >>> In [2]: from pyvplm.addon.variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
-         >>> In [3]: u = PositiveParameter('u', [1e-9, 1e-6], 'm', 'Deflection')
-         >>> In [4]: f = PositiveParameter('f', [150, 500], 'N', 'Load applied')
-         >>> In [5]: l = PositiveParameter('l', [1, 3], 'm', 'Cantilever length')
-         >>> In [6]: e = PositiveParameter('e', [60e9, 80e9], 'Pa', 'Young Modulus')
-         >>> In [7]: d = PositiveParameter('d', [10, 60], 'mm', 'Diameter of cross-section')
-         >>> In [8]: parameter_set = PositiveParameterSet(u, f, l, e, d)
-         >>> In [9]: parameter_set.first('u','l')
-         >>> In [10]: pi_set, _ = buckingham_theorem(parameter_set, False)
-         >>> In [11]: reduced_parameter_set, reduced_pi_set = reduce_parameter_set(parameter_set, pi_set, 'l')
-         >>> In [12]: func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
-                  
-     then create a complete DOE:
-         >>> In [13]: doeXc, doePIc = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 30, track=True)
-         
-         .. image:: ../source/_static/Pictures/pixdoe_create_const_doe1.png
-         .. image:: ../source/_static/Pictures/pixdoe_create_const_doe2.png
+
+    Parameters
+    ----------
+    parameter_set: PositiveParameterSet
+                   Defines the n physical parameters for the studied problem
+
+    pi_set: PositiveParameterSet
+            Defines the k (k<n) dimensionless parameters of the problem (WARNING: no cross-validation with parameter_set, uses func_x_to_pi for translation)
+
+    func_x_to_pi: function
+                  Translates X physical values into Pi dimensionless values (space transformation matrix)
+
+    whished_size: int
+                  Is the whished size of the final elected X-DOE that represents a constrained fullfact Pi-DOE
+
+    **kwargs: additional argumens
+                 * **level_repartition** (*numpy.array* of *int*): defines the parameters levels relative repartition, default is equaly shared (same number of levels)
+                 * **parameters_constraints** (*function*): returns numpy.array of bool to validate each point in X-DOE, default is []
+                 * **pi_constraints** (*function*): returns numpy.array of bool to validate each point in Pi-DOE, default is []
+                 * **choice_nb** (*int*): number of returned nearest point from DOE for each nominal DOE point,default is 3
+                 * **spacing_division_criteria** (*int*): (>=2) defines the subdivision admitted error in Pi nominal space for feasible point, default is 5
+                 * **log_space** (*bool*): defines if fullfact has to be in log space or when false, linear (default is log - True)
+                 * **track** (*bool*): defines if the different process steps information have to be displayed (default is False)
+                 * **test_mode** (*bool*): set to False to show plots (default is False)
+                 * **relative_points** (*list*): specifies the realtive number of points needed for each pi number (same order as in pi_set)
+
+    Returns
+    -------
+    doeXc: [j*n] numpy.array of float
+           Represents the elected feasible constrained sets of physical parameters matching spacing criteria with j >= whished_size
+
+    doePIc: [j*n] numpy.array of float
+            Represents the elected feasible constrained sets of dimensionless parameters matching spacing criteria with j >= whished_size
+
+    Example
+    -------
+    define properly the parameter, pi set and transformation function:
+        >>> In [1]: from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
+        >>> In [2]: from pyvplm.addon.variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
+        >>> In [3]: u = PositiveParameter('u', [1e-9, 1e-6], 'm', 'Deflection')
+        >>> In [4]: f = PositiveParameter('f', [150, 500], 'N', 'Load applied')
+        >>> In [5]: l = PositiveParameter('l', [1, 3], 'm', 'Cantilever length')
+        >>> In [6]: e = PositiveParameter('e', [60e9, 80e9], 'Pa', 'Young Modulus')
+        >>> In [7]: d = PositiveParameter('d', [10, 60], 'mm', 'Diameter of cross-section')
+        >>> In [8]: parameter_set = PositiveParameterSet(u, f, l, e, d)
+        >>> In [9]: parameter_set.first('u','l')
+        >>> In [10]: pi_set, _ = buckingham_theorem(parameter_set, False)
+        >>> In [11]: reduced_parameter_set, reduced_pi_set = reduce_parameter_set(parameter_set, pi_set, 'l')
+        >>> In [12]: func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
+
+    then create a complete DOE:
+        >>> In [13]: doeXc, doePIc = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 30, track=True)
+
+        .. image:: ../source/_static/Pictures/pixdoe_create_const_doe1.png
+        .. image:: ../source/_static/Pictures/pixdoe_create_const_doe2.png
     """
     # Proceed on type verifications
     if (
@@ -656,6 +669,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
             raise ValueError("choice_nb should be >= 1.")
         if not (numpy.issubdtype(level_repartition.dtype, numpy.integer)):
             raise TypeError("level_repartition type in index should be integer.")
+
         # Define factorisation for population calculation
 
         def fact_level(X):
@@ -686,8 +700,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         for idx in range(len(x_levels)):
             x_levels[idx] = int(1 / min_level * x_levels[idx])
         # Adapt values
-        if whished_size < 2 ** pi_number:
-            whished_size = 2 ** pi_number
+        if whished_size < 2**pi_number:
+            whished_size = 2**pi_number
             warnings.warn(
                 "Experiments size changed to {} to obtain 2-levels Fullfractional on Pi parameters".format(
                     whished_size
@@ -843,7 +857,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
             for i in range(numpy.shape(Y)[1] - 1):
                 for k in range(i + 1, numpy.shape(Y)[1]):
                     graph_nb += 1
-            n = math.ceil(graph_nb ** 0.5)
+            n = math.ceil(graph_nb**0.5)
             fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
             graph_idx = 0
             for i in range(numpy.shape(Y)[1] - 1):
@@ -894,7 +908,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     axes_handle.set_ylim((ymin, ymax))
                     axes_handle.set_xlim((xmin, xmax))
                     graph_idx += 1
-            while graph_idx < n ** 2:
+            while graph_idx < n**2:
                 nr = math.floor(graph_idx / n)
                 nc = graph_idx - nr * n
                 axes[nr, nc].axis("off")
@@ -1003,20 +1017,20 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
 # -------[Wrap constraint function to avoid definition error: unconstrained]----
 def apply_constraints(X, Constraints=[]):
     """Function to test declared constraint and return true vector if an error occurs.
-    
-        Parameters
-        ----------
-        X: [m*n] numpy.array of float or int
-            Defines the m DOE points values over the n physical parameters
-        
-        Constraints: function  
-                     Should return a [1*m] numpy.array of bool, that validates the m points constraint
-        
-        Returns
-        -------
-        Constraints(X): [1*m] numpy.array of bool
-                        If dimension mismatch or constraint can't be applyed returns True values (no constraint applied)
-        
+
+    Parameters
+    ----------
+    X: [m*n] numpy.array of float or int
+        Defines the m DOE points values over the n physical parameters
+
+    Constraints: function
+                 Should return a [1*m] numpy.array of bool, that validates the m points constraint
+
+    Returns
+    -------
+    Constraints(X): [1*m] numpy.array of bool
+                    If dimension mismatch or constraint can't be applyed returns True values (no constraint applied)
+
     """
     # Test if some constraints are declared
     if isfunction(Constraints):
@@ -1033,7 +1047,6 @@ def apply_constraints(X, Constraints=[]):
 
 # -------[Example when executed as main]----------------------------------------
 if __name__ == "__main__":
-
     # Import packages for auto-execution
     from variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
 
