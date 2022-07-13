@@ -47,6 +47,7 @@
     pint = "*"
     xlwt = "*"
     xlrd = "*"
+    openpyxl = "*"
 
 [tool.poetry.dev-dependencies]
     wheel = "*"

@@ -745,7 +745,6 @@ class Constraint(object):
         for value in parameters:
             test_expression = test_expression.replace(value, "1")
         try:
-            exec(test_expression)
             # Check parameters names does not contain forbidden character
             for parameter in parameters:
                 for char in forbidden_char:
@@ -771,9 +770,10 @@ class Constraint(object):
                 else:
                     s = s + parameter
             self.function = eval("lambda " + s + ": (" + str(expression) + ")")
+            print('step3 passed')
         except TypeError:
             raise SyntaxError("expression syntax is incorrect.")
-        else:
+        except Exception:
             raise SyntaxError(
                 "expression error type not handled, check that none of the parameter are in forbidden set:{}.".format(
                     forbidden_param

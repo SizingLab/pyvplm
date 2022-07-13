@@ -124,9 +124,7 @@ def write_dimensional_matrix(parameter_set: PositiveParameterSet) -> DataFrame:
 
 
 # -------[Find echelon form of a given matrix]----------------------------------
-def compute_echelon_form(
-    in_matrix: ndarray,
-) -> tuple[list[list[Fraction]], list[list[Fraction]], list[Union[range, Any]]]:
+def compute_echelon_form(in_matrix: ndarray) :
     # noinspection PyUnresolvedReferences
     """Function that computes a matrix into its echelon form.
 
@@ -306,20 +304,22 @@ def buckingham_theorem(
                 exponent_list = numpy.array(pivot_matrix[r])
                 exponent_list = exponent_list[numpy.argsort(parameter_list)]
                 parameter_list = parameter_list[numpy.argsort(parameter_list)]
-                for i in range(len(exponent_list)):
-                    parameter = parameter_set[str(parameter_list[i])]
-                    if exponent_list[i] > 0:
-                        # noinspection PyProtectedMember
-                        lower_bound = lower_bound * parameter._SI_bounds[0] ** exponent_list[i]
-                        # noinspection PyProtectedMember
-                        upper_bound = upper_bound * parameter._SI_bounds[1] ** exponent_list[i]
-                        expression += parameter.name + "**" + str(exponent_list[i]) + "*"
-                    elif exponent_list[i] < 0:
-                        # noinspection PyProtectedMember
-                        lower_bound = lower_bound * parameter._SI_bounds[1] ** exponent_list[i]
-                        # noinspection PyProtectedMember
-                        upper_bound = upper_bound * parameter._SI_bounds[0] ** exponent_list[i]
-                        expression += parameter.name + "**" + str(exponent_list[i]) + "*"
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    for i in range(len(exponent_list)):
+                        parameter = parameter_set[str(parameter_list[i])]
+                        if exponent_list[i] > 0:
+                            # noinspection PyProtectedMember
+                            lower_bound = lower_bound * parameter._SI_bounds[0] ** exponent_list[i]
+                            # noinspection PyProtectedMember
+                            upper_bound = upper_bound * parameter._SI_bounds[1] ** exponent_list[i]
+                            expression += parameter.name + "**" + str(exponent_list[i]) + "*"
+                        elif exponent_list[i] < 0:
+                            # noinspection PyProtectedMember
+                            lower_bound = lower_bound * parameter._SI_bounds[1] ** exponent_list[i]
+                            # noinspection PyProtectedMember
+                            upper_bound = upper_bound * parameter._SI_bounds[0] ** exponent_list[i]
+                            expression += parameter.name + "**" + str(exponent_list[i]) + "*"
                 if len(expression) != 0:
                     expression = expression[0 : len(expression) - 1]
                 bounds = [lower_bound, upper_bound]
@@ -715,38 +715,40 @@ def force_buckingham(
                     else:
                         new_expression += "*" + parameter + "**" + str(exponent)
                     pi_parameters[pi_number, parameter_list.index(parameter)] = exponent
-                    if len(bounds) == 0:
-                        if exponent < 0:
-                            # noinspection PyProtectedMember
-                            bounds = (
-                                numpy.array(
-                                    [
-                                        parameter_set[parameter]._SI_bounds[1],
-                                        parameter_set[parameter]._SI_bounds[0],
-                                    ]
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        if len(bounds) == 0:
+                            if exponent < 0:
+                                # noinspection PyProtectedMember
+                                bounds = (
+                                    numpy.array(
+                                        [
+                                            parameter_set[parameter]._SI_bounds[1],
+                                            parameter_set[parameter]._SI_bounds[0],
+                                        ]
+                                    )
+                                    ** exponent
                                 )
-                                ** exponent
-                            )
+                            else:
+                                # noinspection PyProtectedMember
+                                bounds = numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
                         else:
-                            # noinspection PyProtectedMember
-                            bounds = numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
-                    else:
-                        if exponent < 0:
-                            # noinspection PyProtectedMember
-                            bounds = bounds * (
-                                numpy.array(
-                                    [
-                                        parameter_set[parameter]._SI_bounds[1],
-                                        parameter_set[parameter]._SI_bounds[0],
-                                    ]
+                            if exponent < 0:
+                                # noinspection PyProtectedMember
+                                bounds = bounds * (
+                                    numpy.array(
+                                        [
+                                            parameter_set[parameter]._SI_bounds[1],
+                                            parameter_set[parameter]._SI_bounds[0],
+                                        ]
+                                    )
+                                    ** exponent
                                 )
-                                ** exponent
-                            )
-                        else:
-                            # noinspection PyProtectedMember
-                            bounds = bounds * (
-                                numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
-                            )
+                            else:
+                                # noinspection PyProtectedMember
+                                bounds = bounds * (
+                                    numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
+                                )
             bounds_list[:, pi_number] = bounds
             pi_list[pi_number] = new_expression
             # Check pi is dimensionless
@@ -1072,7 +1074,7 @@ def regression_models(
         log_space = True
         ymax_axis = 100
         test_mode = False
-        show_plots = False
+        show_plots = True
         latex = False
         skip_cross_validation = False
         force_choice = 0
@@ -1173,7 +1175,7 @@ def regression_models(
         # Create complete labelling and calculate DoE
         poly_feature = PolynomialFeatures(degree=order, include_bias=False)
         X = poly_feature.fit_transform(x_doe)
-        term_names = poly_feature.get_feature_names()
+        term_names = poly_feature.get_feature_names_out()
         labels = [""]
         for index_of_term, term in enumerate(term_names):
             if removed_pi:
@@ -1401,7 +1403,7 @@ def regression_models(
             plot.rc("text", usetex=True)
             plot.rc("font", family="serif")
         # Start to plot the graph with indicators
-        if not test_mode or show_plots:
+        if show_plots:
             x = numpy.array(range(len(models.keys()))).astype(int) + 1
             if not fig_size:
                 # noinspection PyTypeChecker
@@ -1483,8 +1485,7 @@ def regression_models(
                 plot.savefig(temp_path + "regression_models.pdf", dpi=1200, format="pdf")
             except Exception as ex:
                 logg_exception(ex)
-        if not test_mode:
-            plot.show()
+        plot.show()
         # De-activate latex render on plot
         plot.rc("text", usetex=False)
         plot.rc("font", family="sans-serif")
