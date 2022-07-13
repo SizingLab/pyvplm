@@ -77,8 +77,7 @@ Within log space, the model obtained can be transformed into variable power-law 
 
 $$
 \begin{align}
-    log(\pi_0) = a_0+a_1 \cdot log(\pi_1) + a_{11} \cdot log(\pi_1)^2+a_{12} \cdot log(\pi_1) \cdot log(\pi_2) + a_2 \\
-    \cdot log(\pi_2) +...
+    log(\pi_0) = a_0+a_1 \cdot log(\pi_1) + a_{11} \cdot log(\pi_1)^2+a_{12} \cdot log(\pi_1) \cdot log(\pi_2) + a_2 \cdot log(\pi_2) +...
 \end{align}
 $$
 
@@ -86,8 +85,7 @@ Can be expressed in the following form:
 
 $$
 \begin{align}
-    \pi_0 = 10^{a_0} \cdot \pi_1 ^{a_1 + a_{11} \cdot log(\pi_1)+a_{12} \cdot log(\pi_2)+...} \cdot  \pi_2^{a_2+...} \\
-    \cdot ...
+    \pi_0 = 10^{a_0} \cdot \pi_1 ^{a_1 + a_{11} \cdot log(\pi_1)+a_{12} \cdot log(\pi_2)+...} \cdot  \pi_2^{a_2+...} \cdot ...
 \end{align}
 $$
 
