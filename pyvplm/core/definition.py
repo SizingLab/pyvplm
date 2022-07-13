@@ -770,7 +770,7 @@ class Constraint(object):
                 else:
                     s = s + parameter
             self.function = eval("lambda " + s + ": (" + str(expression) + ")")
-            print('step3 passed')
+            print("step3 passed")
         except TypeError:
             raise SyntaxError("expression syntax is incorrect.")
         except Exception:

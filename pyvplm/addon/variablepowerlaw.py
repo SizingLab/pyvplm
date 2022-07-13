@@ -124,7 +124,7 @@ def write_dimensional_matrix(parameter_set: PositiveParameterSet) -> DataFrame:
 
 
 # -------[Find echelon form of a given matrix]----------------------------------
-def compute_echelon_form(in_matrix: ndarray) :
+def compute_echelon_form(in_matrix: ndarray):
     # noinspection PyUnresolvedReferences
     """Function that computes a matrix into its echelon form.
 
@@ -731,7 +731,9 @@ def force_buckingham(
                                 )
                             else:
                                 # noinspection PyProtectedMember
-                                bounds = numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
+                                bounds = (
+                                    numpy.array(parameter_set[parameter]._SI_bounds) ** exponent
+                                )
                         else:
                             if exponent < 0:
                                 # noinspection PyProtectedMember
