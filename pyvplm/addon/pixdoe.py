@@ -9,17 +9,26 @@ import sys
 import pyDOE2
 import numpy
 import math
+import logging
 from inspect import isfunction
 import functools
 import pandas
 import matplotlib.pyplot as plot
 import warnings
 from numpy import ndarray
-from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
+from pyvplm.core.definition import PositiveParameter, PositiveParameterSet, greek_list
 
 # -------[Global variables and settings]----------------------------------------
 path = os.path.abspath(__file__)
 temp_path = path.replace("\\addon\\" + os.path.basename(path), "") + "\\_temp\\"
+module_logger = logging.getLogger(__name__)
+
+
+# -------[Logg Exception]-------------------------------------------------------
+def logg_exception(ex: Exception):
+    template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+    message = template.format(type(ex).__name__, ex.args)
+    module_logger.info(message)
 
 
 # -------[Define function creating full-fact using bounds and levels]-----------
@@ -188,7 +197,7 @@ def surroundings(
         # Transform DOE into log space if needed
         X = numpy.log10(doe) if LogLin else doe
         Y = numpy.log10(nominal_doe) if LogLin else nominal_doe
-        # For each point in nominal_doe find if a point in doe at dmax distance in each dimension and annulate removal
+        # For each point in nominal_doe find if a point in doe at dmax distance in each dimension and canceled removal
         to_be_removed = numpy.ones(len(nominal_doe), bool)
         for y_idx in range(numpy.shape(Y)[0]):
             valid_distance = bool(
@@ -218,44 +227,44 @@ def find_nearest(doe, nominal_doe, choice_nb, proper_spacing, log_space=True):
     # noinspection PyUnresolvedReferences
     """Function that returns for each point in nominal DOE point, the indices and max relative error for choice_nb
     nearest points in feasible DOE. As a distance has to be computed to select nearest in further functions, it is
-    the max value of the relative errors (compared to bounds) that is returned (this avoid infinite relative error
+    the max value of the relative errors (compared to the bounds) that is returned (this avoids infinite relative error
     for [0, 0] origin point).
 
-        Parameters
-        ----------
-        doe: [m*n] numpy.ndarray of int or float
-          DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
+    Parameters
+    ----------
+    doe: [m*n] numpy.ndarray of int or float
+      DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
 
-        nominal_doe: [k*n] numpy.ndarray of int or float
-                  Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
+    nominal_doe: [k*n] numpy.ndarray of int or float
+              Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
 
-        choice_nb: int
-                Number of the nearest points returned from DOE for each nominal DOE point, criteria is max relative
-                distance error max(x-x_n/(max(x_n)-min(x_n)))
+    choice_nb: int
+            Number of the nearest points returned from DOE for each nominal DOE point, criteria is max relative
+            distance error max(x-x_n/(max(x_n)-min(x_n)))
 
-        proper_spacing: [n*1] numpy.ndarray of float
-                         Represents max distance criteria on each DOE axis (i.e. parameter scale)
+    proper_spacing: [n*1] numpy.ndarray of float
+                     Represents max distance criteria on each DOE axis (i.e. parameter scale)
 
-        log_space: bool
-                Defines if fullfact has to be in log space or when false, linear (default is True)
+    log_space: bool
+            Defines if fullfact has to be in log space or when false, linear (default is True)
 
-        Returns
-        -------
-        nearest_index_in_doe: [k*choice_nb] numpy.array of int
-                            Gathers the corresponding 'choice_nb' nearest DOE points indices
+    Returns
+    -------
+    nearest_index_in_doe: [k*choice_nb] numpy.ndarray of int
+                        Gathers the corresponding 'choice_nb' nearest DOE points indices
 
-        Example
-        -------
-        to define DOEs, see :func:`~sizinglab.addon.pixdoe.surroundings`
+    Example
+    -------
+    to define DOEs, see :func:`~sizinglab.addon.pixdoe.surroundings`
 
-        then extract the 2 nearest feasible points for each nominal point:
-         >>> In [6]: index, max_rel_distance = find_nearest(doe, nominal_doe, 2, proper_spacing, True)
-         >>> In [7]: index.tolist()
-         >>> Out[7]: [[0, 4], [3, 7], [8, 12], [11, 15], [20, 16], [23, 19]]
-         >>> In [8]: max_rel_distance.tolist()
-         >>> Out[8]: [[0.0, 0.20000000000000018], [0.0, 0.20000000000000018],
-         [0.10000000000000009, 0.10000000000000009], [0.10000000000000009, 0.10000000000000009]
-         [0.0, 0.20000000000000018], [0.0, 0.20000000000000018]]
+    then extract the 2 nearest feasible points for each nominal point:
+     >>> In [6]: index, max_rel_distance = find_nearest(doe, nominal_doe, 2, proper_spacing, True)
+     >>> In [7]: index.tolist()
+     >>> Out[7]: [[0, 4], [3, 7], [8, 12], [11, 15], [20, 16], [23, 19]]
+     >>> In [8]: max_rel_distance.tolist()
+     >>> Out[8]: [[0.0, 0.20000000000000018], [0.0, 0.20000000000000018],
+     [0.10000000000000009, 0.10000000000000009], [0.10000000000000009, 0.10000000000000009]
+     [0.0, 0.20000000000000018], [0.0, 0.20000000000000018]]
 
     """
     if (
@@ -320,40 +329,45 @@ def find_nearest(doe, nominal_doe, choice_nb, proper_spacing, log_space=True):
 
 
 # -------[Define function electing point by increasing occurrence]---------------
-def elect_nearest(doe, nominal_doe, index):
-    """Function that tries to assign for each point in nominal DOE, one point in feasible DOE elected from its 'choice_nb' found indices.
-       The assignments are done point-to-point electing each time the one maximizing minimum relative distance with current elected set.
-       If from available indices they all are already in the set, point is deleted and thus: j<=k (not likely to happen).
+def elect_nearest(doe: ndarray, nominal_doe: ndarray, index: ndarray):
+    # noinspection PyUnresolvedReferences,PyShadowingNames
+    """Function that tries to assign for each point in nominal DOE, one point in feasible DOE elected from its
+    'choice_nb' found indices. The assignments are done point-to-point electing each time the one maximizing minimum
+    relative distance with current elected set. If from available indices they all are already in the set, point is
+    deleted and thus: j<=k (not likely to happen).
 
     Parameters
     ----------
-    doe: [m*n] numpy.array of int or float
+    doe: [m*n] numpy.ndarray of int or float
          DOE representing m feasible experiments expressed with n parameters with non-optimal spacing
 
-    nominal_doe: [k*n] numpy.array of int or float
+    nominal_doe: [k*n] numpy.ndarray of int or float
                  Fullfact DOE with k wished experiment (k<<m) expressed with the same n parameters
 
-    index: [k*nb_choice] numpy.array of int
+    index: [k*nb_choice] numpy.ndarray of int
             Gathers the corresponding 'choice_nb' nearest DOE points indices (computed with :~pixdoe.find_nearest)
 
     Returns
     -------
-    doe_elected: [j*n] numpy.array of int or float
-                   Returned DOE with feasible points assigned to reduced nominal DOE (deleted points with no assignment, i.e. all indices already assigned)
+    doe_elected: [j*n] numpy.ndarray of int or float
+                 Returned DOE with feasible points assigned to reduced nominal DOE (deleted points with no
+                 assignment, i.e. all indices already assigned)
 
-    reduced_nominal_doe: [j*n] numpy.array of int or float
+    reduced_nominal_doe: [j*n] numpy.ndarray of int or float
                            Reduced nominal DOE (j<=k), all point are covered with feasible point
 
     Example
     -------
-    to define DOEs and find nearest points, see :func:`~sizinglab.addon.pixdoe.surroundings`
+    to define DOEs and find the nearest points, see :func:`~sizinglab.addon.pixdoe.surroundings`
 
     then elect one point for each nominal point:
         >>> In [7]: doe_elected, reduced_nominal_doe, max_error = elect_nearest(doe, nominal_doe, index)
         >>> In [8]: doe_elected.tolist()
-        >>> Out[8]: [[100.0, 100.0], [10.0, 251.18864315095797], [100.0, 251.18864315095797], [10.0, 1000.0], [100.0, 1000.0]]
+        >>> Out[8]: [[100.0, 100.0], [10.0, 251.18864315095797], [100.0, 251.18864315095797], [10.0, 1000.0],
+        [100.0, 1000.0]]
         >>> In [9]: reduced_nominal_doe.tolist()
-        >>> Out[9]: [[100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796], [10.0, 1000.0], [100.0, 1000.0]]
+        >>> Out[9]: [[100.0, 100.0], [10.0, 316.22776601683796], [100.0, 316.22776601683796], [10.0, 1000.0],
+        [100.0, 1000.0]]
         >>> In [10]: max_error.tolist()
         >>> Out[10]: [0.0, 0.10000000000000009, 0.10000000000000009, 0.0, 0.0]
 
@@ -375,7 +389,7 @@ def elect_nearest(doe, nominal_doe, index):
             raise TypeError("elements type in nominal_doe should be float or integer.")
         if not (numpy.issubdtype(index.dtype, numpy.integer)):
             raise TypeError("elements type in index should be integer.")
-        if numpy.shape(doe)[0] < numpy.amax((index)):
+        if numpy.shape(doe)[0] < numpy.amax(index):
             raise ValueError("maximum stored index is greater than doe size.")
         if numpy.shape(nominal_doe)[0] != numpy.shape(index)[0]:
             raise ValueError("nominal_doe and index should have same number of rows.")
@@ -422,7 +436,8 @@ def elect_nearest(doe, nominal_doe, index):
                                     )
                                     ** 0.5
                                 )
-                            except:  # If only one point elected
+                            except Exception as ex:
+                                logg_exception(ex)
                                 rel_distance[i] = (
                                     numpy.sum(
                                         ((doe_elected - doe[available_index[i], :]) / doe_range)
@@ -443,90 +458,106 @@ def elect_nearest(doe, nominal_doe, index):
         raise TypeError("index shoold be numpy array.")
 
 
-# -------[Define subfunction avoid script repetition, defines constrained DOEs]-
+# -------[Define sub-function avoid script repetition, defines constrained DOEs]
+# noinspection PyShadowingNames
 def declare_does(
-    x_Bounds, x_levels, parameters_constraints, pi_constraints, func_x_to_pi, log_space=True
+    x_Bounds: ndarray,
+    x_levels: ndarray,
+    parameters_constraints,
+    pi_constraints,
+    func_x_to_pi,
+    log_space: bool = True,
 ):
     """Function to generate X and Pi DOE with constraints (called as sub-function script).
 
     Parameters
     ----------
-    x_Bounds: [n*2] numpy.array of floats
-               Defines the n parameters [lower, upper] bounds
+    x_Bounds: [n*2] numpy.ndarray of floats, defines the n parameters [lower, upper] bounds
 
-    x_levels: [1*n] numpy.array of int
-               Defines the parameters levels
+    x_levels: [1*n] numpy.ndarray of int, defines the parameters levels
 
-    parameters_constraints, pi_constraints: function
-                                            Defines parameter and Pi constraints
+    parameters_constraints, pi_constraints: functions that define parameter and Pi constraints
 
-    func_x_to_pi: function
-                   Translates X physical values into Pi dimensionless values (space transformation matrix)
+    func_x_to_pi: function that translates X physical values into Pi dimensionless values
+                    (space transformation matrix)
 
-    log_space: bool
-               Defines if fullfact has to be in log space or when false, linear (default is True)
+    log_space: Defines if full-factorial has to be in log space or when false, linear (default is True)
 
     Returns
     -------
-    doeX: [m*n] numpy.array of float
-                A fullfact DOE, with n the number of parameters and m the number of experiments (linked to levels)
+    doeX: [m*n] numpy.ndarray of float
+                A full-factorial DOE, with n the number of parameters and m the number of experiments (linked to level)
 
-    doePI: [k*n] numpy.array of float
+    doePI: [k*n] numpy.ndarray of float
              Represents the Pi DOE's points computed from doeX and applying both X and Pi constraints (k<=m)
 
     """
-    doeX, _ = create_doe(x_Bounds, x_levels, log_space)
-    doeX = doeX[apply_constraints(doeX, parameters_constraints) == True]
-    if len(doeX) == 0:
+    doe_x, _ = create_doe(x_Bounds, x_levels, log_space)
+    doe_x = doe_x[apply_constraints(doe_x, parameters_constraints) == True]
+    if len(doe_x) == 0:
         doePI = []
     else:
-        doePI = func_x_to_pi(doeX.tolist())
+        doePI = func_x_to_pi(doe_x.tolist())
         doePI = doePI[apply_constraints(doePI, pi_constraints) == True, :]
-    return doeX, doePI
+    return doe_x, doePI
 
 
 # -------[Main function: create physical points matching nominal Pi DOE]--------
-def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs):
+# noinspection PyShadowingNames
+def create_const_doe(
+    parameter_set: PositiveParameterSet,
+    pi_set: PositiveParameterSet,
+    func_x_to_pi,
+    wished_size: int,
+    **kwargs
+):
+    # noinspection PyUnresolvedReferences,PyTypeChecker,PyShadowingNames
     """Function to generate a constrained feasible set DOE with repartition on PI not far from nominal fullfact DOE.
 
     Parameters
     ----------
-    parameter_set: PositiveParameterSet
-                   Defines the n physical parameters for the studied problem
+    parameter_set: Defines the n physical parameters for the studied problem
 
-    pi_set: PositiveParameterSet
-            Defines the k (k<n) dimensionless parameters of the problem (WARNING: no cross-validation with parameter_set, uses func_x_to_pi for translation)
+    pi_set: Defines the k (k<n) dimensionless parameters of the problem (WARNING: no cross-validation with
+            parameter_set, uses func_x_to_pi for translation)
 
-    func_x_to_pi: function
-                  Translates X physical values into Pi dimensionless values (space transformation matrix)
+    func_x_to_pi: Function that translates X physical values into Pi dimensionless values (space transformation matrix)
 
-    whished_size: int
-                  Is the whished size of the final elected X-DOE that represents a constrained fullfact Pi-DOE
+    wished_size: Is the wished size of the final elected X-DOE that represents a constrained fullfact Pi-DOE
 
     **kwargs: additional argumens
-                 * **level_repartition** (*numpy.array* of *int*): defines the parameters levels relative repartition, default is equaly shared (same number of levels)
-                 * **parameters_constraints** (*function*): returns numpy.array of bool to validate each point in X-DOE, default is []
-                 * **pi_constraints** (*function*): returns numpy.array of bool to validate each point in Pi-DOE, default is []
-                 * **choice_nb** (*int*): number of returned nearest point from DOE for each nominal DOE point,default is 3
-                 * **spacing_division_criteria** (*int*): (>=2) defines the subdivision admitted error in Pi nominal space for feasible point, default is 5
-                 * **log_space** (*bool*): defines if fullfact has to be in log space or when false, linear (default is log - True)
-                 * **track** (*bool*): defines if the different process steps information have to be displayed (default is False)
+                 * **level_repartition** (*numpy.array* of *int*): defines the parameters levels relative repartition,
+                 default is equaly shared (same number of levels)
+                 * **parameters_constraints** (*function*): returns numpy.array of bool to validate each point in X-DOE,
+                 default is []
+                 * **pi_constraints** (*function*): returns numpy.array of bool to validate each point in Pi-DOE,
+                 default is []
+                 * **choice_nb** (*int*): number of returned nearest point from DOE for each nominal DOE point,
+                 default is 3
+                 * **spacing_division_criteria** (*int*): (>=2) defines the subdivision admitted error in Pi nominal
+                 space for feasible point, default is 5
+                 * **log_space** (*bool*): defines if fullfact has to be in log space or when false, linear
+                 (default is log - True)
+                 * **track** (*bool*): defines if the different process steps information have to be displayed
+                 (default is False)
                  * **test_mode** (*bool*): set to False to show plots (default is False)
-                 * **relative_points** (*list*): specifies the realtive number of points needed for each pi number (same order as in pi_set)
 
     Returns
     -------
     doeXc: [j*n] numpy.array of float
-           Represents the elected feasible constrained sets of physical parameters matching spacing criteria with j >= whished_size
+           Represents the elected feasible constrained sets of physical parameters matching spacing criteria with
+           j >= whished_size
 
     doePIc: [j*n] numpy.array of float
-            Represents the elected feasible constrained sets of dimensionless parameters matching spacing criteria with j >= whished_size
+            Represents the elected feasible constrained sets of dimensionless parameters matching spacing criteria
+            with j >= whished_size
 
     Example
     -------
     define properly the parameter, pi set and transformation function:
         >>> In [1]: from pyvplm.core.definition import PositiveParameter, PositiveParameterSet
-        >>> In [2]: from pyvplm.addon.variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
+        >>> In [2]: from pyvplm.addon.variablepowerlaw import buckingham_theorem, declare_func_x_to_pi,
+        reduce_parameter_set
         >>> In [3]: u = PositiveParameter('u', [1e-9, 1e-6], 'm', 'Deflection')
         >>> In [4]: f = PositiveParameter('f', [150, 500], 'N', 'Load applied')
         >>> In [5]: l = PositiveParameter('l', [1, 3], 'm', 'Cantilever length')
@@ -539,7 +570,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         >>> In [12]: func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
 
     then create a complete DOE:
-        >>> In [13]: doeXc, doePIc = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 30, track=True)
+        >>> In [13]: doeXc, doePIc = create_const_doe(reduced_parameter_set, reduced_pi_set, func_x_to_pi, 30,
+        track=True)
 
         .. image:: ../source/_static/Pictures/pixdoe_create_const_doe1.png
         .. image:: ../source/_static/Pictures/pixdoe_create_const_doe2.png
@@ -549,7 +581,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         isinstance(parameter_set, PositiveParameterSet)
         and isinstance(pi_set, PositiveParameterSet)
         and isfunction(func_x_to_pi)
-        and isinstance(whished_size, int)
+        and isinstance(wished_size, int)
     ):
         # Set additional arguments values
         level_repartition = numpy.ones(len(list(parameter_set.dictionary.keys()))).astype(int)
@@ -560,7 +592,6 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         log_space = True
         track = False
         test_mode = False
-        relative_points = []
         for key, value in kwargs.items():
             if not (
                 key
@@ -573,7 +604,6 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     "log_space",
                     "track",
                     "test_mode",
-                    "relative_points",
                 ]
             ):
                 raise KeyError("unknown argument " + key)
@@ -636,21 +666,22 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     test_mode = value
                 else:
                     raise ValueError("test_mode should be a boolean.")
-            elif key == "relative_points":
-                if isinstance(value, list):
-                    relative_points = value
-                else:
-                    raise ValueError("relative_points should be a list.")
         # Extract bounds on parameters set and parameters number
         x_Bounds = []
-        for index in parameter_set.dictionary.keys():
-            x_Bounds.append(parameter_set[index]._SI_bounds)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for index in parameter_set.dictionary.keys():
+                # noinspection PyProtectedMember
+                x_Bounds.append(parameter_set[index]._SI_bounds)
         x_Bounds = numpy.array(x_Bounds)
         parameters_number = numpy.shape(x_Bounds)[0]
         # Extract bounds on pi set and pi number
         pi_Bounds = []
-        for index in pi_set.dictionary.keys():
-            pi_Bounds.append(pi_set[index]._SI_bounds)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for index in pi_set.dictionary.keys():
+                # noinspection PyProtectedMember
+                pi_Bounds.append(pi_set[index]._SI_bounds)
         pi_Bounds = numpy.array(pi_Bounds)
         pi_number = numpy.shape(pi_Bounds)[0]
         # Check func_x_to_pi function
@@ -658,7 +689,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
             pi = func_x_to_pi(numpy.transpose(x_Bounds))
             if numpy.shape(pi)[1] != len(pi_Bounds):
                 raise TypeError
-        except:
+        except Exception:
             raise IndexError(
                 "func_x_to_pi can't be used to translate physical parameters into dimensionless ones."
             )
@@ -672,72 +703,81 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
 
         # Define factorisation for population calculation
 
-        def fact_level(X):
-            for i in range(len(X)):
-                if X[i] == 0:
-                    X[i] = 1
-            Y = functools.reduce(lambda x, y: x * y, X)
-            return Y
+        # noinspection PyShadowingNames
+        def fact_level(x):
+            for idx in range(len(x)):
+                if x[idx] == 0:
+                    x[idx] = 1
+            y = functools.reduce(lambda x, y: x * y, x)
+            return y
 
         # Define DOE level name
-        def level_name(X):
+        # noinspection PyShadowingNames
+        def level_name(x):
             name = ""
-            for i in range(len(X)):
-                if X[i] == 0:
-                    X[i] = 1
-                name += str(X[i]) + "x"
-            name = name[0 : len(name) - 1] + "=" + str(fact_level(X))
+            for idx in range(len(x)):
+                if x[idx] == 0:
+                    x[idx] = 1
+                name += str(x[idx]) + "x"
+            name = name[0 : len(name) - 1] + "=" + str(fact_level(x))
             return name
 
         # Save level repartition as x_levels and adapt it for constant parameter
         x_levels = level_repartition
         i = 0
-        for index in parameter_set.dictionary.keys():
-            if parameter_set[index]._SI_bounds[0] == parameter_set[index]._SI_bounds[1]:
-                x_levels[i] = 0
-            i += 1
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for index in parameter_set.dictionary.keys():
+                # noinspection PyProtectedMember
+                if parameter_set[index]._SI_bounds[0] == parameter_set[index]._SI_bounds[1]:
+                    x_levels[i] = 0
+                i += 1
         min_level = min(x_levels + sys.maxsize * (x_levels == 0))
         for idx in range(len(x_levels)):
             x_levels[idx] = int(1 / min_level * x_levels[idx])
         # Adapt values
-        if whished_size < 2**pi_number:
-            whished_size = 2**pi_number
+        if wished_size < 2**pi_number:
+            wished_size = 2**pi_number
             warnings.warn(
-                "Experiments size changed to {} to obtain 2-levels Fullfractional on Pi parameters".format(
-                    whished_size
+                "Experiments size changed to {} to obtain 2-levels full-fractional on Pi parameters".format(
+                    wished_size
                 )
             )
         # Create level repartition on pi and adapt it for constant parameter
         pi_levels = numpy.ones(pi_number, dtype=int)
         i = 0
-        for index in pi_set.dictionary.keys():
-            if pi_set[index]._SI_bounds[0] == pi_set[index]._SI_bounds[1]:
-                pi_levels[i] = 0
-            i += 1
-        # Set an initial set point on X 3 times greater than the wished constrained set (size will be automatically ajusted)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for index in pi_set.dictionary.keys():
+                # noinspection PyProtectedMember
+                if pi_set[index]._SI_bounds[0] == pi_set[index]._SI_bounds[1]:
+                    pi_levels[i] = 0
+                i += 1
+        # Set an initial set point on X 3 times greater than the wished constrained set (size will be auto. adjusted)
         init_coverage_factor = 3
         x_steps = 2
-        while fact_level(x_steps * x_levels) < (init_coverage_factor * whished_size):
+        while fact_level(x_steps * x_levels) < (init_coverage_factor * wished_size):
             x_steps += 1
         x_steps += -1
         # Force entry to loop and initiate pi_level
         obtained_size_on_pi = 0
         pi_steps = 0
         save = {}
-        # Starts automatic definition of initial X non-constrained set and nominal Pi set to have sufficient constrained nominal Pi set
-        while obtained_size_on_pi < whished_size:
+        # Starts automatic definition of initial X non-constrained set and nominal Pi set to have sufficient constrained
+        # nominal Pi set
+        while obtained_size_on_pi < wished_size:
             # Init variables before entering X-DOE automatic loop
             step = 1
-            previous_size = 0
             obtained_size_on_x = 0
-            # [PHASE1] Loop increasing x parameters'level until obtaining a contrained set size >= whished_size * init_coverage_factor [CAN BE SLOW]
+            # [PHASE1] Loop increasing x parameters' level until obtaining a constrained set
+            # size >= wished_size * init_coverage_factor [CAN BE SLOW]
             if track:
                 print(
                     "PHASE1: Constructing constrained X-DOE based on size >= {} criteria".format(
-                        whished_size * init_coverage_factor
+                        wished_size * init_coverage_factor
                     )
                 )
-            while obtained_size_on_x < (whished_size * init_coverage_factor):
+            while obtained_size_on_x < (wished_size * init_coverage_factor):
                 x_steps += 1
                 doeX, doePI = declare_does(
                     x_Bounds,
@@ -751,42 +791,44 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                 obtained_size_on_x = numpy.shape(doeX)[0]
                 if track:
                     print(
-                        "Step{}: non constrained {} X-DOE factorial experiment leads to constrained [{}*{}] X-DOE matrix".format(
+                        "Step{}: non constrained {} X-DOE factorial experiment leads to constrained [{}*{}] "
+                        "X-DOE matrix".format(
                             step,
                             level_name(x_steps * x_levels),
                             obtained_size_on_x,
                             parameters_number,
                         )
                     )
-                    if not (obtained_size_on_x < (whished_size * init_coverage_factor)):
+                    if not (obtained_size_on_x < (wished_size * init_coverage_factor)):
                         print("Skipping to PHASE2...\n")
                 step += 1
-            # Calculate the equivalent init_coverage_factor for obtained parameters_level such as constrained doe size >= whished_size * init_coverage_factor
-            init_coverage_factor = math.trunc(fact_level(x_steps * x_levels) / whished_size)
+            # Calculate the equivalent init_coverage_factor for obtained parameters_level such as constrained doe
+            # size >= wished_size * init_coverage_factor
+            init_coverage_factor = math.trunc(fact_level(x_steps * x_levels) / wished_size)
             # Init variables before entering nominal PI-DOE automatic loop
             step = 1
             previous_size = 0
             obtained_size_on_pi = 0
             pi_steps = 2
-            while fact_level(pi_steps * pi_levels) < whished_size:
+            while fact_level(pi_steps * pi_levels) < wished_size:
                 pi_steps += 1
             pi_steps += -1
-            # Loop increasing nominal pi parameters'level till obtaining a contrained set size >= whished_size [CAN BE SLOW]
+            # Loop increasing nominal pi parameters' level till obtaining a constrained set
+            # size >= wished_size [CAN BE SLOW]
             if track:
                 print(
-                    "PHASE2: Constructing unconstrained Pi-DOE validating max spacing criteria = 1/{} with feasible points".format(
-                        spacing_division_criteria
-                    )
+                    "PHASE2: Constructing unconstrained Pi-DOE validating max spacing criteria = 1/{} "
+                    "with feasible points".format(spacing_division_criteria)
                 )
-            while obtained_size_on_pi < whished_size:
+            while obtained_size_on_pi < wished_size:
                 pi_steps += 1
-                # If nominal pi set becomes greater than feasible pi set increase parameter level (i.e. generated contrained X-DOE)
+                # If nominal pi set becomes greater than feasible pi set increase parameter level
+                # (i.e. generated constrained X-DOE)
                 if obtained_size_on_x < fact_level(pi_steps * pi_levels):
                     if track:
                         print(
-                            "Step{}: [ERROR] Pi set size would tend to be greater than contrained X set: restart in PHASE1 to increase X parameters levels\n".format(
-                                step
-                            )
+                            "Step{}: [ERROR] Pi set size would tend to be greater than constrained X set: restart "
+                            "in PHASE1 to increase X parameters levels\n".format(step)
                         )
                     break
                 else:
@@ -794,6 +836,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     save["doePIn"] = doePIn
                     doePIn = doePIn[apply_constraints(doePIn, pi_constraints) == True]
                     save["doePIn_c"] = doePIn
+                    # noinspection PyUnboundLocalVariable
                     doePIn, _ = surroundings(
                         doePI, doePIn, spacing / spacing_division_criteria, log_space
                     )
@@ -802,7 +845,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     if previous_size > obtained_size_on_pi:
                         if track:
                             print(
-                                "Step{}: [ERROR] Pi set size decreasing while increasing levels {}->{}: restart in PHASE1 to increase X parameters levels\n".format(
+                                "Step{}: [ERROR] Pi set size decreasing while increasing levels {}->{}: restart "
+                                "in PHASE1 to increase X parameters levels\n".format(
                                     step, previous_size, obtained_size_on_pi
                                 )
                             )
@@ -810,7 +854,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     else:
                         if track:
                             print(
-                                "Step{}: non constrainded [{}] Pi-DOE factorial experiment leads to constrained [{}*{}] Pi-DOE matrix".format(
+                                "Step{}: non constrained [{}] Pi-DOE factorial experiment leads to constrained "
+                                "[{}*{}] Pi-DOE matrix".format(
                                     step,
                                     level_name(pi_steps * pi_levels),
                                     obtained_size_on_pi,
@@ -819,7 +864,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                             )
                 previous_size = obtained_size_on_pi
                 step += 1
-        # From initial nominal Pi set and constrained X set extract nearest points
+        # From initial nominal Pi set and constrained X set extract the nearest points
+        # noinspection PyUnboundLocalVariable
         index = find_nearest(
             doePI, doePIn, choice_nb, spacing / spacing_division_criteria, log_space
         )
@@ -827,6 +873,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
             numpy.reshape(index, numpy.shape(index)[0] * choice_nb) if choice_nb != 1 else index
         )
         save["doePI_n"] = doePI[index_vector, :]
+        # noinspection PyUnboundLocalVariable
         doeXn, doePIn = elect_nearest(doeX, doePIn, index)
         # Delete points that do not match spacing criteria
         doePI, to_be_removed = surroundings(
@@ -834,7 +881,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         )
         doeXn = doeXn[to_be_removed == False]
         reduction_factor = 1 - len(doeXn) / fact_level(x_steps * x_levels)
-        if not (test_mode):
+        if not test_mode:
             print("\n")
             print(
                 "Set reduction factor (from feasible to optimal) is {}%\n".format(
@@ -845,7 +892,7 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
         doeXc = doeXn
         doePIc = func_x_to_pi(doeXc.tolist())
         save["doePI_e"] = doePIc
-        # Plot Pi vs Pi fullfact graphs
+        # Plot Pi vs Pi full-factorial graphs
         if not test_mode:
             X = numpy.log10(save["doePI"]) if log_space else save["doePI"]
             X1 = numpy.log10(save["doePI_n"]) if log_space else save["doePI_n"]
@@ -876,15 +923,15 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     axes_handle.plot(Y[:, i], Y[:, k], "k.", label="All (Obj.)")
                     axes_handle.plot(Y1[:, i], Y1[:, k], "r.", label="Active (Obj.)")
                     expression = (
-                        ("$log(" + x_labels[i].replace("pi", "\pi_{") + "})$")
+                        ("$log(" + x_labels[i].replace("pi", "\\pi_{") + "})$")
                         if log_space
-                        else (x_labels[i].replace("pi", "$\pi_{") + "}$")
+                        else (x_labels[i].replace("pi", "$\\pi_{") + "}$")
                     )
                     axes_handle.set_xlabel(expression)
                     expression = (
-                        ("$log(" + x_labels[k].replace("pi", "\pi_{") + "})$")
+                        ("$log(" + x_labels[k].replace("pi", "\\pi_{") + "})$")
                         if log_space
-                        else (x_labels[k].replace("pi", "$\pi_{") + "}$")
+                        else (x_labels[k].replace("pi", "$\\pi_{") + "}$")
                     )
                     axes_handle.set_ylabel(expression)
                     axes_handle.legend()
@@ -895,14 +942,14 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     try:
                         x_lines = (pi_steps - 1) * pi_levels[k] * spacing_division_criteria + 1
                         axes_handle.set_xticks(numpy.linspace(xmin, xmax, x_lines))
-                    except:
-                        pass
+                    except Exception as ex:
+                        logg_exception(ex)
                     axes_handle.xaxis.set_ticklabels([])
                     try:
                         y_lines = (pi_steps - 1) * pi_levels[i] * spacing_division_criteria + 1
                         axes_handle.set_yticks(numpy.linspace(ymin, ymax, y_lines))
-                    except:
-                        pass
+                    except Exception as ex:
+                        logg_exception(ex)
                     axes_handle.yaxis.set_ticklabels([])
                     axes_handle.grid()
                     axes_handle.set_ylim((ymin, ymax))
@@ -915,8 +962,8 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                 graph_idx += 1
             try:
                 plot.savefig(temp_path + "create_const_doe_fig1.pdf", dpi=1200, format="pdf")
-            except:
-                pass
+            except Exception as ex:
+                logg_exception(ex)
             plot.show()
             # Plot x elected vs x constrained full-fact graphs (only for variables)
             X = numpy.log10(doeXc) if log_space else doeXc
@@ -929,79 +976,42 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
                     X[:, i] = 0.5 * (X[:, i] == 0)
                     continue
             x_labels = []
-            greek_list = [
-                "alpha",
-                "beta",
-                "gamma",
-                "delta",
-                "epsilon",
-                "varepsilon",
-                "zeta",
-                "eta",
-                "theta",
-                "vartheta",
-                "gamma",
-                "kappa",
-                "lambda",
-                "mu",
-                "nu",
-                "xi",
-                "pi",
-                "varpi",
-                "rho",
-                "varrho",
-                "sigma",
-                "varsigma",
-                "tau",
-                "upsilon",
-                "phi",
-                "varphi",
-                "chi",
-                "psi",
-                "omega",
-            ]
-            for key in parameter_set.dictionary.keys():
-                parameter_name = parameter_set[key].name
-                if len(parameter_name.split("_")) == 2:
-                    parameter_name1 = parameter_name.split("_")[0]
-                    parameter_name2 = parameter_name.split("_")[1]
-                    if parameter_name1.lower() in greek_list:
-                        parameter_name = "\\" + parameter_name1.lower() + "_{"
+            for parameter_name in parameter_set.dictionary.keys():
+                if len(parameter_name.replace("_", "")) == (len(parameter_name) - 1):
+                    terms = parameter_name.split("_")
+                    if terms[0] in greek_list:
+                        if terms[0] == terms[0].upper:
+                            terms[0] = terms[0][0] + terms[0][:-1].lower()
+                        parameter_name = "\\" + terms[0]
                     else:
-                        parameter_name = parameter_name1 + "_{"
-                    if parameter_name2.lower() in greek_list:
-                        parameter_name += "\\" + parameter_name2.lower() + "}"
+                        parameter_name = terms[0]
+                    if terms[1] in greek_list:
+                        if terms[1] == terms[1].upper:
+                            terms[1] = terms[1][0] + terms[1][:-1].lower()
+                        parameter_name += "_{\\" + terms[1] + "}"
                     else:
-                        parameter_name += parameter_name2 + "}"
-                if log_space:
-                    x_labels.append(
-                        "$\\frac{log("
-                        + parameter_name
-                        + ")-min(log("
-                        + parameter_name
-                        + "))}{Delta log("
-                        + parameter_name
-                        + ")}$"
-                    )
+                        parameter_name += "_{" + terms[1] + "}"
                 else:
-                    x_labels.append(
-                        "$\\frac{"
-                        + parameter_name
-                        + "-min("
-                        + parameter_name
-                        + ")}{Delta {"
-                        + parameter_name
-                        + "}}$"
-                    )
+                    parameter_name = parameter_name.replace("_", "")
+                    if parameter_name in greek_list:
+                        if parameter_name == parameter_name.upper:
+                            parameter_name = parameter_name[0] + parameter_name[:-1].lower()
+                        parameter_name = "\\" + parameter_name
+                x_labels.append("$" + parameter_name + "^{*}$")
+            if log_space:
+                title_name = "$X^{*}=\\frac{log(X)-min(log(X))}{max(log(X))-min(log(X))}$"
+            else:
+                title_name = "$X^{*}=\\frac{X-min(X)}{max(X)-min(X)}$"
             X_data = pandas.DataFrame(X, columns=x_labels)
             X_data["Name"] = "Feasible point"
             plot.figure(figsize=(2 * (len(x_labels) - 1), 5))
             pandas.plotting.parallel_coordinates(X_data, "Name")
-            plot.xticks(fontsize=16, rotation=90)
+            plot.xticks(fontsize=12)
+            plot.title(label=title_name)
             try:
                 plot.savefig(temp_path + "create_const_doe_fig2.pdf", dpi=1200, format="pdf")
-            except:
-                pass
+            except Exception as ex:
+                logg_exception(ex)
             plot.show()
         return doeXc, doePIc, save["doePI"], save["doePI_n"], save["doePIn_c"], save["doePIn_a"]
     elif not (isinstance(parameter_set, PositiveParameterSet)):
@@ -1011,25 +1021,24 @@ def create_const_doe(parameter_set, pi_set, func_x_to_pi, whished_size, **kwargs
     elif not (isfunction(func_x_to_pi)):
         raise TypeError("func_x_to_pi should be a function.")
     else:
-        raise TypeError("whished_size should be an integer.")
+        raise TypeError("wished_size should be an integer.")
 
 
 # -------[Wrap constraint function to avoid definition error: unconstrained]----
-def apply_constraints(X, Constraints=[]):
+def apply_constraints(X: ndarray, Constraints):
     """Function to test declared constraint and return true vector if an error occurs.
 
     Parameters
     ----------
-    X: [m*n] numpy.array of float or int
-        Defines the m DOE points values over the n physical parameters
+    X: [m*n] numpy.ndarray of float or int
+       Defines the m DOE points values over the n physical parameters
 
-    Constraints: function
-                 Should return a [1*m] numpy.array of bool, that validates the m points constraint
+    Constraints: function that should return a [1*m] numpy.ndarray of bool, that validates the m points constraint
 
     Returns
     -------
-    Constraints(X): [1*m] numpy.array of bool
-                    If dimension mismatch or constraint can't be applyed returns True values (no constraint applied)
+    Constraints(X): [1*m] numpy.ndarray of bool
+                    If dimension mismatch or constraint can't be applied returns True values (no constraint applied)
 
     """
     # Test if some constraints are declared
@@ -1040,39 +1049,7 @@ def apply_constraints(X, Constraints=[]):
                 return Constraints(X)
             else:
                 print("Error applying constraints: constraints not applied!")
-        except:
+        except Exception as ex:
+            logg_exception(ex)
             print("Error applying constraints: constraints not applied!")
     return numpy.ones(len(X), dtype=bool)
-
-
-# -------[Example when executed as main]----------------------------------------
-if __name__ == "__main__":
-    # Import packages for auto-execution
-    from variablepowerlaw import buckingham_theorem, declare_func_x_to_pi, reduce_parameter_set
-
-    # Define the Physical parameters set of a cantilever flexion problem with material and applied load constant
-    rth = PositiveParameter("rth", [0.01, 100], "K/W", "thermal resistance hot spot/base")
-    d = PositiveParameter("d", [10e-3, 150e-3], "m", "pot external diameter")
-    e = PositiveParameter("e", [0.1e-3, 10e-3], "m", "airgap thickness")
-    LAMBDA_FERRITE = PositiveParameter(
-        "LAMBDA_FERRITE", [5], "W/m/K", "thermal conductivity for ferrite"
-    )
-    lambda_wind = PositiveParameter(
-        "lambda_wind", [0.1, 3], "W/(m*K)", "equivalent thermal conductivity for winding"
-    )
-    # Assign parameters to a parameter set called parameters_set
-    parameter_set = PositiveParameterSet(rth, d, e, lambda_wind, LAMBDA_FERRITE)
-    parameter_set.first("d", "lambda_wind")
-    # Apply Buckingham theorem and show obtained results
-    pi_set, _ = buckingham_theorem(parameter_set, False)
-    # Change bounds and reduce sets
-    pi_set["pi1"].defined_bounds = [pi_set["pi2"].defined_bounds[0], 0.1]
-    reduced_parameter_set, reduced_pi_set = reduce_parameter_set(
-        parameter_set, pi_set, elected_output="rth"
-    )
-    # Define function to go from X to PI spaces
-    func_x_to_pi = declare_func_x_to_pi(reduced_parameter_set, reduced_pi_set)
-    # Create default DOE with no constraint
-    doeX, _ = create_const_doe(
-        reduced_parameter_set, reduced_pi_set, func_x_to_pi, whished_size=100, track=True
-    )

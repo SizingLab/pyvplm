@@ -10,11 +10,49 @@ import warnings
 import logging
 import sympy
 import numpy
+import copy
 from collections import OrderedDict
 from inspect import isfunction
 from IPython.display import display, Math
 
 module_logger = logging.getLogger(__name__)
+
+
+# -------[Greek list definition]------------------------------------------------
+# noinspection SpellCheckingInspection
+greek_list = [
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+    "epsilon",
+    "varepsilon",
+    "zeta",
+    "eta",
+    "theta",
+    "vartheta",
+    "gamma",
+    "kappa",
+    "lambda",
+    "mu",
+    "nu",
+    "xi",
+    "pi",
+    "varpi",
+    "rho",
+    "varrho",
+    "sigma",
+    "varsigma",
+    "tau",
+    "upsilon",
+    "phi",
+    "varphi",
+    "chi",
+    "psi",
+    "omega",
+]
+for idx in range(len(copy.deepcopy(greek_list))):
+    greek_list.append(greek_list[idx].upper())
 
 
 # -------[Logg Exception]-------------------------------------------------------
@@ -459,44 +497,13 @@ class ParameterSet:
 
         """
         logging.captureWarnings(True)
-        # noinspection SpellCheckingInspection
-        greek_list = [
-            "alpha",
-            "beta",
-            "gamma",
-            "delta",
-            "epsilon",
-            "varepsilon",
-            "zeta",
-            "eta",
-            "theta",
-            "vartheta",
-            "gamma",
-            "kappa",
-            "lambda",
-            "mu",
-            "nu",
-            "xi",
-            "pi",
-            "varpi",
-            "rho",
-            "varrho",
-            "sigma",
-            "varsigma",
-            "tau",
-            "upsilon",
-            "phi",
-            "varphi",
-            "chi",
-            "psi",
-            "omega",
-        ]
         print("Defined set is:")
         for key in self.dictionary.keys():
             key_str = str(key)
             key_str = key_str.lower()
             previous_char_is_int = False
             # Transform idx adding '_' pi1 -> pi_1
+            # noinspection PyShadowingNames
             for idx in range(len(key_str)):
                 char = key_str[idx]
                 try:
@@ -868,6 +875,7 @@ class ConstraintSet(object):
                 # Get pi equations
                 for constraint in self.constraints_list:
                     expression = constraint.function_expr
+                    # noinspection PyShadowingNames
                     idx = 0
                     # noinspection PyShadowingNames
                     for parameter in parameter_set.dictionary.keys():

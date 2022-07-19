@@ -33,7 +33,14 @@ import matplotlib.ticker as ticker
 from IPython.display import Latex, display, clear_output
 from sympy.interactive import printing
 from ipywidgets import widgets, VBox, Label
-from pyvplm.core.definition import PositiveParameter, PositiveParameterSet, ConstraintSet
+
+# noinspection PyUnresolvedReferences
+from pyvplm.core.definition import (
+    PositiveParameter,
+    PositiveParameterSet,
+    ConstraintSet,
+    greek_list,
+)
 import warnings
 
 # -------[Global variables and settings]----------------------------------------
@@ -2760,38 +2767,6 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
     """Function to write pi description in latex form: ***internal*** to
     :func:`~pyvplm.addon.variablepowerlaw.pi_sensitivity` and :func:`~pyvplm.addon.variablepowerlaw.pi_dependency`
     """
-    # noinspection SpellCheckingInspection
-    greek_list = [
-        "alpha",
-        "beta",
-        "gamma",
-        "delta",
-        "epsilon",
-        "varepsilon",
-        "zeta",
-        "eta",
-        "theta",
-        "vartheta",
-        "gamma",
-        "kappa",
-        "lambda",
-        "mu",
-        "nu",
-        "xi",
-        "pi",
-        "varpi",
-        "rho",
-        "varrho",
-        "sigma",
-        "varsigma",
-        "tau",
-        "upsilon",
-        "phi",
-        "varphi",
-        "chi",
-        "psi",
-        "omega",
-    ]
     latex_pi_list = []
     try:
         parameter_list = list(parameter_set.dictionary.keys())
@@ -2828,21 +2803,24 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
                     expression = expression.split("^")[0]
                 if len(expression.replace("_", "")) == (len(expression) - 1):
                     terms = expression.split("_")
-                    if terms[0].lower() in greek_list:
+                    if terms[0] in greek_list:
+                        if terms[0] == terms[0].upper:
+                            terms[0] = terms[0][0] + terms[0][:-1].lower()
                         expression = "\\" + terms[0]
-                        if terms[1].lower() in greek_list:
-                            expression += "_{\\" + terms[1] + "}"
-                        else:
-                            expression += "_{" + terms[1].upper() + "}"
                     else:
-                        expression = terms[0].upper()
-                        if terms[1].lower() in greek_list:
-                            expression += "_{\\" + terms[1] + "}"
-                        else:
-                            expression += "_{" + terms[1].upper() + "}"
+                        expression = terms[0]
+                    if terms[1] in greek_list:
+                        if terms[1] == terms[1].upper:
+                            terms[1] = terms[1][0] + terms[1][:-1].lower()
+                        expression += "_{\\" + terms[1] + "}"
+                    else:
+                        expression += "_{" + terms[1] + "}"
                 else:
                     expression = expression.replace("_", "")
-                    expression = expression.upper()
+                    if expression in greek_list:
+                        if expression == expression.upper:
+                            expression = expression[0] + expression[:-1].lower()
+                        expression = "\\" + expression
                 if abs(exponent) != 1.0:
                     expression += "^{" + str(abs(exponent)) + "}"
                 if exponent > 0:
