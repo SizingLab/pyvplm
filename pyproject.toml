@@ -43,7 +43,7 @@
     matplotlib = "*"
     ipywidgets = "*"
     ipython = "*"
-    pydoe2 = "*"
+    pydoe2 = "1.3.0"
     pint = "*"
     xlwt = "*"
     xlrd = "*"
