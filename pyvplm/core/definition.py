@@ -21,38 +21,41 @@ module_logger = logging.getLogger(__name__)
 # -------[Greek list definition]------------------------------------------------
 # noinspection SpellCheckingInspection
 greek_list = [
-    "alpha",
-    "beta",
     "gamma",
     "delta",
-    "epsilon",
-    "varepsilon",
-    "zeta",
     "eta",
     "theta",
-    "vartheta",
-    "gamma",
-    "kappa",
     "lambda",
-    "mu",
-    "nu",
     "xi",
     "pi",
-    "varpi",
-    "rho",
-    "varrho",
     "sigma",
-    "varsigma",
-    "tau",
     "upsilon",
     "phi",
-    "varphi",
-    "chi",
     "psi",
     "omega",
 ]
 for idx in range(len(copy.deepcopy(greek_list))):
     greek_list.append(greek_list[idx].upper())
+greek_list.extend(
+    [
+        "alpha",
+        "beta",
+        "epsilon",
+        "varepsilon",
+        "zeta",
+        "eta",
+        "vartheta",
+        "iota",
+        "kappa",
+        "mu",
+        "nu",
+        "rho",
+        "varrho",
+        "tau",
+        "varphi",
+        "chi",
+    ]
+)
 
 
 # -------[Logg Exception]-------------------------------------------------------

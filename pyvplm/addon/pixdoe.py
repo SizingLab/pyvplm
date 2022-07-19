@@ -980,17 +980,23 @@ def create_const_doe(
                 if len(parameter_name.replace("_", "")) == (len(parameter_name) - 1):
                     terms = parameter_name.split("_")
                     if terms[0] in greek_list:
-                        if terms[0] == terms[0].upper:
-                            terms[0] = terms[0][0] + terms[0][:-1].lower()
+                        if terms[0] == terms[0].upper():
+                            terms[0] = terms[0][0] + terms[0][1:].lower()
                         parameter_name = "\\" + terms[0]
                     else:
-                        parameter_name = terms[0]
+                        if terms[0].lower() in greek_list:
+                            parameter_name = "\\" + terms[0].lower()
+                        else:
+                            parameter_name = terms[0]
                     if terms[1] in greek_list:
-                        if terms[1] == terms[1].upper:
-                            terms[1] = terms[1][0] + terms[1][:-1].lower()
+                        if terms[1] == terms[1].upper():
+                            terms[1] = terms[1][0] + terms[1][1:].lower()
                         parameter_name += "_{\\" + terms[1] + "}"
                     else:
-                        parameter_name += "_{" + terms[1] + "}"
+                        if terms[1].lower() in greek_list:
+                            parameter_name += "_{\\" + terms[1].lower() + "}"
+                        else:
+                            parameter_name += "_{" + terms[1] + "}"
                 else:
                     parameter_name = parameter_name.replace("_", "")
                     if parameter_name in greek_list:

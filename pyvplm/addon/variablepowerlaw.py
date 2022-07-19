@@ -2804,17 +2804,23 @@ def latex_pi_expression(pi_set: PositiveParameterSet, parameter_set: PositivePar
                 if len(expression.replace("_", "")) == (len(expression) - 1):
                     terms = expression.split("_")
                     if terms[0] in greek_list:
-                        if terms[0] == terms[0].upper:
-                            terms[0] = terms[0][0] + terms[0][:-1].lower()
+                        if terms[0] == terms[0].upper():
+                            terms[0] = terms[0][0] + terms[0][1:].lower()
                         expression = "\\" + terms[0]
                     else:
-                        expression = terms[0]
+                        if terms[0].lower() in greek_list:
+                            expression = "\\" + terms[0].lower()
+                        else:
+                            expression = terms[0]
                     if terms[1] in greek_list:
-                        if terms[1] == terms[1].upper:
-                            terms[1] = terms[1][0] + terms[1][:-1].lower()
+                        if terms[1] == terms[1].upper():
+                            terms[1] = terms[1][0] + terms[1][1:].lower()
                         expression += "_{\\" + terms[1] + "}"
                     else:
-                        expression += "_{" + terms[1] + "}"
+                        if terms[1].lower() in greek_list:
+                            expression += "_{\\" + terms[1].lower() + "}"
+                        else:
+                            expression += "_{" + terms[1] + "}"
                 else:
                     expression = expression.replace("_", "")
                     if expression in greek_list:
