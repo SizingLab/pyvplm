@@ -11,6 +11,7 @@ import pint
 import ast
 import numpy
 import logging
+import math
 import pandas
 import copy
 import scipy
@@ -1951,27 +1952,34 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
                 if units_list[idx] != "SI":
                     try:
                         value = Q_(1, units_list[idx]).to_base_units()
-                        # noinspection PyProtectedMember
-                        if str(value.units) != parameter_set[parameter]._SI_units:
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore")
                             # noinspection PyProtectedMember
-                            raise ValueError(
-                                "dimensions mismatch for parameter {}, {} found instead of {}.".format(
-                                    parameter, str(value.units), parameter_set[parameter]._SI_units
+                            if str(value.units) != parameter_set[parameter]._SI_units:
+                                # noinspection PyProtectedMember
+                                raise ValueError(
+                                    "dimensions mismatch for parameter {}, {} found instead of {}.".format(
+                                        parameter,
+                                        str(value.units),
+                                        parameter_set[parameter]._SI_units,
+                                    )
                                 )
-                            )
-                        else:
-                            # Overwrite parameter column with SI units values
-                            values = doe_x[parameter + " [" + units_list[idx] + "]"]
-                            for i in range(len(values)):
-                                value = Q_(values[i], units_list[idx]).to_base_units()
-                                values[i] = value.magnitude
-                            doe_x[parameter] = values
-                            doe_x = doe_x.drop(parameter + " [" + units_list[idx] + "]", axis=1)
+                            else:
+                                # Overwrite parameter column with SI units values
+                                values = doe_x[parameter + " [" + units_list[idx] + "]"]
+                                for i in range(len(values)):
+                                    if math.isnan(values[i]):
+                                        doe_x = doe_x.drop(i)
+                                    else:
+                                        value = Q_(values[i], units_list[idx]).to_base_units()
+                                        values[i] = value.magnitude
+                                doe_x[parameter] = values.dropna()
+                                doe_x = doe_x.drop(parameter + " [" + units_list[idx] + "]", axis=1)
                     except Exception as ex:
                         logg_exception(ex)
                         warnings.warn(
-                            "parameter {} units defined in file are unreadable, SI units are applied!".format(
-                                parameter
+                            "parameter {} units ({}) defined in file are unreadable, SI units are applied!".format(
+                                parameter, units_list[idx]
                             )
                         )
             else:
