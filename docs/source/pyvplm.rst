@@ -8,7 +8,6 @@ Subpackages
 
     pyvplm.addon
     pyvplm.core
-    pyvplm.tests
 
 Module contents
 ---------------

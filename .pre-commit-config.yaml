@@ -1,6 +1,29 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: stable
+  - repo: local
     hooks:
+
       - id: black
-        language_version: python3.7
+        name: black
+        language: system
+        entry: black
+        types: [ python ]
+
+      - id: flake8
+        name: flake8
+        language: system
+        entry: flake8
+        types: [ python ]
+
+      - id: sync_doc_requirements
+        name: sync_doc_requirements
+        entry: poetry export --dev --without-hashes -o docs/requirements.txt -f requirements.txt
+        language: python
+        pass_filenames: false
+        files: 'poetry.lock'
+
+      - id: nbstripout
+        name: nbstripout
+        description: 'nbstripout: strip output from Jupyter and IPython notebooks'
+        entry: nbstripout
+        language: python
+        types: [ jupyter ]
