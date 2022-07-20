@@ -1949,6 +1949,10 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
                 parameter_list[idx] = parameter[0 : parameter.find(" [")]
             else:
                 units_list.append("SI")
+        # Create dictionary link between dataframe labels and parameter name
+        dict_link = {}
+        for idx in range(len(parameter_list)):
+            dict_link[parameter_list[idx]] = list(doe_x.columns.values)[idx]
         # Check parameter and units and adapt values to SI if necessary
         ureg = pint.UnitRegistry()
         ureg.default_system = "mks"
@@ -1990,7 +1994,8 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
                             )
                         )
             else:
-                doe_x = doe_x.drop(parameter, axis=1)
+
+                doe_x = doe_x.drop(dict_link[parameter], axis=1)
                 warnings.warn(
                     "parameter {} not defined in the parameter set, value erased from imported doe.".format(
                         parameter
