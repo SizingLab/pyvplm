@@ -6,7 +6,7 @@ Addon module fitting variable power law response surface on dimensionless parame
 # -------[Import necessary packages]--------------------------------------------
 import os
 import sys
-from typing import Union, Any, Iterable
+from typing import Union, Any, Iterable, Tuple, List, Dict
 import pint
 import ast
 import numpy
@@ -233,7 +233,7 @@ def compute_echelon_form(in_matrix: ndarray):
 # -------[Extract PI set from a given ordered parameter set]--------------------
 def buckingham_theorem(
     parameter_set: PositiveParameterSet, track: bool = False
-) -> tuple[PositiveParameterSet, list[str]]:
+) -> Tuple[PositiveParameterSet, List[str]]:
     # noinspection PyUnresolvedReferences
     """Function that returns pi_set dimensionless parameters from a set of physical parameters.
     The Pi expression is lower integer exponent i.e. Pi1 = x1**2*x2**-1 and not x1**1*x2**-0.5 or x1**4*x2**-2
@@ -369,7 +369,7 @@ def buckingham_theorem(
 # -------[Extract all possible PI sets from permuted parameter sets]------------
 def automatic_buckingham(
     parameter_set: PositiveParameterSet, track: bool = False
-) -> tuple[Any, dict[str, Any]]:
+) -> Tuple[Any, Dict[str, Any]]:
     # noinspection PyUnresolvedReferences
     """Function that returns all possible pi_set (with lower exponent) from a set of physical parameters.
     Based on buckingham_theorem function call.
@@ -459,7 +459,7 @@ def automatic_buckingham(
 
 # -------[Define manually the PI sets: global checks performed]-----------------
 def force_buckingham(
-    parameter_set: PositiveParameterSet, *pi_list: Union[Iterable, tuple[str]]
+    parameter_set: PositiveParameterSet, *pi_list: Union[Iterable, Tuple[str]]
 ) -> PositiveParameterSet:
     # noinspection PyUnresolvedReferences
     """Function used to define manually a dimensionless set of parameters.
@@ -985,7 +985,7 @@ def declare_constraints(parameters_set: PositiveParameterSet, constraint_set: Co
 # -------[Define function extracting regression model with increased complexity]
 def regression_models(
     doe: numpy.ndarray, elected_pi0: str, order: int, **kwargs
-) -> Union[tuple[dict, Any, Any], dict]:
+) -> Union[Tuple[Dict, Any, Any], Dict]:
     # noinspection PyUnresolvedReferences,PyShadowingNames,GrazieInspection
     """Functions that calculate the regression model coefficient with increasing model complexity.
     The added terms for complexity increase are sorted depending on their regression coefficient value
@@ -1518,7 +1518,7 @@ def regression_models(
 
 
 # -------[Define function to concatenate regression formula]--------------------
-def concatenate_expression(expression: str, pi_list: list[str]) -> str:
+def concatenate_expression(expression: str, pi_list: List[str]) -> str:
     # noinspection PyUnresolvedReferences
     """Function that transform regression model expression into latex form with concatenation (only for power-laws).
 
@@ -1639,7 +1639,7 @@ def adapt_parameter_set(
     new_parameter: str,
     expression: str,
     description: str,
-) -> tuple[PositiveParameterSet, PositiveParameterSet, DataFrame]:
+) -> Tuple[PositiveParameterSet, PositiveParameterSet, DataFrame]:
     # noinspection PyUnresolvedReferences
     """Function that transform physical parameters' problem (and corresponding DOE) after FEM calculation.
 
@@ -1840,7 +1840,7 @@ def adapt_parameter_set(
 # -------[Define function to reduce problem set extracting FEM output parameter]
 def reduce_parameter_set(
     parameter_set: PositiveParameterSet, pi_set: PositiveParameterSet, elected_output: str
-) -> tuple[PositiveParameterSet, PositiveParameterSet]:
+) -> Tuple[PositiveParameterSet, PositiveParameterSet]:
     # noinspection PyUnresolvedReferences,PyShadowingNames
     """Function that reduces physical parameters and Pi set extracting output physical parameter and Pi0.
 
