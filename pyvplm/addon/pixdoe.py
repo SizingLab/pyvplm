@@ -10,6 +10,7 @@ import pyDOE2
 import numpy
 import math
 import logging
+from typing import Tuple
 from inspect import isfunction
 import functools
 import pandas
@@ -34,7 +35,7 @@ def logg_exception(ex: Exception):
 # -------[Define function creating full-fact using bounds and levels]-----------
 def create_doe(
     bounds: ndarray, parameters_level: ndarray, log_space: bool = True
-) -> tuple[ndarray, ndarray]:
+) -> Tuple[ndarray, ndarray]:
     # noinspection PyUnresolvedReferences,PyShadowingNames
     """Functions that generates a fullfact DOE mesh using bounds and levels number.
 
@@ -124,7 +125,7 @@ def create_doe(
 # -------[Define function keeping nominal point if surrounded by feasible]------
 def surroundings(
     doe, nominal_doe: ndarray, proper_spacing: ndarray, LogLin: bool = True
-) -> tuple[ndarray, ndarray]:
+) -> Tuple[ndarray, ndarray]:
     # noinspection PyUnresolvedReferences,PyShadowingNames
     """Function to reduce a given nominal DOE on a max distance criteria with points from feasible DOE ('reachable'
     points).
