@@ -613,7 +613,11 @@ def create_const_doe(
                     if len(value) == len(list(parameter_set.dictionary.keys())):
                         level_repartition = value
                         for level in level_repartition:
-                            if isinstance(level, int):
+                            if (
+                                isinstance(level, numpy.int8)
+                                or isinstance(level, numpy.int32)
+                                or isinstance(level, numpy.int64)
+                            ):
                                 if level < 1:
                                     raise ValueError(
                                         "each level in level_repartition should be >1."

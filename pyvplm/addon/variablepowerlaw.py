@@ -278,7 +278,9 @@ def buckingham_theorem(
     pi_list = []
     if isinstance(parameter_set, PositiveParameterSet) and isinstance(track, bool):
         # Calculate the dimension matrix
-        dimensional_matrix = write_dimensional_matrix(parameter_set)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            dimensional_matrix = write_dimensional_matrix(parameter_set)
         problem_rank = numpy.linalg.matrix_rank(dimensional_matrix.values)
         # Calculate the echelon matrix
         dimensional_matrix, pivot_matrix, pivot_points = compute_echelon_form(
@@ -679,7 +681,9 @@ def force_buckingham(
                         )
                     )
         # Calculate the dimension matrix of the variables
-        dimensional_matrix = write_dimensional_matrix(parameter_set)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            dimensional_matrix = write_dimensional_matrix(parameter_set)
         # Extract parameters' coefficient from the PI expression (extracting first bigger parameters' names)
         # and write dimension
         parameter_list = numpy.array(list(parameter_set.dictionary.keys()))
@@ -1960,41 +1964,62 @@ def import_csv(file_name: str, parameter_set: PositiveParameterSet):
         for idx in range(len(parameter_list)):
             parameter = parameter_list[idx]
             if parameter in parameter_set.dictionary.keys():
-                if units_list[idx] != "SI":
-                    try:
-                        value = Q_(1, units_list[idx]).to_base_units()
+                if units_list[idx] == "SI":
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        # noinspection PyProtectedMember
+                        warnings.warn(
+                            "parameter {} units ({}) defined in file are unreadable, ({}) units are applied!".format(
+                                parameter,
+                                units_list[idx],
+                                parameter_set[parameter]._SI_units,
+                            )
+                        )
+                        # noinspection PyProtectedMember
+                        units_list[idx] = parameter_set[parameter]._SI_units
+                try:
+                    value = Q_(1, units_list[idx]).to_base_units()
+                    unit_error = False
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        # noinspection PyProtectedMember
+                        if str(value.units) != parameter_set[parameter]._SI_units:
+                            unit_error = True
+                            raise ValueError
+                        else:
+                            # Overwrite parameter column with SI units values
+                            values = doe_x[parameter + " [" + units_list[idx] + "]"]
+                            for i in range(len(values)):
+                                if isinstance(values[i], str):
+                                    values[i] = float(values[i].replace(",", "."))
+                                if math.isnan(values[i]):
+                                    doe_x = doe_x.drop(i)
+                                    break
+                                else:
+                                    value = Q_(float(values[i]), units_list[idx]).to_base_units()
+                                    values[i] = value.magnitude
+                            doe_x[parameter] = values.dropna()
+                            doe_x = doe_x.drop(parameter + " [" + units_list[idx] + "]", axis=1)
+                except Exception as ex:
+                    logg_exception(ex)
+                    if unit_error:
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
                             # noinspection PyProtectedMember
-                            if str(value.units) != parameter_set[parameter]._SI_units:
-                                # noinspection PyProtectedMember
-                                raise ValueError(
-                                    "dimensions mismatch for parameter {}, {} found instead of {}.".format(
-                                        parameter,
-                                        str(value.units),
-                                        parameter_set[parameter]._SI_units,
-                                    )
+                            raise ValueError(
+                                "dimensions mismatch for parameter {}, {} found instead of {}.".format(
+                                    parameter,
+                                    str(value.units),
+                                    parameter_set[parameter]._SI_units,
                                 )
-                            else:
-                                # Overwrite parameter column with SI units values
-                                values = doe_x[parameter + " [" + units_list[idx] + "]"]
-                                for i in range(len(values)):
-                                    if math.isnan(values[i]):
-                                        doe_x = doe_x.drop(i)
-                                    else:
-                                        value = Q_(values[i], units_list[idx]).to_base_units()
-                                        values[i] = value.magnitude
-                                doe_x[parameter] = values.dropna()
-                                doe_x = doe_x.drop(parameter + " [" + units_list[idx] + "]", axis=1)
-                    except Exception as ex:
-                        logg_exception(ex)
-                        warnings.warn(
-                            "parameter {} units ({}) defined in file are unreadable, SI units are applied!".format(
-                                parameter, units_list[idx]
+                            )
+                    else:
+                        raise ValueError(
+                            "for parameter {}, some values are NaN or unreadable.".format(
+                                parameter,
                             )
                         )
             else:
-
                 doe_x = doe_x.drop(dict_link[parameter], axis=1)
                 warnings.warn(
                     "parameter {} not defined in the parameter set, value erased from imported doe.".format(
