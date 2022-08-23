@@ -71,7 +71,7 @@ more-itertools==8.13.0; python_version >= "3.6"
 mpmath==1.2.1; python_version >= "3.7"
 mypy-extensions==0.4.3; python_full_version >= "3.6.2"
 nbclient==0.6.6; python_full_version >= "3.7.0" and python_version >= "3.7"
-nbconvert==6.5.0; python_version >= "3.7"
+nbconvert==6.5.1; python_version >= "3.7"
 nbformat==5.4.0; python_full_version >= "3.7.0" and python_version >= "3.7"
 nbstripout==0.5.0; python_version >= "3.5"
 nbval==0.9.6
