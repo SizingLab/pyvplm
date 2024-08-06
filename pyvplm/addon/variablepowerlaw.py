@@ -541,7 +541,9 @@ def force_buckingham(
                         )
                         try:
                             list(sympy_expr.args)
-                        except Exception as ex:  # Most probable, parameter name is sympy function name
+                        except (
+                            Exception
+                        ) as ex:  # Most probable, parameter name is sympy function name
                             logg_exception(ex)
                         if not (len(list(sympy_expr.args)) == 0):
                             list_change = True

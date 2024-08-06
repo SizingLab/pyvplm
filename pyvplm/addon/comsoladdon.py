@@ -91,10 +91,10 @@ def save_file(
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
                         # noinspection PyProtectedMember
-                        print(
-                            "   - " + key + ": " + parameter_set[key]._SI_units
-                        ) if is_SI else print(
-                            "   - " + key + ": " + parameter_set[key].defined_units
+                        (
+                            print("   - " + key + ": " + parameter_set[key]._SI_units)
+                            if is_SI
+                            else print("   - " + key + ": " + parameter_set[key].defined_units)
                         )
                 idx += 1
             file.close()
