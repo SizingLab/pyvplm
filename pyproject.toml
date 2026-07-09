@@ -1,72 +1,104 @@
-[tool.black]
-    line-length = 100
-
-[tool.poetry]
-    name = "pyvplm"
-    version = "0.1.0"
-    description = "Variable Power-Law regression Models tool"
-    authors = [
-        "Aurélien REYSSET <aurelien.reysset@insa-toulouse.fr>",
-        "Marc BUDINGER <marc.budinger@insa-toulouse.fr>",
-        "Scott DELBECQ <scott.delbecq@isae-supaero.fr>"
-    ]
-    license = "MIT"
-    readme = "README.md"
-    homepage = "https://github.com/SizingLab/pyvplm"
-    keywords = [
-        "regression",
-        "dimensional analysis",
-        "metamodeling"
-    ]
-    classifiers = [
-        "Environment :: Console",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Education",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.7",
-        "Topic :: Scientific/Engineering :: Physics"
-    ]
-    include = [
-        "LICENSE"
-    ]
-
-[tool.poetry.dependencies]
-    python = ">=3.8, <3.10"
-    numpy = ">=1.22.0"
-    scipy = "*"
-    scikit-learn = "*"
-    pandas = "*"
-    sympy="*"
-    latex = "*"
-    matplotlib = "*"
-    ipywidgets = "*"
-    ipython = "*"
-    pydoe2 = "1.3.0"
-    pint = "*"
-    xlwt = "*"
-    xlrd = "*"
-    openpyxl = "*"
-
-[tool.poetry.dev-dependencies]
-    wheel = "*"
-    pytest = "^5.2"
-    pytest-cov = "*"
-    pre-commit = "*"
-    black = { version = "*", allow-prereleases = true }
-    pylint = "*"
-    nbval = "*"
-    sphinx = "4.2.0"
-    jinja2 = "3.0.0"
-    mkdocs = "1.2.3"
-    sphinx-rtd-theme = "1.0.0"
-    readthedocs-sphinx-search = "0.1.1"
-    sphinxcontrib-bibtex = "*"
-    recommonmark = "*"
-    flake8 = "^4.0.1"
-    nbstripout = "^0.5.0"
-
 [build-system]
-    requires = ["poetry>=0.12"]
-    build-backend = "poetry.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyvplm"
+version = "0.2.0"
+description = "Variable Power-Law regression Models tool"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [
+    { name = "Aurélien REYSSET", email = "aurelien.reysset@insa-toulouse.fr" },
+    { name = "Marc BUDINGER", email = "marc.budinger@insa-toulouse.fr" },
+    { name = "Scott DELBECQ", email = "scott.delbecq@isae-supaero.fr" },
+]
+keywords = ["regression", "dimensional analysis", "metamodeling"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.2",
+    "pandas>=1.5",
+    "sympy>=1.11",
+    "matplotlib>=3.7",
+    "ipywidgets>=8.0",
+    "ipython>=8.0",
+    "pyDOE3>=1.0",
+    "pint>=0.22",
+]
+
+[project.urls]
+Homepage = "https://github.com/SizingLab/pyvplm"
+Documentation = "https://pyvplm.readthedocs.io"
+Source = "https://github.com/SizingLab/pyvplm"
+Changelog = "https://github.com/SizingLab/pyvplm/blob/master/CHANGELOG.rst"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.8",
+    "pre-commit>=3.5",
+    "nbval>=0.11",
+    "jupyter>=1.0",
+    "openpyxl>=3.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyvplm"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    # Library-internal access to private parameter attributes is intentional
+    "ignore:accessing private attribute value:UserWarning",
+]
+
+[tool.coverage.run]
+source = ["pyvplm"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["docs", "notebooks"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "NPY", # numpy-specific rules
+]
+ignore = [
+    "E501",  # line length handled by the formatter
+    "E741",  # ambiguous variable names ('l' is a physical parameter in examples)
+    "B905",  # zip() without strict= (behaviour relied upon in echelon computation)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The addon modules build expressions dynamically and use eval on validated input
+"src/pyvplm/**" = ["B904"]
