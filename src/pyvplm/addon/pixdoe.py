@@ -18,6 +18,7 @@ import pandas
 import pyDOE3
 from numpy import ndarray
 
+from pyvplm import plotting as plot_theme
 from pyvplm.core.definition import PositiveParameterSet, greek_list
 
 # -------[Global variables and settings]----------------------------------------
@@ -884,7 +885,16 @@ def create_const_doe(
             pi_nb = numpy.shape(Y)[1]
             graph_nb = pi_nb * (pi_nb - 1) // 2
             n = math.ceil(graph_nb**0.5)
-            fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
+            with plot_theme.theme():
+                fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
+            # visual hierarchy: context clouds in gray, selection in accent colors
+            series_style = [
+                ("context", ".", 5, 0.5),  # All (Feas.)
+                ("tertiary", "o", 5, 0.8),  # k-nearest (Feas.)
+                ("primary", "o", 7, 1.0),  # Elected (Feas.)
+                ("context_dark", "+", 7, 0.7),  # All (Obj.)
+                ("secondary", "x", 7, 1.0),  # Active (Obj.)
+            ]
             graph_idx = 0
             for i in range(numpy.shape(Y)[1] - 1):
                 for k in range(i + 1, numpy.shape(Y)[1]):
@@ -894,11 +904,26 @@ def create_const_doe(
                         nr = math.floor(graph_idx / n)
                         nc = graph_idx - nr * n
                         axes_handle = axes[nr, nc]
-                    axes_handle.plot(X[:, i], X[:, k], "g.", label="All (Feas.)")
-                    axes_handle.plot(X1[:, i], X1[:, k], "c.", label=f"{choice_nb}-nearest (Feas.)")
-                    axes_handle.plot(X2[:, i], X2[:, k], "b.", label="Elected (Feas.)")
-                    axes_handle.plot(Y[:, i], Y[:, k], "k.", label="All (Obj.)")
-                    axes_handle.plot(Y1[:, i], Y1[:, k], "r.", label="Active (Obj.)")
+                    series_data = [
+                        (X, "All (Feas.)"),
+                        (X1, f"{choice_nb}-nearest (Feas.)"),
+                        (X2, "Elected (Feas.)"),
+                        (Y, "All (Obj.)"),
+                        (Y1, "Active (Obj.)"),
+                    ]
+                    for (data, label), (role, marker, size, alpha) in zip(
+                        series_data, series_style
+                    ):
+                        axes_handle.plot(
+                            data[:, i],
+                            data[:, k],
+                            linestyle="none",
+                            marker=marker,
+                            markersize=size,
+                            alpha=alpha,
+                            color=plot_theme.COLORS[role],
+                            label=label,
+                        )
                     expression = (
                         ("$log(" + x_labels[i].replace("pi", "\\pi_{") + "})$")
                         if log_space
@@ -990,10 +1015,17 @@ def create_const_doe(
                 title_name = "$X^{*}=\\frac{X-min(X)}{max(X)-min(X)}$"
             X_data = pandas.DataFrame(X, columns=x_labels)
             X_data["Name"] = "Feasible point"
-            plot.figure(figsize=(2 * (len(x_labels) - 1), 5))
-            pandas.plotting.parallel_coordinates(X_data, "Name")
-            plot.xticks(fontsize=12)
-            plot.title(label=title_name)
+            with plot_theme.theme():
+                plot.figure(figsize=(2 * (len(x_labels) - 1), 5))
+                pandas.plotting.parallel_coordinates(
+                    X_data,
+                    "Name",
+                    color=[plot_theme.COLORS["primary"]],
+                    alpha=0.5,
+                    linewidth=1.2,
+                )
+                plot.xticks(fontsize=12)
+                plot.title(label=title_name)
             try:
                 os.makedirs(temp_path, exist_ok=True)
                 plot.savefig(

@@ -22,9 +22,8 @@ import pint
 import scipy
 import scipy.linalg
 import scipy.stats
-from IPython.display import Latex, clear_output, display
-from ipywidgets import Label, VBox, widgets
-from matplotlib import colors
+from IPython.display import Latex, display
+from ipywidgets import VBox, widgets
 from matplotlib.ticker import PercentFormatter
 from numpy import ndarray
 from pandas import DataFrame
@@ -37,6 +36,7 @@ from sympy.parsing.sympy_parser import (
     standard_transformations,
 )
 
+from pyvplm import plotting as plot_theme
 from pyvplm.core.definition import (
     ConstraintSet,
     PositiveParameter,
@@ -55,6 +55,40 @@ def logg_exception(ex: Exception):
     template = "An exception of type {0} occurred. Arguments:\n{1!r}"
     message = template.format(type(ex).__name__, ex.args)
     module_logger.info(message)
+
+
+# -------[Widget helpers (Jupyter interactive mode)]-----------------------------
+_SUBSCRIPT_DIGITS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
+
+def _pi_unicode(pi_name: str) -> str:
+    """Return a compact unicode label for a pi parameter, e.g. 'pi12' -> 'π₁₂'."""
+    name = pi_name.lower()
+    if name.startswith("pi") and name[2:].isdigit():
+        return "π" + name[2:].translate(_SUBSCRIPT_DIGITS)
+    return pi_name
+
+
+def _pi_toggle_buttons(pi_names: list, selected: list) -> list:
+    """Build one toggle button per pi parameter (chip-style multi-select)."""
+    buttons = []
+    for name in pi_names:
+        buttons.append(
+            widgets.ToggleButton(
+                value=name in selected,
+                description=_pi_unicode(name),
+                tooltip=name,
+                layout=widgets.Layout(width="auto", min_width="48px"),
+            )
+        )
+    return buttons
+
+
+def _section_label(text: str) -> widgets.HTML:
+    """Fixed-width bold label introducing a row of controls."""
+    return widgets.HTML(
+        value=f"<b>{text}</b>", layout=widgets.Layout(width="110px", align_self="center")
+    )
 
 
 # -------[Write dimensional matrix from parameter set]--------------------------
@@ -1380,85 +1414,66 @@ def regression_models(
         # Start to plot the graph with indicators
         if show_plots:
             x = numpy.array(range(len(models.keys()))).astype(int) + 1
-            if not fig_size:
+            panels = [
+                (r"(1): $\max \mid \epsilon \mid$", abs_error_max_train, abs_error_max_test),
+                (
+                    r"(2): $\frac{1}{n} \cdot \sum_{i=1}^n \mid \epsilon \mid$",
+                    abs_error_average_train,
+                    abs_error_average_test,
+                ),
+                (
+                    r"(3): $\mid \overline{\epsilon} \mid = \mid \mu \mid$",
+                    error_average_train,
+                    error_average_test,
+                ),
+                (r"(4): $\mid \sigma_{\epsilon} \mid$", error_sigma_train, error_sigma_test),
+            ]
+            with plot_theme.theme():
                 # noinspection PyTypeChecker
                 fig, axs = plot.subplots(
-                    4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=(14, 10)
+                    4,
+                    sharex=True,
+                    gridspec_kw={"hspace": 0.08},
+                    figsize=fig_size if fig_size else (14, 10),
                 )
-            else:
-                # noinspection PyTypeChecker
-                fig, axs = plot.subplots(
-                    4, sharex=True, gridspec_kw={"hspace": 0.05}, figsize=fig_size
-                )
-            # Plot maximum absolute relative error
-            axs[0].plot(x, numpy.array(abs_error_max_train), "k-*", label="Fitting set")
-            if not (
-                max(abs_error_max_test) == 0.0 and min(abs_error_max_test) == 0.0
-            ):  # FIXES 06/05/21
-                axs[0].plot(x, numpy.array(abs_error_max_test), "r-*", label="Cross-validation set")
-            y_max = min(ymax_axis, max(max(abs_error_max_train), max(abs_error_max_test)))
-            axs[0].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[0].set_ylabel(r"(1): $\max \mid \epsilon \mid$", fontsize=18)
-            axs[0].grid(True)
-            axs[0].legend(fontsize=16)
-            # Plot average |relative error|
-            axs[1].plot(x, numpy.array(abs_error_average_train), "k-*", label="Fitting set")
-            if not (
-                max(abs_error_average_test) == 0.0 and min(abs_error_average_test) == 0.0
-            ):  # FIXES 06/05/21
-                axs[1].plot(
-                    x, numpy.array(abs_error_average_test), "r-*", label="Cross-validation set"
-                )
-            y_max = min(ymax_axis, max(max(abs_error_average_train), max(abs_error_average_test)))
-            axs[1].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[1].set_ylabel(
-                r"(2): $\frac{1}{n} \cdot \sum_{i=1}^n \mid \epsilon \mid$", fontsize=18
-            )
-            axs[1].grid(True)
-            # Plot the |average relative error|
-            axs[2].plot(x, numpy.absolute(error_average_train), "k-*", label="Fitting set")
-            if not (
-                max(error_average_test) == 0.0 and min(error_average_test) == 0.0
-            ):  # FIXES 06/05/21
-                axs[2].plot(
-                    x, numpy.absolute(error_average_test), "r-*", label="Cross-validation set"
-                )
-            y_max = min(
-                ymax_axis,
-                max(max(map(abs, error_average_train)), max(map(abs, error_average_test))),
-            )
-            axs[2].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[2].set_ylabel(r"(3): $\mid \overline{\epsilon} \mid = \mid \mu \mid$", fontsize=18)
-            axs[2].grid(True)
-            # Plot the standard deviation
-            axs[3].plot(x, numpy.absolute(error_sigma_train), "k-*", label="Fitting set")
-            if not (
-                max(error_sigma_test) == 0.0 and min(error_sigma_test) == 0.0
-            ):  # FIXES 06/05/21
-                axs[3].plot(
-                    x, numpy.absolute(error_sigma_test), "r-*", label="Cross-validation set"
-                )
-            y_max = min(
-                ymax_axis, max(max(map(abs, error_sigma_train)), max(map(abs, error_sigma_test)))
-            )
-            axs[3].axis([numpy.amin(x), numpy.amax(x), 0, y_max])
-            axs[3].set_ylabel(r"(4): $\mid \sigma_{\epsilon} \mid$", fontsize=18)
-            axs[3].set_xlabel("Model terms number", fontsize=16)
-            axs[3].grid(True)
-            majors = range(len(x) + 1)
-            majors = ["$" + str(majors[i]) + "$" for i in range(len(majors))]
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                axs[3].xaxis.set_major_locator(ticker.MultipleLocator(1))
-                axs[3].xaxis.set_major_formatter(ticker.FixedFormatter(majors))
-            try:
-                os.makedirs(temp_path, exist_ok=True)
-                plot.savefig(
-                    os.path.join(temp_path, "regression_models.pdf"), dpi=1200, format="pdf"
-                )
-            except Exception as ex:
-                logg_exception(ex)
-            plot.show()
+                for axis, (label, train_values, test_values) in zip(axs, panels):
+                    axis.plot(
+                        x,
+                        numpy.absolute(train_values),
+                        marker="o",
+                        color=plot_theme.COLORS["primary"],
+                        label="Fitting set",
+                    )
+                    if not (max(test_values) == 0.0 and min(test_values) == 0.0):
+                        axis.plot(
+                            x,
+                            numpy.absolute(test_values),
+                            marker="s",
+                            linestyle="--",
+                            color=plot_theme.COLORS["secondary"],
+                            label="Cross-validation set",
+                        )
+                    y_max = min(
+                        ymax_axis, max(max(map(abs, train_values)), max(map(abs, test_values)))
+                    )
+                    axis.axis([numpy.amin(x), numpy.amax(x), 0, y_max])
+                    axis.set_ylabel(label, fontsize=14)
+                axs[0].legend(loc="upper right")
+                axs[3].set_xlabel("Model terms number")
+                majors = range(len(x) + 1)
+                majors = ["$" + str(majors[i]) + "$" for i in range(len(majors))]
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    axs[3].xaxis.set_major_locator(ticker.MultipleLocator(1))
+                    axs[3].xaxis.set_major_formatter(ticker.FixedFormatter(majors))
+                try:
+                    os.makedirs(temp_path, exist_ok=True)
+                    plot.savefig(
+                        os.path.join(temp_path, "regression_models.pdf"), dpi=1200, format="pdf"
+                    )
+                except Exception as ex:
+                    logg_exception(ex)
+                plot.show()
         # De-activate latex render on plot
         plot.rc("text", usetex=False)
         plot.rc("font", family="sans-serif")
@@ -2207,64 +2222,87 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
         if no_plots:
             return expression, expression_latex, y, y_reg
         # Plots for non GUI use
-        fig, axs = plot.subplots(1, 2, tight_layout=True)
-        xmin = min(min(y), min(y_reg))
-        xmax = max(max(y), max(y_reg))
-        axs[0].plot([xmin, xmax], [xmin, xmax], "b-")
-        axs[0].plot(y, y_reg, "r.")
-        axs[0].axis([xmin, xmax, xmin, xmax])
-        axs[0].grid(True)
-        axs[0].set_title("Regression model", fontsize=18)
-        elected_pi0 = int(elected_pi0.replace("pi", "")) - 1
-        if eff_pi0 != -1:
-            elected_pi0 = eff_pi0
-        axs[0].set_xlabel("$" + pi_list[elected_pi0] + "$", fontsize=16)
-        y_label = "$" + pi_list[elected_pi0] + r" \simeq f("
-        for i in range(len(pi_list)):
-            if i != elected_pi0:
-                y_label += pi_list[i] + ","
-        y_label = y_label[0 : len(y_label) - 1] + ")$"
-        axs[0].set_ylabel(y_label, fontsize=18)
-        error = ((numpy.array(y_reg) - numpy.array(y)) * (1 / numpy.array(y)) * 100).tolist()
-        n_bins = max(1, int(len(error) / 5))
-        N, bins, patches = axs[1].hist(error, bins=n_bins)
-        fracs = N / N.max()
-        norm = colors.Normalize(fracs.min(), fracs.max())
-        for this_frac, this_patch in zip(fracs, patches):
-            # noinspection PyUnresolvedReferences
-            color = plot.cm.viridis(norm(this_frac))
-            this_patch.set_facecolor(color)
-        axs[1].yaxis.set_major_formatter(PercentFormatter(xmax=len(error)))
-        axs[1].grid(True)
-        axs[1].set_title(r"$\epsilon$ repartition", fontsize=18)
-        if latex:
-            error_label = (
-                r"$\overline{\epsilon}$="
-                + rf"{numpy.mean(error):.1f}\% "
-                + r"$\sigma_{\epsilon}$="
-                + rf"{numpy.std(error):.1f}\%"
+        with plot_theme.theme():
+            fig, axs = plot.subplots(1, 2, tight_layout=True, figsize=(11, 5))
+            xmin = min(min(y), min(y_reg))
+            xmax = max(max(y), max(y_reg))
+            axs[0].plot(
+                [xmin, xmax],
+                [xmin, xmax],
+                linestyle="--",
+                color=plot_theme.COLORS["reference"],
+                label="$y=x$",
             )
-        else:
-            error_label = (
-                r"$\overline{\epsilon}$="
-                + f"{numpy.mean(error):.1f}% "
-                + r"$\sigma_{\epsilon}$="
-                + f"{numpy.std(error):.1f}%"
+            axs[0].plot(
+                y,
+                y_reg,
+                linestyle="none",
+                marker="o",
+                markersize=5,
+                alpha=0.75,
+                color=plot_theme.COLORS["primary"],
             )
-        axs[1].set_xlabel(error_label, fontsize=16)
-        axs[1].set_ylabel(r"Probability", fontsize=18)
-        axs[1].set_xlim(
-            [-3 * numpy.std(error) + numpy.mean(error), 3 * numpy.std(error) + numpy.mean(error)]
-        )
-        try:
-            os.makedirs(temp_path, exist_ok=True)
-            plot.savefig(
-                os.path.join(temp_path, "regression_models_fig2.pdf"), dpi=1200, format="pdf"
+            axs[0].axis([xmin, xmax, xmin, xmax])
+            axs[0].set_title("Regression model")
+            elected_pi0 = int(elected_pi0.replace("pi", "")) - 1
+            if eff_pi0 != -1:
+                elected_pi0 = eff_pi0
+            axs[0].set_xlabel("$" + pi_list[elected_pi0] + "$", fontsize=14)
+            y_label = "$" + pi_list[elected_pi0] + r" \simeq f("
+            for i in range(len(pi_list)):
+                if i != elected_pi0:
+                    y_label += pi_list[i] + ","
+            y_label = y_label[0 : len(y_label) - 1] + ")$"
+            axs[0].set_ylabel(y_label, fontsize=14)
+            axs[0].legend(loc="upper left")
+            error = ((numpy.array(y_reg) - numpy.array(y)) * (1 / numpy.array(y)) * 100).tolist()
+            n_bins = max(1, int(len(error) / 5))
+            axs[1].hist(
+                error,
+                bins=n_bins,
+                color=plot_theme.COLORS["primary"],
+                edgecolor="white",
+                linewidth=0.8,
             )
-        except Exception as ex:
-            logg_exception(ex)
-        if not test_mode:
-            plot.show()
+            axs[1].axvline(
+                numpy.mean(error),
+                linestyle="--",
+                linewidth=1.2,
+                color=plot_theme.COLORS["reference"],
+            )
+            axs[1].yaxis.set_major_formatter(PercentFormatter(xmax=len(error)))
+            axs[1].set_title(r"$\epsilon$ repartition")
+            if latex:
+                error_label = (
+                    r"$\overline{\epsilon}$="
+                    + rf"{numpy.mean(error):.1f}\% "
+                    + r"$\sigma_{\epsilon}$="
+                    + rf"{numpy.std(error):.1f}\%"
+                )
+            else:
+                error_label = (
+                    r"$\overline{\epsilon}$="
+                    + f"{numpy.mean(error):.1f}% "
+                    + r"$\sigma_{\epsilon}$="
+                    + f"{numpy.std(error):.1f}%"
+                )
+            axs[1].set_xlabel(error_label, fontsize=14)
+            axs[1].set_ylabel(r"Probability", fontsize=14)
+            axs[1].set_xlim(
+                [
+                    -3 * numpy.std(error) + numpy.mean(error),
+                    3 * numpy.std(error) + numpy.mean(error),
+                ]
+            )
+            try:
+                os.makedirs(temp_path, exist_ok=True)
+                plot.savefig(
+                    os.path.join(temp_path, "regression_models_fig2.pdf"), dpi=1200, format="pdf"
+                )
+            except Exception as ex:
+                logg_exception(ex)
+            if not test_mode:
+                plot.show()
         # De-activate latex render on plot
         plot.rc("text", usetex=False)
         plot.rc("font", family="sans-serif")
@@ -2289,7 +2327,9 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
 
     doe_pi: DOE of the complete pi_set (except pi0)
 
-    use_widgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
+    use_widgets: Boolean to activate interactive mode within a Jupyter Notebook: pi selection
+                 chips and graph controls update the plot live; the assembled widget
+                 (ipywidgets.VBox) is displayed and returned
 
     **kwargs: additional argumens
               * **pi0** (*list* of *str*): name of the different pi0 = f(pi...) considered as design drivers
@@ -2356,97 +2396,58 @@ def pi_sensitivity(pi_set: PositiveParameterSet, doe_pi: ndarray, use_widgets: b
                 else:
                     raise TypeError("piN should be a list")
         if use_widgets:
-            pi_list = []
-            for pi in pi_set.dictionary.keys():
-                pi_list.append(pi.replace("pi", r"$\pi_{") + "}$")
-            axes, my_plot, _, _ = pi_sensitivity_sub(
-                pi_set, doe_pi, pi0=pi0_list, piN=piN_list, figwidth=16, latex=latex
-            )
-            if latex:
-                my_plot.rc("text", usetex=True)
-            primary_py = []
-            secondary_py = []
-            primary_py_panel = widgets.HBox()
-            secondary_py_panel = widgets.HBox()
-            graph_parameters_panel = widgets.HBox()
-            for pi_parameter in range(numpy.shape(doe_pi)[1]):
-                if pi_parameter == 0:
-                    widget1 = widgets.Checkbox(value=True)
-                    widget2 = widgets.Checkbox(value=False)
-                else:
-                    widget1 = widgets.Checkbox(value=False)
-                    widget2 = widgets.Checkbox(value=True)
-                widget1.style = {
-                    "description_width": "0px"
-                }  # sets the width to the left of the checkbox
-                widget1.layout.width = "auto"  # sets the overall width check box widget
-                widget2.style = {
-                    "description_width": "0px"
-                }  # sets the width to the left of the checkbox
-                widget2.layout.width = "auto"  # sets the overall width check box widget
-                primary_py.append(widget1)
-                primary_py.append(Label(value=pi_list[pi_parameter]))
-                secondary_py.append(widget2)
-                secondary_py.append(Label(value=pi_list[pi_parameter]))
-            primary_py_panel.children = [i for i in primary_py]
-            secondary_py_panel.children = [i for i in secondary_py]
-            label_slider = widgets.FloatSlider(
-                value=18, min=5, max=24, step=1, description="X-label FontSize:"
-            )
-            zero_y = widgets.Checkbox(description="y-axis intersect 0", value=False)
-            graph_parameters_panel.children = [label_slider, zero_y]
-            tab = widgets.Tab(
-                children=[primary_py_panel, secondary_py_panel, graph_parameters_panel]
-            )
-            button = widgets.Button(description="Apply")
-            tab.set_title(0, "Primary PI")
-            tab.set_title(1, "Secondary PI")
-            tab.set_title(2, "Graph parameters")
-            menu = VBox(children=[tab, button])
-            display(menu)
-            if not test_mode:
-                my_plot.show()
             reference_list = list(pi_set.dictionary.keys())
+            primary_buttons = _pi_toggle_buttons(reference_list, pi0_list)
+            secondary_buttons = _pi_toggle_buttons(reference_list, piN_list)
+            label_slider = widgets.IntSlider(
+                value=18,
+                min=7,
+                max=24,
+                step=1,
+                description="X-label size:",
+                continuous_update=False,
+            )
+            zero_y = widgets.Checkbox(description="y-axis starts at 0", value=False, indent=False)
+            controls = VBox(
+                [
+                    widgets.HBox([_section_label("Primary π")] + primary_buttons),
+                    widgets.HBox([_section_label("Secondary π")] + secondary_buttons),
+                    widgets.HBox([label_slider, zero_y]),
+                ]
+            )
+            out = widgets.Output()
+            app = VBox([controls, out])
 
-            # noinspection PyShadowingNames,PyUnusedLocal
-            def on_button_clicked(b):
-                clear_output()
-                display(menu)
-                idx = 0
-                pi0_list = []
-                for c in primary_py_panel.children:
-                    if isinstance(c.value, bool):
-                        if c.value:
-                            pi0_list.append(reference_list[int(idx)])
-                        idx += 1
-                idx = 0
-                piN_list = []
-                for c in secondary_py_panel.children:
-                    if isinstance(c.value, bool):
-                        if c.value:
-                            piN_list.append(reference_list[int(idx)])
-                        idx += 1
-                for c in graph_parameters_panel.children:
-                    if isinstance(c.value, bool):
-                        zero_ymin_value = c.value
-                    else:
-                        fontsize = int(c.value)
-                # noinspection PyUnboundLocalVariable
-                axes, my_local_plot, _, _ = pi_sensitivity_sub(
-                    pi_set,
-                    doe_pi,
-                    pi0=pi0_list,
-                    piN=piN_list,
-                    figwidth=16,
-                    zero_ymin=zero_ymin_value,
-                    xlabel_size=fontsize,
-                )
-                if latex:
-                    my_local_plot.rc("text", usetex=True)
-                if not test_mode:
-                    my_local_plot.show()
+            # noinspection PyUnusedLocal
+            def update(change=None):
+                selected_pi0 = [name for name, b in zip(reference_list, primary_buttons) if b.value]
+                selected_piN = [
+                    name for name, b in zip(reference_list, secondary_buttons) if b.value
+                ]
+                if len(selected_pi0) == 0 or len(selected_piN) == 0:
+                    return
+                with out:
+                    out.clear_output(wait=True)
+                    _, my_plot, _, _ = pi_sensitivity_sub(
+                        pi_set,
+                        doe_pi,
+                        pi0=selected_pi0,
+                        piN=selected_piN,
+                        figwidth=16,
+                        zero_ymin=zero_y.value,
+                        xlabel_size=int(label_slider.value),
+                        latex=latex,
+                    )
+                    if latex:
+                        my_plot.rc("text", usetex=True)
+                    if not test_mode:
+                        my_plot.show()
 
-            button.on_click(on_button_clicked)
+            for control in primary_buttons + secondary_buttons + [label_slider, zero_y]:
+                control.observe(update, names="value")
+            display(app)
+            update()
+            return app
         else:
             _, my_plot, _, _ = pi_sensitivity_sub(pi_set, doe_pi, **kwargs)
             try:
@@ -2592,10 +2593,11 @@ def pi_sensitivity_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
             plot.rc("text", usetex=True)
             plot.rc("font", family="serif")
         # Plot graphs
-        # noinspection PyTypeChecker
-        fig, axes = plot.subplots(
-            nrows=len(y_index), ncols=len(x_index), sharex=False, sharey=False, squeeze=False
-        )
+        with plot_theme.theme():
+            # noinspection PyTypeChecker
+            fig, axes = plot.subplots(
+                nrows=len(y_index), ncols=len(x_index), sharex=False, sharey=False, squeeze=False
+            )
         if len(y_index) == 1 or len(x_index) == 1:
             axes = numpy.reshape(axes, -1)
         fig.set_size_inches(min(figwidth, 7 * len(x_index)), 7 * len(y_index))
@@ -2610,7 +2612,11 @@ def pi_sensitivity_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                 axes[axis_name].plot(
                     doe_pi[:, x_index[x_i]] / numpy.mean(doe_pi[:, x_index[x_i]]),
                     doe_pi[:, y_index[y_i]],
-                    "ob",
+                    linestyle="none",
+                    marker="o",
+                    markersize=5,
+                    alpha=0.75,
+                    color=plot_theme.COLORS["primary"],
                 )
                 axes[axis_name].set_xlim(pi_axis)
                 if zero_ymin:
@@ -2676,23 +2682,23 @@ def pi_sensitivity_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                         va="center",
                     )
                 axes[axis_name].grid(False)
-        # Color figure with decreasing order of impact
+        # Shade panel backgrounds with increasing impact (light->dark sequential ramp)
         max_IF = numpy.amax(numpy.absolute(impact_matrix))
         min_IF = numpy.amin(numpy.absolute(impact_matrix))
         for x_i in range(len(x_index)):
             for y_i in range(len(y_index)):
                 current_IF = numpy.absolute(impact_matrix[y_i, x_i])
                 if max_IF != min_IF:
-                    blue = max(0, min(1, 1 - (current_IF - min_IF) / (max_IF - min_IF)))
+                    fraction = (current_IF - min_IF) / (max_IF - min_IF)
                 else:
-                    blue = 1
+                    fraction = 0.0
                 if len(y_index) == 1:
                     axis_name = x_i
                 elif len(x_index) == 1:
                     axis_name = y_i
                 else:
                     axis_name = (y_i, x_i)
-                axes[axis_name].set_facecolor((1, 1, blue))
+                axes[axis_name].set_facecolor(plot_theme.sequential_color(fraction))
         return axes, plot, impact_matrix, latex_pi_list
     else:
         if not (isinstance(pi_set, PositiveParameterSet)):
@@ -2814,7 +2820,9 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
 
     doe_pi: DOE of the complete pi_set (except pi0)
 
-    useWidgets: Boolean to choose if widgets displayed (set to True within Jupyther Notebook)
+    useWidgets: Boolean to activate interactive mode within a Jupyter Notebook: pi selection
+                chips and graph controls update the plot live; the assembled widget
+                (ipywidgets.VBox) is displayed and returned
 
     **kwargs: additional argumens
               * **x_list** (*list* of *str*): name of the different pi to be defined as x-axis (default: all)
@@ -2855,121 +2863,77 @@ def pi_dependency(pi_set: PositiveParameterSet, doe_pi: ndarray, useWidgets: boo
                 else:
                     raise TypeError("y_list should be a list")
         if useWidgets:
-            pi_list = []
-            for pi in pi_set.dictionary.keys():
-                pi_list.append(pi.replace("pi", r"$\pi_{") + "}$")
-            if len(x_list_) != 0:
-                x_list = [""] * len(x_list_)
-                for i in range(len(x_list_)):
-                    x_list[i] = x_list_[i].replace("pi", r"$\pi_{") + "}$"
-                    if x_list[i] not in pi_list:
-                        raise KeyError(f"defined list key {x_list[i]} not in pi_set")
-            else:
-                x_list = pi_list
-            if len(y_list_) != 0:
-                y_list = [""] * len(y_list_)
-                for i in range(len(y_list_)):
-                    y_list[i] = y_list_[i].replace("pi", r"$\pi_{") + "}$"
-                    if y_list[i] not in pi_list:
-                        raise KeyError(f"defined list key {y_list[i]} not in pi_set")
-            else:
-                y_list = pi_list
-            _, _, _, my_plot = pi_dependency_sub(
-                pi_set, doe_pi, order=2, threshold=0.9, figwidth=16, x_list=x_list, y_list=y_list
+            reference_list = list(pi_set.dictionary.keys())
+            for name in x_list_ + y_list_:
+                if name not in reference_list:
+                    raise KeyError(f"defined list key {name} not in pi_set")
+            x_selected = x_list_ if len(x_list_) != 0 else reference_list
+            y_selected = y_list_ if len(y_list_) != 0 else reference_list
+            x_buttons = _pi_toggle_buttons(reference_list, x_selected)
+            y_buttons = _pi_toggle_buttons(reference_list, y_selected)
+            label_slider = widgets.IntSlider(
+                value=18,
+                min=7,
+                max=24,
+                step=1,
+                description="X-label size:",
+                continuous_update=False,
             )
-            primary_py = []
-            secondary_py = []
-            primary_py_panel = widgets.HBox()
-            secondary_py_panel = widgets.HBox()
-            graph_parameters_panel = widgets.HBox()
-            if len(x_list_) != 0:
-                max_range_x = len(x_list)
-            else:
-                max_range_x = numpy.shape(doe_pi)[1]
-            for pi_parameter in range(max_range_x):
-                widget = widgets.Checkbox(value=True)
-                widget.style = {
-                    "description_width": "0px"
-                }  # sets the width to the left of the checkbox
-                widget.layout.width = "auto"  # sets the overall width check box widget
-                primary_py.append(widget)
-                primary_py.append(Label(value=pi_list[pi_parameter]))
-            if len(y_list_) != 0:
-                max_range_y = len(y_list)
-            else:
-                max_range_y = numpy.shape(doe_pi)[1]
-            for pi_parameter in range(max_range_y):
-                widget = widgets.Checkbox(value=True)
-                widget.style = {
-                    "description_width": "0px"
-                }  # sets the width to the left of the checkbox
-                widget.layout.width = "auto"  # sets the overall width check box widget
-                secondary_py.append(widget)
-                secondary_py.append(Label(value=pi_list[pi_parameter]))
-            primary_py_panel.children = [i for i in primary_py]
-            secondary_py_panel.children = [i for i in secondary_py]
-            label_slider = widgets.FloatSlider(
-                value=18, min=5, max=24, step=1, description="X-label FontSize:"
+            order_slider = widgets.IntSlider(
+                value=2, min=1, max=4, step=1, description="Order:", continuous_update=False
             )
-            order_slider = widgets.FloatSlider(value=2, min=1, max=4, step=1, description="Order:")
             threshold_slider = widgets.FloatSlider(
-                value=0.9, min=0.0, max=1.0, step=0.01, description="Threshold:"
+                value=0.9,
+                min=0.01,
+                max=1.0,
+                step=0.01,
+                description="Threshold:",
+                continuous_update=False,
             )
-            graph_parameters_panel.children = [label_slider, order_slider, threshold_slider]
-            tab = widgets.Tab(
-                children=[primary_py_panel, secondary_py_panel, graph_parameters_panel]
+            controls = VBox(
+                [
+                    widgets.HBox([_section_label("X-axis π")] + x_buttons),
+                    widgets.HBox([_section_label("Y-axis π")] + y_buttons),
+                    widgets.HBox([order_slider, threshold_slider, label_slider]),
+                ]
             )
-            button = widgets.Button(description="Apply")
-            tab.set_title(0, "Primary PI")
-            tab.set_title(1, "Secondary PI")
-            tab.set_title(2, "Graph parameters")
-            menu = VBox(children=[tab, button])
-            display(menu)
-            if not test_mode:
-                my_plot.show()
+            out = widgets.Output()
+            app = VBox([controls, out])
 
             # noinspection PyUnusedLocal
-            def on_button_clicked(b):
-                clear_output()
-                display(menu)
-                idx = 0
-                xlist = []
-                for c in primary_py_panel.children:
-                    if isinstance(c.value, bool):
-                        if c.value:
-                            xlist.append(pi_list[idx])
-                        idx += 1
-                idx = 0
-                ylist = []
-                for c in secondary_py_panel.children:
-                    if isinstance(c.value, bool):
-                        if c.value:
-                            ylist.append(pi_list[idx])
-                        idx += 1
-                idx = 0
-                for c in graph_parameters_panel.children:
-                    if idx == 0:
-                        fontsize = int(c.value)
-                    elif idx == 1:
-                        order_value = int(c.value)
-                    else:
-                        threshold_value = float(c.value)
-                    idx += 1
-                # noinspection PyUnboundLocalVariable
-                _, _, _, my_local_plot = pi_dependency_sub(
-                    pi_set,
-                    doe_pi,
-                    x_list=xlist,
-                    y_list=ylist,
-                    order=order_value,
-                    threshold=threshold_value,
-                    figwidth=16,
-                    xlabel_size=fontsize,
-                )
-                if not test_mode:
-                    my_local_plot.show()
+            def update(change=None):
+                xlist = [
+                    name.replace("pi", r"$\pi_{") + "}$"
+                    for name, b in zip(reference_list, x_buttons)
+                    if b.value
+                ]
+                ylist = [
+                    name.replace("pi", r"$\pi_{") + "}$"
+                    for name, b in zip(reference_list, y_buttons)
+                    if b.value
+                ]
+                if len(xlist) == 0 or len(ylist) == 0:
+                    return
+                with out:
+                    out.clear_output(wait=True)
+                    _, _, _, my_plot = pi_dependency_sub(
+                        pi_set,
+                        doe_pi,
+                        x_list=xlist,
+                        y_list=ylist,
+                        order=int(order_slider.value),
+                        threshold=float(threshold_slider.value),
+                        figwidth=16,
+                        xlabel_size=int(label_slider.value),
+                    )
+                    if not test_mode:
+                        my_plot.show()
 
-            button.on_click(on_button_clicked)
+            for control in x_buttons + y_buttons + [label_slider, order_slider, threshold_slider]:
+                control.observe(update, names="value")
+            display(app)
+            update()
+            return app
         else:
             _, _, _, my_plot = pi_dependency_sub(pi_set, doe_pi, **kwargs)
             try:
@@ -3071,10 +3035,11 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
         r2_matrix = numpy.zeros((len(y_list), len(x_list)))
         regType_matrix = numpy.zeros((len(y_list), len(x_list))).astype(str)
         coeff_matrix = numpy.zeros((len(y_list), len(x_list)), dtype=(float, order + 1))
-        # noinspection PyTypeChecker
-        fig, axes = plot.subplots(
-            nrows=len(y_list), ncols=len(x_list), sharex=False, sharey=False, squeeze=False
-        )
+        with plot_theme.theme():
+            # noinspection PyTypeChecker
+            fig, axes = plot.subplots(
+                nrows=len(y_list), ncols=len(x_list), sharex=False, sharey=False, squeeze=False
+            )
         fig.set_size_inches(min(figwidth, 6 * len(x_list)), 6 * len(y_list))
         # Write pi_list and x-y index
         xaxis_index = []
@@ -3255,9 +3220,19 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                     )
                 else:
                     # Plot fitting curve and data
-                    axes[yaxis_i, xaxis_i].plot(x, y, "ob")
+                    axes[yaxis_i, xaxis_i].plot(
+                        x,
+                        y,
+                        linestyle="none",
+                        marker="o",
+                        markersize=5,
+                        alpha=0.75,
+                        color=plot_theme.COLORS["primary"],
+                    )
                     if r2_matrix[yaxis_i, xaxis_i] >= threshold:
-                        axes[yaxis_i, xaxis_i].plot(x_pred, y_pred, "-r")
+                        axes[yaxis_i, xaxis_i].plot(
+                            x_pred, y_pred, "-", color=plot_theme.COLORS["secondary"]
+                        )
                         axes[yaxis_i, xaxis_i].annotate(
                             f"$R^2$={r2_matrix[yaxis_i, xaxis_i]:.2f}",
                             (0.8, 0.6),
@@ -3283,14 +3258,14 @@ def pi_dependency_sub(pi_set: PositiveParameterSet, doe_pi: ndarray, **kwargs):
                     )
                 ):
                     if r2_matrix[yaxis_i, xaxis_i] < r2_matrix[xaxis_i, yaxis_i]:
-                        axes[xaxis_i, yaxis_i].set_facecolor("xkcd:light beige")
+                        axes[xaxis_i, yaxis_i].set_facecolor(plot_theme.COLORS["highlight_bg"])
                     else:
-                        axes[yaxis_i, xaxis_i].set_facecolor("xkcd:light beige")
+                        axes[yaxis_i, xaxis_i].set_facecolor(plot_theme.COLORS["highlight_bg"])
                 # Highlight best model in x-y plot (if scatter plot not chosen)
                 if not xy_identical and xaxis_i == len(xaxis_index) - 1:
                     if numpy.amax(r2_matrix[yaxis_i, :]) >= threshold:
                         axes[yaxis_i, numpy.argsort(-1 * r2_matrix[yaxis_i, :])[0]].set_facecolor(
-                            "xkcd:light beige"
+                            plot_theme.COLORS["highlight_bg"]
                         )
                 if xaxis_i == 0 and (yaxis_i % 2) == 0:
                     axes[yaxis_i, xaxis_i].set_yticklabels([])
