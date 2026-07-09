@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/SizingLab/pyvplm/workflows/Tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyvplm/badge/?version=latest)](https://pyvplm.readthedocs.io/en/latest/?badge=latest)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ## About
 
@@ -58,7 +58,7 @@ configuration parameters:
 
 #### Optimized design of experiments
 
-The non-constrained nor reduced experimental set are defined using [pyDOE2](https://github.com/clicumu/pyDOE2) package. 
+The non-constrained nor reduced experimental set are defined using [pyDOE3](https://github.com/relf/pyDOE3) package. 
 It integrates automatic sizing of physical/dimensionless initial test plans and functions for selection based on 
 distance criteria (dimensionless mapping) and spread quality (physical mapping).
 
@@ -124,9 +124,32 @@ Additional documentation on sub-packages (`pyvplm.core`, `pyvplm.addon`) and fun
 
 ## Install
 
-To install pyVPLM, simply run:
+pyVPLM requires Python 3.10 or newer. To install, simply run:
 
-`pip install pyvplm`
+```
+pip install pyvplm
+```
+
+or, with [uv](https://docs.astral.sh/uv/):
+
+```
+uv add pyvplm
+```
+
+## Development setup
+
+The project is managed with [uv](https://docs.astral.sh/uv/). After cloning the
+repository:
+
+```
+uv sync              # create the virtual environment and install all dependencies
+uv run pytest        # run the unit and non-regression test suite
+uv run ruff check    # lint
+uv run ruff format   # format
+uv run pre-commit install   # enable git hooks (lint/format on commit)
+```
+
+The example notebooks can be launched with `uv run jupyter notebook notebooks/`.
 
 
 ## Credit
