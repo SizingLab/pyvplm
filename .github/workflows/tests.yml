@@ -51,9 +51,8 @@ jobs:
           path: coverage.xml
 
   notebooks:
-    # Smoke-run the example notebooks; informative only, does not block merges
+    # Execute the example notebooks end-to-end
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Install uv

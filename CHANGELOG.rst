@@ -43,6 +43,18 @@ Fixes
   cross-platform temp directory instead of a Windows-only hardcoded path.
 - Fixed greek-letter capitalisation in plot labels (``.upper`` vs ``.upper()``).
 - Removed debug prints and the warning emitted on private attribute access.
+- ``perform_regression`` crashed on read-only input arrays (e.g.
+  ``DataFrame.values`` under pandas >= 3) in linear space.
+
+Notebooks & widgets
+-------------------
+- All four example notebooks now execute end-to-end against the modernized
+  library and are checked in CI (blocking job).
+- Motor example migrated from ``pyDOE2`` to ``pyDOE3`` and from Excel
+  (``.xls``/``.xlsx``, removed dependencies) to CSV data files.
+- The interactive ipywidgets paths (``pi_sensitivity``/``pi_dependency`` with
+  widgets enabled) are covered by headless smoke tests, including the
+  'Apply' button callbacks, validating ipywidgets >= 8 compatibility.
 
 Version 0.1.0-beta
 ===================
