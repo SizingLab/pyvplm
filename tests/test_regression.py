@@ -107,6 +107,19 @@ class TestPerformRegression:
         # full model reproduces the data almost exactly
         assert y_reg == pytest.approx(y, rel=1e-6)
 
+    def test_linear_space_with_read_only_doe(self, power_law_doe):
+        # pandas 3 DataFrame.values returns read-only arrays; in linear space
+        # perform_regression works on views of the DOE and must not mutate it
+        models = regression_models(
+            power_law_doe, "pi1", 1, test_mode=True, plots=False, log_space=False
+        )
+        doe = power_law_doe.copy()
+        doe.setflags(write=False)
+        expression, expression_latex = perform_regression(
+            doe, models, chosen_model=3, test_mode=True
+        )
+        assert "pi1" in expression
+
     def test_invalid_model_number_rejected(self, power_law_doe):
         models = _fit_models(power_law_doe)
         with pytest.raises(KeyError):

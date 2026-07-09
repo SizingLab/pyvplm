@@ -2195,6 +2195,8 @@ def perform_regression(doe_pi: ndarray, models, chosen_model, **kwargs):
         try:
             y_reg = 10 ** eval(expression1) if log_space else eval(expression1)
             y = 10 ** eval(expression2) if log_space else eval(expression2)
+            # copy: in linear space y can be a (possibly read-only) view of doe_pi
+            y = numpy.array(y, dtype=float)
             y += (y == 0.0) * sys.float_info.min  # FIXES 06/05/21: to avoid 0.0 division
             # Adapt Y_reg vector if only constant is considered
             if isinstance(y_reg, float):
