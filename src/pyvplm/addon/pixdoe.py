@@ -1,27 +1,27 @@
-# -*- coding: utf-8 -*-
 """
 Addon module generating constrained full-factorial DOE on 2-spaces (pi/x) problems
 """
 
 # -------[Import necessary packages]--------------------------------------------
+import functools
+import logging
+import math
 import os
 import sys
-import pyDOE2
-import numpy
-import math
-import logging
-from typing import Tuple
-from inspect import isfunction
-import functools
-import pandas
-import matplotlib.pyplot as plot
+import tempfile
 import warnings
+from inspect import isfunction
+
+import matplotlib.pyplot as plot
+import numpy
+import pandas
+import pyDOE3
 from numpy import ndarray
-from pyvplm.core.definition import PositiveParameter, PositiveParameterSet, greek_list
+
+from pyvplm.core.definition import PositiveParameterSet, greek_list
 
 # -------[Global variables and settings]----------------------------------------
-path = os.path.abspath(__file__)
-temp_path = path.replace("\\addon\\" + os.path.basename(path), "") + "\\_temp\\"
+temp_path = os.path.join(tempfile.gettempdir(), "pyvplm")
 module_logger = logging.getLogger(__name__)
 
 
@@ -35,7 +35,7 @@ def logg_exception(ex: Exception):
 # -------[Define function creating full-fact using bounds and levels]-----------
 def create_doe(
     bounds: ndarray, parameters_level: ndarray, log_space: bool = True
-) -> Tuple[ndarray, ndarray]:
+) -> tuple[ndarray, ndarray]:
     # noinspection PyUnresolvedReferences,PyShadowingNames
     """Functions that generates a fullfact DOE mesh using bounds and levels number.
 
@@ -97,7 +97,7 @@ def create_doe(
                 bounds = numpy.log10(bounds)
             # Generate DOE on levels
             parameters_level = parameters_level + 1 * (parameters_level == 0)
-            doe_levels = pyDOE2.fullfact(parameters_level).astype(int)
+            doe_levels = pyDOE3.fullfact(parameters_level).astype(int)
             for idx in range(numpy.shape(doe_levels)[1]):
                 if sum(doe_levels[:, idx]) == 0:
                     doe_levels[:, idx] = 1
@@ -125,7 +125,7 @@ def create_doe(
 # -------[Define function keeping nominal point if surrounded by feasible]------
 def surroundings(
     doe, nominal_doe: ndarray, proper_spacing: ndarray, LogLin: bool = True
-) -> Tuple[ndarray, ndarray]:
+) -> tuple[ndarray, ndarray]:
     # noinspection PyUnresolvedReferences,PyShadowingNames
     """Function to reduce a given nominal DOE on a max distance criteria with points from feasible DOE ('reachable'
     points).
@@ -212,7 +212,7 @@ def surroundings(
             )
             if valid_distance:
                 to_be_removed[y_idx] = False
-        return nominal_doe[to_be_removed == False], to_be_removed
+        return nominal_doe[~to_be_removed], to_be_removed
     elif not (isinstance(doe, numpy.ndarray)):
         raise TypeError("doe should be numpy array.")
     elif not (isinstance(nominal_doe, numpy.ndarray)):
@@ -494,12 +494,12 @@ def declare_does(
 
     """
     doe_x, _ = create_doe(x_Bounds, x_levels, log_space)
-    doe_x = doe_x[apply_constraints(doe_x, parameters_constraints) == True]
+    doe_x = doe_x[apply_constraints(doe_x, parameters_constraints)]
     if len(doe_x) == 0:
         doePI = []
     else:
         doePI = func_x_to_pi(doe_x.tolist())
-        doePI = doePI[apply_constraints(doePI, pi_constraints) == True, :]
+        doePI = doePI[apply_constraints(doePI, pi_constraints), :]
     return doe_x, doePI
 
 
@@ -510,7 +510,7 @@ def create_const_doe(
     pi_set: PositiveParameterSet,
     func_x_to_pi,
     wished_size: int,
-    **kwargs
+    **kwargs,
 ):
     # noinspection PyUnresolvedReferences,PyTypeChecker,PyShadowingNames
     """Function to generate a constrained feasible set DOE with repartition on PI not far from nominal fullfact DOE.
@@ -594,19 +594,16 @@ def create_const_doe(
         track = False
         test_mode = False
         for key, value in kwargs.items():
-            if not (
-                key
-                in [
-                    "level_repartition",
-                    "parameters_constraints",
-                    "pi_constraints",
-                    "choice_nb",
-                    "spacing_division_criteria",
-                    "log_space",
-                    "track",
-                    "test_mode",
-                ]
-            ):
+            if key not in [
+                "level_repartition",
+                "parameters_constraints",
+                "pi_constraints",
+                "choice_nb",
+                "spacing_division_criteria",
+                "log_space",
+                "track",
+                "test_mode",
+            ]:
                 raise KeyError("unknown argument " + key)
             elif key == "level_repartition":
                 if isinstance(value, numpy.ndarray):
@@ -740,9 +737,8 @@ def create_const_doe(
         if wished_size < 2**pi_number:
             wished_size = 2**pi_number
             warnings.warn(
-                "Experiments size changed to {} to obtain 2-levels full-fractional on Pi parameters".format(
-                    wished_size
-                )
+                f"Experiments size changed to {wished_size} to obtain 2-levels full-fractional on Pi parameters",
+                stacklevel=2,
             )
         # Create level repartition on pi and adapt it for constant parameter
         pi_levels = numpy.ones(pi_number, dtype=int)
@@ -774,9 +770,7 @@ def create_const_doe(
             # size >= wished_size * init_coverage_factor [CAN BE SLOW]
             if track:
                 print(
-                    "PHASE1: Constructing constrained X-DOE based on size >= {} criteria".format(
-                        wished_size * init_coverage_factor
-                    )
+                    f"PHASE1: Constructing constrained X-DOE based on size >= {wished_size * init_coverage_factor} criteria"
                 )
             while obtained_size_on_x < (wished_size * init_coverage_factor):
                 x_steps += 1
@@ -792,13 +786,8 @@ def create_const_doe(
                 obtained_size_on_x = numpy.shape(doeX)[0]
                 if track:
                     print(
-                        "Step{}: non constrained {} X-DOE factorial experiment leads to constrained [{}*{}] "
-                        "X-DOE matrix".format(
-                            step,
-                            level_name(x_steps * x_levels),
-                            obtained_size_on_x,
-                            parameters_number,
-                        )
+                        f"Step{step}: non constrained {level_name(x_steps * x_levels)} X-DOE factorial experiment leads to constrained [{obtained_size_on_x}*{parameters_number}] "
+                        "X-DOE matrix"
                     )
                     if not (obtained_size_on_x < (wished_size * init_coverage_factor)):
                         print("Skipping to PHASE2...\n")
@@ -818,8 +807,8 @@ def create_const_doe(
             # size >= wished_size [CAN BE SLOW]
             if track:
                 print(
-                    "PHASE2: Constructing unconstrained Pi-DOE validating max spacing criteria = 1/{} "
-                    "with feasible points".format(spacing_division_criteria)
+                    f"PHASE2: Constructing unconstrained Pi-DOE validating max spacing criteria = 1/{spacing_division_criteria} "
+                    "with feasible points"
                 )
             while obtained_size_on_pi < wished_size:
                 pi_steps += 1
@@ -828,14 +817,14 @@ def create_const_doe(
                 if obtained_size_on_x < fact_level(pi_steps * pi_levels):
                     if track:
                         print(
-                            "Step{}: [ERROR] Pi set size would tend to be greater than constrained X set: restart "
-                            "in PHASE1 to increase X parameters levels\n".format(step)
+                            f"Step{step}: [ERROR] Pi set size would tend to be greater than constrained X set: restart "
+                            "in PHASE1 to increase X parameters levels\n"
                         )
                     break
                 else:
                     doePIn, spacing = create_doe(pi_Bounds, pi_steps * pi_levels, log_space)
                     save["doePIn"] = doePIn
-                    doePIn = doePIn[apply_constraints(doePIn, pi_constraints) == True]
+                    doePIn = doePIn[apply_constraints(doePIn, pi_constraints)]
                     save["doePIn_c"] = doePIn
                     # noinspection PyUnboundLocalVariable
                     doePIn, _ = surroundings(
@@ -846,22 +835,15 @@ def create_const_doe(
                     if previous_size > obtained_size_on_pi:
                         if track:
                             print(
-                                "Step{}: [ERROR] Pi set size decreasing while increasing levels {}->{}: restart "
-                                "in PHASE1 to increase X parameters levels\n".format(
-                                    step, previous_size, obtained_size_on_pi
-                                )
+                                f"Step{step}: [ERROR] Pi set size decreasing while increasing levels {previous_size}->{obtained_size_on_pi}: restart "
+                                "in PHASE1 to increase X parameters levels\n"
                             )
                         break
                     else:
                         if track:
                             print(
-                                "Step{}: non constrained [{}] Pi-DOE factorial experiment leads to constrained "
-                                "[{}*{}] Pi-DOE matrix".format(
-                                    step,
-                                    level_name(pi_steps * pi_levels),
-                                    obtained_size_on_pi,
-                                    pi_number,
-                                )
+                                f"Step{step}: non constrained [{level_name(pi_steps * pi_levels)}] Pi-DOE factorial experiment leads to constrained "
+                                f"[{obtained_size_on_pi}*{pi_number}] Pi-DOE matrix"
                             )
                 previous_size = obtained_size_on_pi
                 step += 1
@@ -880,14 +862,12 @@ def create_const_doe(
         doePI, to_be_removed = surroundings(
             doePIn, func_x_to_pi(doeXn), spacing / spacing_division_criteria, log_space
         )
-        doeXn = doeXn[to_be_removed == False]
+        doeXn = doeXn[~to_be_removed]
         reduction_factor = 1 - len(doeXn) / fact_level(x_steps * x_levels)
         if not test_mode:
             print("\n")
             print(
-                "Set reduction factor (from feasible to optimal) is {}%\n".format(
-                    round(reduction_factor * 10000) / 100
-                )
+                f"Set reduction factor (from feasible to optimal) is {round(reduction_factor * 10000) / 100}%\n"
             )
         # Calculate pi-DOE from elected X-DOE set
         doeXc = doeXn
@@ -901,10 +881,8 @@ def create_const_doe(
             Y = numpy.log10(save["doePIn_c"]) if log_space else save["doePIn_c"]
             Y1 = numpy.log10(save["doePIn_a"]) if log_space else save["doePIn_a"]
             x_labels = list(pi_set.dictionary.keys())
-            graph_nb = 0
-            for i in range(numpy.shape(Y)[1] - 1):
-                for k in range(i + 1, numpy.shape(Y)[1]):
-                    graph_nb += 1
+            pi_nb = numpy.shape(Y)[1]
+            graph_nb = pi_nb * (pi_nb - 1) // 2
             n = math.ceil(graph_nb**0.5)
             fig, axes = plot.subplots(n, n, figsize=(6 * n, 6 * n))
             graph_idx = 0
@@ -917,9 +895,7 @@ def create_const_doe(
                         nc = graph_idx - nr * n
                         axes_handle = axes[nr, nc]
                     axes_handle.plot(X[:, i], X[:, k], "g.", label="All (Feas.)")
-                    axes_handle.plot(
-                        X1[:, i], X1[:, k], "c.", label="{}-nearest (Feas.)".format(choice_nb)
-                    )
+                    axes_handle.plot(X1[:, i], X1[:, k], "c.", label=f"{choice_nb}-nearest (Feas.)")
                     axes_handle.plot(X2[:, i], X2[:, k], "b.", label="Elected (Feas.)")
                     axes_handle.plot(Y[:, i], Y[:, k], "k.", label="All (Obj.)")
                     axes_handle.plot(Y1[:, i], Y1[:, k], "r.", label="Active (Obj.)")
@@ -962,7 +938,10 @@ def create_const_doe(
                 axes[nr, nc].axis("off")
                 graph_idx += 1
             try:
-                plot.savefig(temp_path + "create_const_doe_fig1.pdf", dpi=1200, format="pdf")
+                os.makedirs(temp_path, exist_ok=True)
+                plot.savefig(
+                    os.path.join(temp_path, "create_const_doe_fig1.pdf"), dpi=1200, format="pdf"
+                )
             except Exception as ex:
                 logg_exception(ex)
             plot.show()
@@ -1001,8 +980,8 @@ def create_const_doe(
                 else:
                     parameter_name = parameter_name.replace("_", "")
                     if parameter_name in greek_list:
-                        if parameter_name == parameter_name.upper:
-                            parameter_name = parameter_name[0] + parameter_name[:-1].lower()
+                        if parameter_name == parameter_name.upper():
+                            parameter_name = parameter_name[0] + parameter_name[1:].lower()
                         parameter_name = "\\" + parameter_name
                 x_labels.append("$" + parameter_name + "^{*}$")
             if log_space:
@@ -1016,7 +995,10 @@ def create_const_doe(
             plot.xticks(fontsize=12)
             plot.title(label=title_name)
             try:
-                plot.savefig(temp_path + "create_const_doe_fig2.pdf", dpi=1200, format="pdf")
+                os.makedirs(temp_path, exist_ok=True)
+                plot.savefig(
+                    os.path.join(temp_path, "create_const_doe_fig2.pdf"), dpi=1200, format="pdf"
+                )
             except Exception as ex:
                 logg_exception(ex)
             plot.show()

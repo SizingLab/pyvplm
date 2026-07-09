@@ -1,26 +1,25 @@
-# -*- coding: utf-8 -*-
 """
-Core module defining elementary class and methods for SizingLab
+Core module defining elementary classes and methods for pyVPLM.
 """
 
 # -------[Import necessary packages]--------------------------------------------
-import sys
-import pint
-import warnings
 import logging
-import sympy
-import numpy
-import copy
+import sys
+import warnings
 from collections import OrderedDict
 from inspect import isfunction
-from IPython.display import display, Math
+
+import numpy
+import pint
+import sympy
+from IPython.display import Math, display
 
 module_logger = logging.getLogger(__name__)
 
 
 # -------[Greek list definition]------------------------------------------------
 # noinspection SpellCheckingInspection
-greek_list = [
+_greek_lowercase = [
     "gamma",
     "delta",
     "eta",
@@ -34,8 +33,7 @@ greek_list = [
     "psi",
     "omega",
 ]
-for idx in range(len(copy.deepcopy(greek_list))):
-    greek_list.append(greek_list[idx].upper())
+greek_list = _greek_lowercase + [name.upper() for name in _greek_lowercase]
 greek_list.extend(
     [
         "alpha",
@@ -174,15 +172,6 @@ class Parameter:
             object.__setattr__(self, "_SI_units", str(SI_lower_bound.units))
             object.__setattr__(self, "_dimensionality", dimensionality)
 
-    def __getattribute__(self, attribute_name):
-        """Method to access parameter attribute value (for private attributes, warning is displayed).
-        Access is granted using command: **parameter_name.attribute_name**.
-
-        """
-        if attribute_name in ["_SI_units", "_SI_bounds", "_dimensionality"]:
-            warnings.warn("accessing private attribute value")
-        return super(Parameter, self).__getattribute__(attribute_name)
-
     def __setattr__(self, attribute_name, value, check_units=True):
         """Method to write parameter attribute value, **parameter_name.attribute_name=value** (private attribute writing
         access denied).
@@ -277,9 +266,7 @@ class Parameter:
         return (
             self.__class__.__name__
             + " {"
-            + "name:{},defined_bounds:{},value:{},defined_units:{},description:{}".format(
-                self.name, self.defined_bounds, self.value, self.defined_units, self.description
-            )
+            + f"name:{self.name},defined_bounds:{self.defined_bounds},value:{self.value},defined_units:{self.defined_units},description:{self.description}"
             + "}"
         )
 
@@ -447,24 +434,20 @@ class ParameterSet:
 
     def __setitem__(self, key, value):
         """Method to replace parameter in a parameter set or expend dictionary if new key."""
-        if isinstance(key, str) and (isinstance(value, Parameter)):
-            if key == value.name:
-                self.dictionary[key] = value
-            else:
-                raise KeyError("the key mismatch parameter name")
-        elif not (isinstance(key, str)):
+        if not isinstance(key, str):
             raise KeyError("key should be a string")
-        elif not (isinstance(Parameter, str)):
+        if not isinstance(value, Parameter):
             raise TypeError("assigned type should be a Parameter")
+        if key != value.name:
+            raise KeyError("the key mismatch parameter name")
+        self.dictionary[key] = value
 
     def __delitem__(self, key):
         """Method to delete a parameter in a parameter set: **del parameter_set[parameter.name]**."""
         if key in self.dictionary.keys():
-            if len(self.dictionary.keys()) == 1:
-                self.dictionary = OrderedDict()
-                raise Warning("empty dictionary")
-            else:
-                del self.dictionary[key]
+            del self.dictionary[key]
+            if len(self.dictionary.keys()) == 0:
+                warnings.warn("empty dictionary", stacklevel=2)
         else:
             raise KeyError("the key is not in dictionary")
 
@@ -493,7 +476,7 @@ class ParameterSet:
         return False
 
     def latex_render(self, textArea=False):
-        """Method used to print parameters in latex form: **latex_render(parameter_set)**
+        r"""Method used to print parameters in latex form: **latex_render(parameter_set)**
         When parameter name is of the form name_indice this will lead to $name_{indice}$ latex form, number is
         automatically rendered as indice.
         Greek letters will also be escaped automatically lambda_wind will lead to $\lambda_{wind}$.
@@ -535,15 +518,12 @@ class ParameterSet:
             )
             if len(self.dictionary[key].defined_bounds) == 0:
                 # noinspection PyProtectedMember
-                expression = key_str + " = {:.2E}{}, ".format(
-                    self.dictionary[key]._SI_bounds[0], dimension
-                )
+                expression = key_str + f" = {self.dictionary[key]._SI_bounds[0]:.2E}{dimension}, "
             else:
                 # noinspection PyProtectedMember
-                expression = key_str + " \in [{:.2E},{:.2E}]{}, ".format(
-                    self.dictionary[key]._SI_bounds[0],
-                    self.dictionary[key]._SI_bounds[1],
-                    dimension,
+                expression = (
+                    key_str
+                    + rf" \in [{self.dictionary[key]._SI_bounds[0]:.2E},{self.dictionary[key]._SI_bounds[1]:.2E}]{dimension}, "
                 )
             if "*" in self.dictionary[key].description:
                 try:
@@ -597,8 +577,8 @@ class ParameterSet:
         # Check for accessible parameters (stored)
         proper_syntax = True
         for parameter_name in parameters_list:
-            if not (parameter_name in self.dictionary.keys()):
-                raise KeyError("parameter {} not in parameter set".format(parameter_name))
+            if parameter_name not in self.dictionary.keys():
+                raise KeyError(f"parameter {parameter_name} not in parameter set")
         if proper_syntax:
             # Delete the parameters to be saved first and save it back to the end of the list
             used_keys = []
@@ -609,7 +589,7 @@ class ParameterSet:
                 used_keys.append(parameter_name)
             # Write all the remaining parameters at the end of the dictionary
             for key in list(self.dictionary.keys()):
-                if not (key in used_keys):
+                if key not in used_keys:
                     temp = self.dictionary[key]
                     del self.dictionary[key]
                     self.dictionary[key] = temp
@@ -631,15 +611,13 @@ class PositiveParameterSet(ParameterSet):
 
     def __setitem__(self, key, value):
         """Method to replace parameter in a parameter set or expend dictionary if new key."""
-        if isinstance(key, str) and isinstance(value, PositiveParameter):
-            if key == value.name:
-                self.dictionary[key] = value
-            else:
-                raise KeyError("the key mismatch parameter name")
-        elif not (isinstance(key, str)):
+        if not isinstance(key, str):
             raise KeyError("key should be a string")
-        elif not (isinstance(PositiveParameter, str)):
+        if not isinstance(value, PositiveParameter):
             raise TypeError("assigned type should be a PositiveParameter")
+        if key != value.name:
+            raise KeyError("the key mismatch parameter name")
+        self.dictionary[key] = value
 
     def check_parameters(self, parameters_list: tuple):
         """Method (*internal*) to check parameters."""
@@ -651,7 +629,7 @@ class PositiveParameterSet(ParameterSet):
 
 
 # -------[Constraint Class Definition]------------------------------------------
-class Constraint(object):
+class Constraint:
     """Class defining a Constraint.
 
     Attributes
@@ -706,12 +684,12 @@ class Constraint(object):
         self.function_expr = None
         self._isAlgebraic = True
         # Adapt expression to the form expression>=0
-        if not ("<=" in expression) and not (">=" in expression):
+        if "<=" not in expression and ">=" not in expression:
             eps = sys.float_info.min
             if "<" in expression:
-                expression = expression.replace("<", "<=") + "-{}".format(eps)
+                expression = expression.replace("<", "<=") + f"-{eps}"
             elif ">" in expression:
-                expression = expression.replace(">", ">=") + "+{}".format(eps)
+                expression = expression.replace(">", ">=") + f"+{eps}"
             else:
                 raise SyntaxError("constraint expression should include inequality character.")
         if "<=" in expression:
@@ -764,9 +742,7 @@ class Constraint(object):
             for parameter in parameters:
                 if parameter in forbidden_param:
                     raise ValueError(
-                        "parameter names should not be recognized by sympy as constant or function: {}.".format(
-                            forbidden_param
-                        )
+                        f"parameter names should not be recognized by sympy as constant or function: {forbidden_param}."
                     )
             # Save parameters and expression
             self.parameters = parameters
@@ -780,14 +756,11 @@ class Constraint(object):
                 else:
                     s = s + parameter
             self.function = eval("lambda " + s + ": (" + str(expression) + ")")
-            print("step3 passed")
         except TypeError:
             raise SyntaxError("expression syntax is incorrect.")
         except Exception:
             raise SyntaxError(
-                "expression error type not handled, check that none of the parameter are in forbidden set:{}.".format(
-                    forbidden_param
-                )
+                f"expression error type not handled, check that none of the parameter are in forbidden set:{forbidden_param}."
             )
 
     def compute(self, parameters_dict):
@@ -800,8 +773,8 @@ class Constraint(object):
 
     def __str__(self):
 
-        s = "\nConstraint : {}\n".format(self.description)
-        s += "Contains {} parameter(s)\n".format(len(self.parameters))
+        s = f"\nConstraint : {self.description}\n"
+        s += f"Contains {len(self.parameters)} parameter(s)\n"
         s += "--------------------------------------------\n"
         s += "Parameters are: ("
         for parameter in self.parameters:
@@ -816,7 +789,7 @@ class Constraint(object):
 
 
 # -------[ConstraintSet Class Definition]---------------------------------------
-class ConstraintSet(object):
+class ConstraintSet:
     """Class defining a ConstraintSet.
 
     Attributes
@@ -842,15 +815,18 @@ class ConstraintSet(object):
         # save constraints and parameters
         for constraint in constraints:
             if isinstance(constraint, Constraint):
-                if not (constraint in self.constraints_list):
+                if constraint not in self.constraints_list:
                     self.parameters.extend(constraint.parameters)
                     self.constraints_list.append(constraint)
                 else:
                     warnings.warn(
-                        "trying to save the same constraint multiple times: duplicate ignored."
+                        "trying to save the same constraint multiple times: duplicate ignored.",
+                        stacklevel=2,
                     )
             else:
-                warnings.warn("some of the entry are not Constraint type and will be ignored.")
+                warnings.warn(
+                    "some of the entry are not Constraint type and will be ignored.", stacklevel=2
+                )
         # Delete multiple data save
         if len(self.parameters) > 1:
             self.parameters = list(set(self.parameters))
@@ -860,9 +836,9 @@ class ConstraintSet(object):
         if isinstance(parameter_set, ParameterSet):
             # check that all used parameters from constraints are declared
             for parameter in self.parameters:
-                # noinspection PyUnresolvedReferences
-                if not (parameter in list(ParameterSet.dictionary.keys())):
+                if parameter not in parameter_set.dictionary.keys():
                     return []
+            parameter_names = list(parameter_set.dictionary.keys())
 
             # write function
 
@@ -871,24 +847,17 @@ class ConstraintSet(object):
                 if not isinstance(X, numpy.ndarray):
                     return []
                 # check X dimension
-                if numpy.shape(X)[1] != len(list(parameter_set.dictionary.keys())):
+                if numpy.shape(X)[1] != len(parameter_names):
                     return []
-                # define function using constraints
-                Y = []
-                # Get pi equations
+                # evaluate each constraint on the DOE and combine them (logical AND)
+                Y = numpy.ones(numpy.shape(X)[0], dtype=bool)
                 for constraint in self.constraints_list:
-                    expression = constraint.function_expr
-                    # noinspection PyShadowingNames
-                    idx = 0
-                    # noinspection PyShadowingNames
-                    for parameter in parameter_set.dictionary.keys():
-                        idx += 1
-                        expression = expression.replace(parameter, "X[:,{}]".format(idx))
-                    Y_local = numpy.array(exec(expression)).dtype(bool)
-                    if len(Y) == 0:
-                        Y = Y_local
-                    else:
-                        Y = Y * Y_local
+                    values = {
+                        name: X[:, idx]
+                        for idx, name in enumerate(parameter_names)
+                        if name in constraint.parameters
+                    }
+                    Y = Y & (numpy.asarray(constraint.compute(values)) >= 0)
                 return Y
 
             return f
@@ -896,6 +865,6 @@ class ConstraintSet(object):
     def __str__(self):
 
         s = "\nConstraint Set : \n"
-        s += "Contains {} constraint(s)\n".format(len(self.constraints_list))
+        s += f"Contains {len(self.constraints_list)} constraint(s)\n"
         s += "--------------------------------------------\n"
         return s

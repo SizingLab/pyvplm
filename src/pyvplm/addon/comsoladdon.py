@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 """
 Specific module to interface variablepowerlaw module with comsol FEM software
 
 """
 
 # -------[Import necessary packages]--------------------------------------------
-import numpy
+import logging
 import warnings
-import re
+
+import numpy
 import pandas
 import pint
-import logging
 from numpy import ndarray
+
 from pyvplm.core.definition import PositiveParameterSet
 
 
@@ -41,7 +41,7 @@ def save_file(
     ):
         test_mode = False
         for key, value in kwargs.items():
-            if not (key in ["test_mode"]):
+            if key not in ["test_mode"]:
                 raise KeyError("unknown argument " + key)
             elif key == "test_mode":
                 if isinstance(value, bool):
@@ -70,9 +70,8 @@ def save_file(
                 doe_x[:, idx] = numpy.minimum(doe_x[:, idx], bounds[1])
             elif (min_value < bounds[0]) or (max_value > bounds[1]):
                 warnings.warn(
-                    "for parameter {} saved values are out of bounds with more than 0.01% flexibility!".format(
-                        key_list[idx]
-                    )
+                    f"for parameter {key_list[idx]} saved values are out of bounds with more than 0.01% flexibility!",
+                    stacklevel=2,
                 )
         # Write each parameter value on a line
         try:
@@ -153,7 +152,7 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
             file_name = file_name + ".txt"
             empty_file = True
             labels = []
-            with open(file_name, "r") as file:
+            with open(file_name) as file:
                 line = file.readline()
                 previous_line = line
                 while len(line) != 0:
@@ -162,7 +161,7 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
                         # Extract parameters list
                         if len(labels) == 0:
                             s = previous_line[2 : len(previous_line)]
-                            labels = eval("['" + re.sub("\s+", "','", s.strip()) + "']")
+                            labels = s.strip().split()
                             non_units = numpy.ones(len(labels)).astype(bool)
                             for idx in range(len(labels)):
                                 parameter = str(labels[idx])
@@ -173,8 +172,7 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
                             labels = numpy.array(labels)
                             labels = labels[non_units].tolist()
                         # Extract values
-                        s = line
-                        values = numpy.array(eval("[" + re.sub("\s+", ",", s.strip()) + "]"))
+                        values = numpy.array([float(item) for item in line.strip().split()])
                         if len(doe_x) == 0:
                             doe_x = values
                         else:
@@ -214,17 +212,14 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
                                         if str(value.units) != parameter_set[parameter]._SI_units:
                                             # noinspection PyProtectedMember
                                             raise ValueError(
-                                                "dimensions mismatch for parameter {}, {} found instead of {}.".format(
-                                                    parameter,
-                                                    str(value.units),
-                                                    parameter_set[parameter]._SI_units,
-                                                )
+                                                f"dimensions mismatch for parameter {parameter}, {str(value.units)} found instead of {parameter_set[parameter]._SI_units}."
                                             )
                                 except Exception as e:
                                     labels[idx] = parameter
                                     warnings.warn(
-                                        "parameter {} units defined in file are unreadable, "
-                                        "SI units are applied!".format(parameter)
+                                        f"parameter {parameter} units defined in file are unreadable, "
+                                        "SI units are applied!",
+                                        stacklevel=2,
                                     )
                                     logging.exception(e)
                     else:
@@ -243,8 +238,9 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
                             except Exception as e:
                                 labels[idx] = parameter
                                 warnings.warn(
-                                    "parameter {} units defined in file are unreadable, it is supposed to be "
-                                    "SI units!".format(parameter)
+                                    f"parameter {parameter} units defined in file are unreadable, it is supposed to be "
+                                    "SI units!",
+                                    stacklevel=2,
                                 )
                                 logging.exception(e)
                 # Adapt values with units and erase in name if in parameter set
@@ -286,12 +282,13 @@ def import_file(file_name: str, parameter_set: PositiveParameterSet, units: str)
                     if parameter in labels:
                         new_labels.extend([parameter])
                     else:
-                        warnings.warn("parameter {} not found in imported file!".format(parameter))
+                        warnings.warn(
+                            f"parameter {parameter} not found in imported file!", stacklevel=2
+                        )
                 for label in labels:
-                    if not (label in new_labels):
+                    if label not in new_labels:
                         new_labels.extend([label])
                 doe_x = doe_x[new_labels]
-            file.close()
             return doe_x
         except SyntaxError:
             raise SyntaxError(

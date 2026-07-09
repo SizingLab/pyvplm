@@ -1,1 +1,1 @@
-# -*- coding: utf-8 -*-
+"""Core classes for parameter and constraint definition."""
