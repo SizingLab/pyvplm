@@ -53,8 +53,22 @@ Notebooks & widgets
 - Motor example migrated from ``pyDOE2`` to ``pyDOE3`` and from Excel
   (``.xls``/``.xlsx``, removed dependencies) to CSV data files.
 - The interactive ipywidgets paths (``pi_sensitivity``/``pi_dependency`` with
-  widgets enabled) are covered by headless smoke tests, including the
-  'Apply' button callbacks, validating ipywidgets >= 8 compatibility.
+  widgets enabled) are covered by headless tests validating ipywidgets >= 8
+  compatibility.
+
+Plots & interactivity
+---------------------
+- New ``pyvplm.plotting`` module: a shared, colorblind-safe visual theme
+  (validated categorical palette, role-based colors, clean grid/typography)
+  applied to every plot through a non-leaking ``rc_context``.
+- All plots restyled: consistent series colors and markers, visual hierarchy
+  in DOE scatter plots (context clouds in gray, elected points in accent
+  colors), single-hue histogram with mean reference line, soft sequential
+  background shading for impact factors and best-model highlights.
+- Interactive widgets redesigned: pi selection chips (unicode π toggle
+  buttons) and graph sliders now update the plot live in place - no more
+  'Apply' button and full-output clear/redraw. ``pi_sensitivity`` and
+  ``pi_dependency`` return the assembled widget app when widgets are enabled.
 
 Version 0.1.0-beta
 ===================
