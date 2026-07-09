@@ -58,3 +58,6 @@ MANIFEST
 # Per-project virtualenvs
 .venv*/
 venv*/
+
+# Generated notebook outputs
+notebooks/04_motor_example/output.csv
