@@ -7,6 +7,14 @@ Version 0.2.0
 
 Modernization release: professional packaging, CI and test infrastructure.
 
+Regression
+----------
+- ``regression_models`` accepts two optional arguments, defaults unchanged:
+  ``groups`` validates by leaving one whole group of points out at a time
+  (an engine, a component, a range) and returns the tested-set error per
+  group under ``'group errors'``; ``weights`` weights every least-squares
+  fit, term ranking included, while reported errors stay unweighted.
+
 Packaging
 ---------
 - Migrated from Poetry to `uv <https://docs.astral.sh/uv/>`_ with a PEP 621

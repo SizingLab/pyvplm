@@ -1029,6 +1029,15 @@ def regression_models(
               * **eff_pi0** (*int*): effective pi0 index in the modfied DOE (used only with removed_pi)
               * **return_axes** (*bool*): returns the axes objects for the plots if True (default is False)
               * **fig_size** (*tuple*): tuple of 2 numbers specifying the width and height of the plot in inches
+              * **groups** (*numpy.ndarray* of int, length m): group label of each experiment (an engine,
+              a component, a range). When given, cross-validation leaves one whole group out at a time
+              instead of one point: the tested set gathers the predictions of each group by the model
+              fitted without it, the trained set is the fit on all points (and gives the saved
+              coefficients). At least 2 distinct labels; overrides skip_cross_validation
+              (default is None, leave-one-point-out)
+              * **weights** (*numpy.ndarray* of float > 0, length m): weight of each experiment. Every fit,
+              term ranking included, minimises sum(w * residual**2) by scaling the rows of X and Y by
+              sqrt(w). Reported relative errors stay unweighted (default is None, all points equal)
     Returns
     -------
     models: dict of [1*4] tuple
@@ -1047,6 +1056,11 @@ def regression_models(
                 * dict['ave. abs(e)']: (1*2) tuple containing trained and test sets average absolute relative error
                 * dict['ave. e']: (1*2) tuple containing trained and test sets average relative error
                 * dict['sigma e']: (1*2) tuple containing trained and test sets standard deviation on relative error
+
+            Only when groups is given:
+                * dict['group errors']: pandas.DataFrame of the tested-set error of the last model per
+                group (index **group**, columns **max |e|**, **ave. |e|**, **ave. e**, **sigma e**, **n**)
+                * dict['group errors by model']: list of these frames, item i-1 for model i
 
     Example
     -------
