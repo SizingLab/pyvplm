@@ -1097,6 +1097,7 @@ def regression_models(
         return_axes = False
         fig_size = ()
         groups = None
+        weights = None
         error_train = []
         coeff = []
         for key, value in kwargs.items():
@@ -1113,6 +1114,7 @@ def regression_models(
                 "return_axes",
                 "fig_size",
                 "groups",
+                "weights",
             ]:
                 raise KeyError("unknown argument " + key)
             elif key == "ymax_axis":
@@ -1180,6 +1182,14 @@ def regression_models(
                     groups = value
                 else:
                     raise TypeError("groups should be a numpy array of int")
+            elif key == "weights":
+                if isinstance(value, numpy.ndarray) and (
+                    numpy.issubdtype(value.dtype, numpy.floating)
+                    or numpy.issubdtype(value.dtype, numpy.integer)
+                ):
+                    weights = value
+                else:
+                    raise TypeError("weights should be a numpy array of float")
         if groups is not None:
             if groups.shape != (numpy.shape(doe)[0],):
                 raise ValueError(
@@ -1187,6 +1197,24 @@ def regression_models(
                 )
             if len(numpy.unique(groups)) < 2:
                 raise ValueError("groups should contain at least 2 distinct values")
+        if weights is not None:
+            if weights.shape != (numpy.shape(doe)[0],):
+                raise ValueError(
+                    f"weights should be a 1-D array of length {numpy.shape(doe)[0]} (one per point)"
+                )
+            if not numpy.all(numpy.isfinite(weights) & (weights > 0)):
+                raise ValueError("weights should be finite and strictly positive")
+            sqrt_weights = numpy.sqrt(weights)
+        else:
+            sqrt_weights = None
+
+        def weighted_lstsq(a, b, sqrt_w):
+            # Scaling rows by sqrt(w) makes lstsq minimise sum(w * residual**2)
+            if sqrt_w is not None:
+                a = a * sqrt_w[:, None]
+                b = b * sqrt_w
+            return scipy.linalg.lstsq(a, b)[0]
+
         # Adapt X if necessary
         if numpy.any(numpy.isnan(doe)):
             raise ValueError("DOE should not contain nan values")
@@ -1283,7 +1311,7 @@ def regression_models(
                 values[available_labels[idx]] = x_remaining[available_labels[idx]]
                 values = values.values
                 # calculate regression coefficients
-                coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
+                coeff = weighted_lstsq(values, Y, sqrt_weights)
                 # calculate error on trained set
                 y_pred = numpy.dot(values, coeff)
                 if log_space:
@@ -1330,13 +1358,17 @@ def regression_models(
             if groups is not None:
                 # Leave-one-group-out: trained set is the full fit, tested set gathers the
                 # predictions of each group by the model fitted without it
-                coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
+                coeff = weighted_lstsq(values, Y, sqrt_weights)
                 error_train = relative_error(numpy.dot(values, coeff), Y)
                 error_test = numpy.zeros(numpy.shape(Y))
                 group_values = numpy.unique(groups)
                 for group in group_values:
                     in_group = groups == group
-                    fold_coeff, _, _, _ = scipy.linalg.lstsq(values[~in_group], Y[~in_group])
+                    fold_coeff = weighted_lstsq(
+                        values[~in_group],
+                        Y[~in_group],
+                        None if sqrt_weights is None else sqrt_weights[~in_group],
+                    )
                     error_test[in_group] = relative_error(
                         numpy.dot(values[in_group], fold_coeff), Y[in_group]
                     )
@@ -1355,7 +1387,7 @@ def regression_models(
                 )
             # FIXES 06/05/21: permit to skip cross-validation for big data matrices
             elif (numpy.shape(values)[0] > 10 * numpy.shape(X.values)[1]) and skip_cross_validation:
-                coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
+                coeff = weighted_lstsq(values, Y, sqrt_weights)
                 y_pred = numpy.dot(values, coeff)
                 if log_space:
                     y_pred = 10.0**y_pred
@@ -1369,8 +1401,10 @@ def regression_models(
                 error_test = numpy.zeros(shape=numpy.shape(error_train))
             else:
                 for test_idx in range(numpy.shape(values)[0]):
-                    coeff, _, _, _ = scipy.linalg.lstsq(
-                        numpy.delete(values, test_idx, 0), numpy.delete(Y, test_idx, 0)
+                    coeff = weighted_lstsq(
+                        numpy.delete(values, test_idx, 0),
+                        numpy.delete(Y, test_idx, 0),
+                        None if sqrt_weights is None else numpy.delete(sqrt_weights, test_idx),
                     )
                     # Calculate error on trained set when selecting last point for cross validation (saved model expr.)
                     if test_idx == (numpy.shape(values)[0] - 1):
