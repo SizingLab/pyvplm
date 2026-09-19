@@ -15,7 +15,14 @@ import re
 import numpy
 import pytest
 
-from pyvplm.addon.variablepowerlaw import perform_regression, regression_models
+from pyvplm.addon.variablepowerlaw import (
+    evaluate_model,
+    model_from_json,
+    model_terms,
+    model_to_json,
+    perform_regression,
+    regression_models,
+)
 
 REFERENCE_FILE = pathlib.Path(__file__).parent / "data" / "regression_models_reference.json"
 
@@ -211,6 +218,84 @@ class TestGroupsAndWeights:
     def test_invalid_groups_and_weights_rejected(self, power_law_doe, kwargs, error):
         with pytest.raises(error):
             _fit_models(power_law_doe, **kwargs)
+
+
+class TestModelExport:
+    def test_terms_carry_labels_coefficients_and_powers(self, power_law_doe):
+        models = _fit_models(power_law_doe)
+        terms, meta = model_terms(models, 6)
+        assert meta["output"] == "pi1" and meta["inputs"] == ["pi2", "pi3"]
+        assert meta["log_space"] and meta["log_base"] == 10
+        assert list(terms.columns) == ["label", "coeff", "pi2", "pi3"]
+        assert terms["label"][0] == "(constant)"
+        numpy.testing.assert_array_equal(terms["coeff"], models[6][1])
+        expected_powers = {
+            "(constant)": (0, 0),
+            "log(pi2)": (1, 0),
+            "log(pi2)**2": (2, 0),
+            "log(pi2)*log(pi3)": (1, 1),
+            "log(pi3)": (0, 1),
+            "log(pi3)**2": (0, 2),
+        }
+        for _, row in terms.iterrows():
+            assert (row["pi2"], row["pi3"]) == expected_powers[row["label"]]
+            key = "" if row["label"] == "(constant)" else row["label"]
+            assert row["coeff"] == pytest.approx(TRUE_MODEL[key], abs=1e-3)
+
+    def test_names_replace_pi(self, power_law_doe):
+        terms, meta = model_terms(_fit_models(power_law_doe), 6, names=["y", "a", "b"])
+        assert meta["output"] == "y" and meta["inputs"] == ["a", "b"]
+        assert set(terms["label"]) == {
+            "(constant)",
+            "log(a)",
+            "log(a)**2",
+            "log(a)*log(b)",
+            "log(b)",
+            "log(b)**2",
+        }
+
+    @pytest.mark.parametrize("order, log_space", [(2, True), (3, True), (1, False)])
+    def test_evaluation_reproduces_trained_set(self, power_law_doe, order, log_space):
+        models = regression_models(
+            power_law_doe,
+            "pi1",
+            order,
+            test_mode=True,
+            plots=False,
+            log_space=log_space,
+            groups=numpy.arange(len(power_law_doe)) % 4,
+        )
+        chosen = max(key for key in models if isinstance(key, int))
+        terms, meta = model_terms(models, chosen)
+        y = evaluate_model(terms, meta, power_law_doe[:, 1:])
+        error = (y - power_law_doe[:, 0]) / power_law_doe[:, 0] * 100
+        # with groups, the saved coefficients are the full fit that gives the trained set
+        assert numpy.amax(numpy.absolute(error)) == pytest.approx(
+            models["max |e|"][0][-1], rel=1e-9, abs=1e-9
+        )
+
+    def test_json_round_trip_is_exact(self, power_law_doe, tmp_path):
+        terms, meta = model_terms(_fit_models(power_law_doe), 4, names=["y", "a", "b"])
+        path = tmp_path / "model.json"
+        text = model_to_json(terms, meta, str(path))
+        for source in [str(path), text]:
+            read_terms, read_meta = model_from_json(source)
+            assert read_meta == meta
+            assert read_terms.equals(terms)
+
+    def test_invalid_arguments_rejected(self, power_law_doe):
+        models = _fit_models(power_law_doe)
+        with pytest.raises(KeyError):
+            model_terms(models, 7)
+        with pytest.raises(ValueError):
+            model_terms(models, 6, names=["y", "a"])
+        with pytest.raises(TypeError):
+            model_terms(models, 6, names="yab")
+        terms, meta = model_terms(models, 6)
+        with pytest.raises(ValueError):
+            evaluate_model(terms, meta, power_law_doe)
+        with pytest.raises(ValueError):
+            evaluate_model(terms, meta, -power_law_doe[:, 1:])
 
 
 class TestPerformRegression:

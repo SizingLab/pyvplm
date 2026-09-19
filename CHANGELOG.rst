@@ -14,6 +14,10 @@ Regression
   (an engine, a component, a range) and returns the tested-set error per
   group under ``'group errors'``; ``weights`` weights every least-squares
   fit, term ranking included, while reported errors stay unweighted.
+- New ``model_terms`` exports a chosen model as a table of terms (label,
+  full-precision coefficient, power of each input pi, optional names), with
+  ``model_to_json``/``model_from_json`` and ``evaluate_model`` so that another
+  code can store and evaluate the law without parsing the expression.
 
 Packaging
 ---------

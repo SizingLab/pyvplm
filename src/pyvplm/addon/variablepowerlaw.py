@@ -5,8 +5,10 @@ Addon module fitting variable power law response surface on dimensionless parame
 # -------[Import necessary packages]--------------------------------------------
 import ast
 import copy
+import json
 import logging
 import os
+import re
 import sys
 import tempfile
 import warnings
@@ -1708,6 +1710,169 @@ def concatenate_expression(expression: str, pi_list: list[str]) -> str:
         new_expression = new_expression.replace("*", r" \cdot ")
         new_expression = "$" + new_expression + "$"
     return new_expression
+
+
+# -------[Define functions exporting a regression model as structured terms]----
+def _parse_expression(expression: str) -> tuple[str, list[str]]:
+    """Split a regression_models expression into its output pi and its term labels."""
+    lhs, body = expression.split("=", 1)
+    labels = []
+    for term in re.split(r"(?=[+-])", body.replace(" ", "")):
+        if term:
+            labels.append(term.partition("*")[2])
+    return re.search(r"pi\d+", lhs).group(0), labels
+
+
+def _label_powers(label: str) -> dict[str, int]:
+    powers = {}
+    for index, power in re.findall(r"pi(\d+)\)?(?:\*\*(\d+))?", label):
+        powers["pi" + index] = powers.get("pi" + index, 0) + int(power or 1)
+    return powers
+
+
+def model_terms(
+    models: dict, chosen_model: int, names: list[str] | None = None
+) -> tuple[DataFrame, dict]:
+    """Export a model of :func:`~pyvplm.addon.variablepowerlaw.regression_models` as a table
+    of terms: label, coefficient and power of each input pi in the term.
+
+    In log space a power is the exponent of log10(pi) in the monomial: 'log(pi2)**2*log(pi5)'
+    has 2 on pi2 and 1 on pi5. Coefficients are the full-precision dict[i][1], i.e. the fit
+    without the last point in leave-one-point-out mode and the fit on all points with groups.
+
+    Parameters
+    ----------
+    models: output of regression_models
+
+    chosen_model: model number, >=1
+
+    names: optional names of the pi in DOE order (names[j-1] for pij), used in place of pij
+           in labels, columns and metadata
+
+    Returns
+    -------
+    terms: pandas.DataFrame, one row per term in order of selection (row 0 is the constant),
+           columns **label**, **coeff** then one column of int powers per input
+    meta: dict with **output**, **inputs**, **log_space**, **log_base** (10 or None),
+          **model** and **expression**
+
+    Example
+    -------
+        >>> In [1]: models = regression_models(doe_pi, 'pi1', 2, test_mode=True)
+        >>> In [2]: terms, meta = model_terms(models, 6, names=['kappa', 'BPR', 'OPR'])
+        >>> In [3]: y = evaluate_model(terms, meta, doe_pi[:, 1:])
+    """
+    if not isinstance(chosen_model, int) or chosen_model not in models:
+        raise KeyError("chosen_model should be one of the model numbers of models.")
+    expression = models[chosen_model][0]
+    coeff = numpy.asarray(models[chosen_model][1], dtype=float)
+    output, labels = _parse_expression(expression)
+    if len(labels) != len(coeff):
+        raise ValueError(f"cannot read {len(coeff)} terms from expression '{expression}'.")
+    # The largest model holds every first-order term, hence every input pi
+    last_model = max(key for key in models if isinstance(key, int))
+    inputs = sorted(
+        {
+            pi
+            for label in _parse_expression(models[last_model][0])[1]
+            for pi in _label_powers(label)
+        },
+        key=lambda pi: int(pi[2:]),
+    )
+    if names is not None:
+        if not isinstance(names, list) or not all(isinstance(name, str) for name in names):
+            raise TypeError("names should be a list of str.")
+        needed = max(int(pi[2:]) for pi in inputs + [output])
+        if len(names) < needed:
+            raise ValueError(f"names should hold at least {needed} names (one per pi).")
+
+        def rename(text):
+            return re.sub(r"pi(\d+)", lambda match: names[int(match.group(1)) - 1], text)
+    else:
+
+        def rename(text):
+            return text
+
+    table = {
+        "label": [rename(label) if label else "(constant)" for label in labels],
+        "coeff": coeff,
+    }
+    powers = [_label_powers(label) for label in labels]
+    for pi in inputs:
+        table[rename(pi)] = [power.get(pi, 0) for power in powers]
+    terms = DataFrame(table, index=pandas.RangeIndex(len(labels), name="term"))
+    log_space = expression.startswith("log(")
+    meta = {
+        "output": rename(output),
+        "inputs": [rename(pi) for pi in inputs],
+        "log_space": log_space,
+        "log_base": 10 if log_space else None,
+        "model": chosen_model,
+        "expression": expression,
+    }
+    return terms, meta
+
+
+def model_to_json(terms: DataFrame, meta: dict, path: str | None = None) -> str:
+    """Serialise the output of :func:`~pyvplm.addon.variablepowerlaw.model_terms` to JSON
+    (coefficients kept at full precision, powers listed when non-zero), written to path if given.
+    """
+    content = {
+        "meta": meta,
+        "terms": [
+            {
+                "label": row["label"],
+                "coeff": float(row["coeff"]),
+                "powers": {name: int(row[name]) for name in meta["inputs"] if row[name] != 0},
+            }
+            for _, row in terms.iterrows()
+        ],
+    }
+    text = json.dumps(content, indent=2)
+    if path is not None:
+        with open(path, "w") as file:
+            file.write(text + "\n")
+    return text
+
+
+def model_from_json(source: str) -> tuple[DataFrame, dict]:
+    """Read back a model written by :func:`~pyvplm.addon.variablepowerlaw.model_to_json`;
+    source is a file path or the JSON text itself."""
+    if os.path.isfile(source):
+        with open(source) as file:
+            source = file.read()
+    content = json.loads(source)
+    meta = content["meta"]
+    table = {
+        "label": [term["label"] for term in content["terms"]],
+        "coeff": numpy.array([term["coeff"] for term in content["terms"]], dtype=float),
+    }
+    for name in meta["inputs"]:
+        table[name] = [term["powers"].get(name, 0) for term in content["terms"]]
+    return DataFrame(table, index=pandas.RangeIndex(len(content["terms"]), name="term")), meta
+
+
+def evaluate_model(terms: DataFrame, meta: dict, inputs) -> ndarray:
+    """Evaluate the output pi of a model exported by
+    :func:`~pyvplm.addon.variablepowerlaw.model_terms`.
+
+    inputs: [n*p] numpy.ndarray with columns ordered as meta['inputs'], or a pandas.DataFrame
+            holding those columns
+    """
+    if isinstance(inputs, DataFrame):
+        inputs = inputs[meta["inputs"]].to_numpy(dtype=float)
+    inputs = numpy.atleast_2d(numpy.asarray(inputs, dtype=float))
+    if inputs.shape[1] != len(meta["inputs"]):
+        raise ValueError(f"inputs should have {len(meta['inputs'])} columns: {meta['inputs']}.")
+    if meta["log_space"]:
+        if numpy.any(inputs <= 0.0):
+            raise ValueError("inputs should be strictly positive for a log-space model.")
+        inputs = numpy.log10(inputs)
+    powers = terms[meta["inputs"]].to_numpy(dtype=float)
+    y = numpy.zeros(inputs.shape[0])
+    for coeff, power in zip(terms["coeff"].to_numpy(dtype=float), powers):
+        y += coeff * numpy.prod(inputs**power, axis=1)
+    return 10.0**y if meta["log_space"] else y
 
 
 # -------[Define function to change xi set definition after FEM calculation]----
