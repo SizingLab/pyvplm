@@ -1096,6 +1096,7 @@ def regression_models(
         eff_elected_pi0 = elected_pi0
         return_axes = False
         fig_size = ()
+        groups = None
         error_train = []
         coeff = []
         for key, value in kwargs.items():
@@ -1111,6 +1112,7 @@ def regression_models(
                 "eff_pi0",
                 "return_axes",
                 "fig_size",
+                "groups",
             ]:
                 raise KeyError("unknown argument " + key)
             elif key == "ymax_axis":
@@ -1171,6 +1173,20 @@ def regression_models(
                     fig_size = value
                 else:
                     raise ValueError("fig_size should be a tuple")
+            elif key == "groups":
+                if isinstance(value, numpy.ndarray) and numpy.issubdtype(
+                    value.dtype, numpy.integer
+                ):
+                    groups = value
+                else:
+                    raise TypeError("groups should be a numpy array of int")
+        if groups is not None:
+            if groups.shape != (numpy.shape(doe)[0],):
+                raise ValueError(
+                    f"groups should be a 1-D array of length {numpy.shape(doe)[0]} (one per point)"
+                )
+            if len(numpy.unique(groups)) < 2:
+                raise ValueError("groups should contain at least 2 distinct values")
         # Adapt X if necessary
         if numpy.any(numpy.isnan(doe)):
             raise ValueError("DOE should not contain nan values")
@@ -1299,11 +1315,46 @@ def regression_models(
         X = X[labels]
         # Calculate the regression models considering parameters by order of decreasing correlation
         models = {}
+        group_errors = []
+
+        def relative_error(y_pred, y_true):
+            if log_space:
+                y_pred = 10.0**y_pred
+                y_true = 10.0**y_true
+            y_true = y_true + (y_true == 0.0) * sys.float_info.min
+            return (y_pred - y_true) * (1 / y_true) * 100
+
         for idx in range(numpy.shape(X.values)[1]):
             error_test = numpy.array([])
             values = X.values[:, 0 : idx + 1]
+            if groups is not None:
+                # Leave-one-group-out: trained set is the full fit, tested set gathers the
+                # predictions of each group by the model fitted without it
+                coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
+                error_train = relative_error(numpy.dot(values, coeff), Y)
+                error_test = numpy.zeros(numpy.shape(Y))
+                group_values = numpy.unique(groups)
+                for group in group_values:
+                    in_group = groups == group
+                    fold_coeff, _, _, _ = scipy.linalg.lstsq(values[~in_group], Y[~in_group])
+                    error_test[in_group] = relative_error(
+                        numpy.dot(values[in_group], fold_coeff), Y[in_group]
+                    )
+                group_error = [error_test[groups == group] for group in group_values]
+                group_errors.append(
+                    pandas.DataFrame(
+                        {
+                            "max |e|": [numpy.amax(numpy.absolute(e)) for e in group_error],
+                            "ave. |e|": [numpy.mean(numpy.absolute(e)) for e in group_error],
+                            "ave. e": [numpy.mean(e) for e in group_error],
+                            "sigma e": [numpy.std(e) for e in group_error],
+                            "n": [len(e) for e in group_error],
+                        },
+                        index=pandas.Index(group_values, name="group"),
+                    )
+                )
             # FIXES 06/05/21: permit to skip cross-validation for big data matrices
-            if (numpy.shape(values)[0] > 10 * numpy.shape(X.values)[1]) and skip_cross_validation:
+            elif (numpy.shape(values)[0] > 10 * numpy.shape(X.values)[1]) and skip_cross_validation:
                 coeff, _, _, _ = scipy.linalg.lstsq(values, Y)
                 y_pred = numpy.dot(values, coeff)
                 if log_space:
@@ -1482,6 +1533,9 @@ def regression_models(
         models["ave. |e|"] = [abs_error_average_train, abs_error_average_test]
         models["ave. e"] = [error_average_train, error_average_test]
         models["sigma e"] = [error_sigma_train, error_sigma_test]
+        if groups is not None:
+            models["group errors"] = group_errors[-1]
+            models["group errors by model"] = group_errors
         if show_plots and return_axes:
             # noinspection PyUnboundLocalVariable
             return models, axs, fig
